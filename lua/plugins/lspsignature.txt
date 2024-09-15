@@ -1,0 +1,1 @@
+// no needed, since there is cmp-snip-signature-helper plugin
