@@ -4,6 +4,7 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+
 -- auto-seesion option
 vim.o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,localoptions"
 
@@ -35,9 +36,8 @@ require "config.border"
 
 -- Schedule mappings to be loaded after all configurations
 vim.schedule(function()
-	--require "nvchad.options"   -- Load NVChad options
-	--require "nvchad.mappings"  -- Load NVChad mappings
-	require "config.keymaps"
-	--require "nvchad.autocmds"  -- Load NVChad autocommands
+  --require "nvchad.options"   -- Load NVChad options
+  --require "nvchad.mappings"  -- Load NVChad mappings
+  require "config.keymaps"
+  --require "nvchad.autocmds"  -- Load NVChad autocommands
 end)
-

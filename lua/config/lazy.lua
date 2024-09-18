@@ -6,7 +6,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo({
       { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-      { out, "WarningMsg" },
+      { out,                            "WarningMsg" },
       { "\nPress any key to exit..." },
     }, true, {})
     vim.fn.getchar()
@@ -15,11 +15,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Make sure to setup `mapleader` and `maplocalleader` before
--- loading lazy.nvim so that mappings are correct.
--- This is also a good place to setup other settings (vim.opt)
-vim.g.mapleader = " "
-vim.g.maplocalleader = "\\"
+
 
 -- Setup lazy.nvim
 require("lazy").setup({
@@ -35,28 +31,29 @@ require("lazy").setup({
   -- automatically check for plugin updates
   checker = { enabled = true },
 
---------------- border around lazy window -----------------
--- https://www.reddit.com/r/neovim/comments/18o51zv/how_to_add_border_around_lazypackage_manager/
+  --------------- border around lazy window -----------------
+  -- https://www.reddit.com/r/neovim/comments/18o51zv/how_to_add_border_around_lazypackage_manager/
 
-ui = {
-		--border = "none",
-		--border = "single",
-		--border = "double",
-		border = "rounded",
-		--border = "solid",
-		--border = "shadow",
-		size = {
-			width = 0.8,
-			height = 0.8,
-		},
-	},
+  ui = {
+    --border = "none",
+    --border = "single",
+    --border = "double",
+    border = "rounded",
+    --border = "solid",
+    --border = "shadow",
+    size = {
+      width = 0.8,
+      height = 0.8,
+    },
+  },
 
-	checker = {
-		enabled = true,
-		notify = false,
-	},
-	change_detection = {
-		notify = false,
-	},
+  checker = {
+    enabled = true,
+    notify = false,
+  },
+  change_detection = {
+    notify = false,
+  },
 
 })
+

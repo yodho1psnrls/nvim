@@ -14,6 +14,27 @@ vim.cmd [[
   highlight Search ctermfg=Black ctermbg=Yellow guifg=Black guibg=Yellow
   highlight IncSearch ctermfg=Black ctermbg=Yellow guifg=Black guibg=Yellow
 ]]
+--vim.cmd [[
+--  highlight Search guifg=Yellow guibg=DarkRed
+--  highlight IncSearch guifg=Black guibg=Yellow
+--]]
+-- Set highlight groups in Lua
+--vim.api.nvim_set_hl(0, 'Search', { fg = 'Yellow', bg = 'DarkRed' })
+--vim.api.nvim_set_hl(0, 'IncSearch', { fg = 'Black', bg = 'Yellow' })
+
+
+
+-- trigger the hover documentation (which often shows type,
+-- function signatures, or other useful info) when hovering over a symbol.
+--map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+
+--hover documentation to appear automatically after hovering
+--the cursor over a variable or function for a brief time
+vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+
+
+-- Set the delay time in milliseconds (e.g., 1000 ms = 1 second)
+-- vim.o.updatetime = 690 --660 --590
 
 -- Set dashboard hyper theme weekend day color to white
 --vim.cmd [[
@@ -50,7 +71,7 @@ vim.cmd([[
 -- the theme and then override just these highlights without changing the
 -- rest of the theme
 -- (apply your custom highlights)
---[[
+
 vim.cmd([[
   highlight! CmpPmenu guibg=#1f1d2e guifg=#e0def4
   highlight! CmpSel guibg=#c4a7e7 guifg=#191724 gui=bold
@@ -58,7 +79,7 @@ vim.cmd([[
   highlight! CmpSignature guibg=#2a273f guifg=#e0def4
   highlight! CmpDocBorder guifg=#c4a7e7
   highlight! CmpSignatureBorder guifg=#c4a7e7
-]] --)
+]])
 
 ----------------------------------------------------------------------
 

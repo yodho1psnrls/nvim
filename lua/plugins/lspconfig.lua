@@ -1,7 +1,8 @@
+-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#ccls
+
 return {
 
   --https://github.com/Issafalcon/lsp-overloads.nvim
-
   { "Issafalcon/lsp-overloads.nvim" },
 
   {
@@ -70,6 +71,7 @@ return {
 
       -- Setup the language servers
       local lspconfig = require("lspconfig")
+      local util = require("lspconfig.util")
 
 
       -- Custom handler for signature help (To make the windows non-focusable)
@@ -102,71 +104,105 @@ return {
       })
 
 
-      lspconfig.ccls.setup({
+      -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#clangd
+      --lspconfig.clangd.setup{}
+      lspconfig.clangd.setup {
+        -- make clang to use cache indexing (as ccls)
+        cmd = { "clangd", "--background-index" },
+        -- It will save the cache on a default path
+        -- which is ~/AppData/Local/clangd/index
+        -- If you want to specify another path
+        -- you need to set this environmental variable:
+        -- set CLANGD_INDEX_STORAGE_PATH=C:\path\to\custom\cache (cmd)
+        -- $env:CLANGD_INDEX_STORAGE_PATH = "C:\path\to\custom\cache" (powershell)
+
+        root_dir = function(fname)
+          return util.find_git_ancestor(fname) or vim.fn.getcwd()
+        end,
+
+        --root_dir = function(fname)
+        --  return util.root_pattern('compile_commands.json', '.git')(fname)
+        --end,
+
+
+      }
+
+
+      --[[
+      lspconfig.ccls.setup {
+        cmd = { 'ccls' },
+        filetypes = { 'c', 'cpp', 'objective-c', 'objective-cpp' },
+        root_dir = util.root_pattern('compile_commands.json', '.ccls', '.git'),
+        init_options = {
+          compilationDatabaseDirectory = ".",
+        },
+      }
+
+      --[[
+      lspconfig.ccls.setup {
+
         cmd = { 'ccls' }, -- Ensure 'ccls' is in your PATH
         filetypes = { 'c', 'cpp', 'objective-c', 'objective-cpp' },
+        offset_encoding = "utf-8",
         root_dir = function(fname)
-          return lspconfig.util.find_git_ancestor(fname) or lspconfig.util.path.dirname(fname)
+          return util.root_pattern('compile_commands.json', '.ccls', '.git')(fname)
         end,
-        settings = {
-          -- Optional: ccls settings here
-          -- Refer to ccls documentation for more options
+        --root_dir = function(fname)
+        --  return lspconfig.util.find_git_ancestor(fname) or lspconfig.util.path.dirname(fname)
+        --end,
+        single_file_support = true,
 
-          ---------------------
-          -- You can try throttling the number of requests sent to ccls
-          -- by configuring your Neovim LSP settings to limit the number of requests
-          --[[
-  init_options = {
-    cache = {
-      directory = ".ccls-cache",  -- Cache directory (can be customized)
-      retainInMemory = 2,         -- Cache levels (0: disabled, 1: per file, 2: global)
-    },
-    highlight = {
-      lsRanges = true,            -- Highlight regions for LSP semantic tokens
-    },
-    compilationDatabaseDirectory = "Debug",  -- Folder with compile_commands.json (can be changed)
-    index = {
-      threads = 4,                -- Number of indexing threads, adjust according to your CPU cores
-      onChange = true,            -- Reindex on file changes
-      initialBlacklist = { "Debug/*" }, -- Avoid indexing generated files (e.g., build directories)
-      multiVersion = 1,           -- Enable multiple versions of a symbol
-    },
-    completion = {
-      filterAndSort = true,       -- Enable sorting of completion results
-      placeholder = true,         -- Show parameter placeholders in completion
-      detailedLabel = true,
-      maxNum = 50
-    },
-    diagnostics = {
-      --onChange = 1000,            -- Update diagnostics after delay (in ms)
-      --onOpen = true,              -- Show diagnostics when a file is opened
-      onOpen = 0,                 -- Disable diagnostics on file open
-      onSave = 1,
-      enable = true,              -- Enable diagnostics (errors, warnings)
-      onChange = true,            -- Re-run diagnostics on file changes
-    },
-    codeLens = {
-      localVariables = true,      -- Show code lens for local variables
-    },
-    format = {
-      enable = false,             -- Disable formatting, let another tool like clang-format handle it
-    },
-    lint = {
-      onChange = true,            -- Enable linting during text change
-    },
-    hover = {
-      xrefs = true,               -- Enable cross-references in hover information
-    },
+        init_options = {
+          --compilationDatabaseDirectory = "build",
+          --compilationDatabaseDirectory = "Debug",
+          compilationDatabaseDirectory = ".",
+          index = {
+            threads = 4,      -- Number of indexing threads, adjust according to your CPU cores
+            onChange = true,  -- Reindex on file changes
+            --initialBlacklist = { "Debug/*" }, -- Avoid indexing generated files (e.g., build directories)
+            multiVersion = 1, -- Enable multiple versions of a symbol
+          },
+          --clang = {
+          --  excludeArgs = { "-frounding-math"} ;
+          --};
+          cache = {
+            directory = ".ccls-cache", -- Cache directory (can be customized)
+            retainInMemory = 2,        -- Cache levels (0: disabled, 1: per file, 2: global)
+          },
+          highlight = {
+            lsRanges = true, -- Highlight regions for LSP semantic tokens
+          },
+          completion = {
+            filterAndSort = true, -- Enable sorting of completion results
+            placeholder = true,   -- Show parameter placeholders in completion
+            detailedLabel = true,
+            maxNum = 50
+          },
+          diagnostics = {
+            --onChange = 1000,            -- Update diagnostics after delay (in ms)
+            --onOpen = true,              -- Show diagnostics when a file is opened
+            onOpen = 0,      -- Disable diagnostics on file open
+            onSave = 1,
+            enable = true,   -- Enable diagnostics (errors, warnings)
+            onChange = true, -- Re-run diagnostics on file changes
+          },
+          codeLens = {
+            localVariables = true, -- Show code lens for local variables
+          },
+          format = {
+            enable = false, -- Disable formatting, let another tool like clang-format handle it
+          },
+          lint = {
+            onChange = false, -- Enable linting during text change (disable because you use nvim-lint)
+          },
+          hover = {
+            xrefs = true, -- Enable cross-references in hover information
+          },
+        }
 
-  },
+      }
 ]] --
-          --------------------
-
-        },
-
-
-      })
-
+      -------------------------------------------------------------------------
 
       lspconfig.lua_ls.setup({
         cmd = { 'lua-language-server' }, -- Make sure this path is correct

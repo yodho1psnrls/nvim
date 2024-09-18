@@ -1,3 +1,8 @@
+-- https://github.com/hrsh7th/nvim-cmp
+-- https://stackoverflow.com/questions/74688630/make-nvim-cmp-not-autoselect-the-1st-option?rq=2
+-- https://github.com/petertriho/cmp-git
+-- https://www.reddit.com/r/neovim/comments/so4g5e/if_you_guys_arent_using_lsp_signaturenvim_what/
+
 return {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
@@ -8,10 +13,14 @@ return {
     "hrsh7th/cmp-buffer",
     "hrsh7th/cmp-nvim-lua",
     "hrsh7th/cmp-path",
-    {
-      "hrsh7th/cmp-nvim-lsp-signature-help",
-      event = "LspAttach", -- Load when LSP server attaches
-    },
+    "hrsh7th/cmp-cmdline",
+
+    -- Comment it out, because i will use lsp-signature
+    --{
+    --  "hrsh7th/cmp-nvim-lsp-signature-help",
+    --  event = "LspAttach", -- Load when LSP server attaches
+    --},
+
   },
   config = function()
     local cmp = require "cmp"
@@ -152,7 +161,7 @@ return {
         { name = "buffer" },
         { name = "nvim_lua" },
         { name = "path" },
-        { name = "nvim_lsp_signature_help" }, -- Correct source name here
+        --{ name = "nvim_lsp_signature_help" }, -- Correct source name here
       },
     }
 
@@ -161,6 +170,33 @@ return {
 
     -- Setup nvim-cmp with the options
     cmp.setup(options)
+
+    ----------------------------------------------------
+
+    -- `/` cmdline setup.
+    cmp.setup.cmdline('/', {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = {
+        { name = 'buffer' }
+      }
+    })
+
+
+    -- `:` cmdline setup.
+    cmp.setup.cmdline(':', {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = cmp.config.sources({
+        { name = 'path' }
+      }, {
+        {
+          name = 'cmdline',
+          option = {
+            ignore_cmds = { 'Man', '!' }
+          }
+        }
+      })
+    })
+
+    ------------------------------------------------
   end
 }
-

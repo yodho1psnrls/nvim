@@ -17,13 +17,17 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
   border = "rounded",
   --border = "none",  -- Disable border for floating windows
   focusable = false, -- Non-focusable floating windows
+
+  -- https://www.reddit.com/r/neovim/comments/1182s32/is_it_possible_to_disable_no_information/
+  silent = true,
+
 })
 
--- Signature help handler
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-  border = "rounded", -- You can change this to "none" if you don't want a border
-  focusable = false   -- Ensure this is set to false
-})
+-- Signature help handler (cmp-lsp-signature-helper)
+--vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+--  border = "rounded", -- You can change this to "none" if you don't want a border
+--  focusable = false,  -- Ensure this is set to false
+--})
 
 -- window borders
 --vim.o.fillchars = "vert:│,hor:─,horizup:┴,horizdown:┬,vertleft:┤,vertright:├"

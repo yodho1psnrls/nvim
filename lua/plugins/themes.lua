@@ -1,32 +1,35 @@
 -- https://www.reddit.com/r/neovim/comments/191f5o0/what_are_the_most_popular_colorschemes_for_neovim/
 -- https://dotfyle.com/neovim/colorscheme/top
+-- https://www.reddit.com/r/neovim/comments/1d0axyn/is_there_any_way_to_make_the_default_themes_more/
 
 return {
 
---{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+  --{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 
 
-{ "rose-pine/neovim", name = "rose-pine",
-opts = {
+  {
+    "rose-pine/neovim",
+    name = "rose-pine",
+    opts = {
 
-variant = "auto", -- auto, main, moon, or dawn
-    dark_variant = "main", -- main, moon, or dawn
-    dim_inactive_windows = false,
-    extend_background_behind_borders = true,
+      variant = "auto",      -- auto, main, moon, or dawn
+      dark_variant = "main", -- main, moon, or dawn
+      dim_inactive_windows = false,
+      extend_background_behind_borders = true,
 
-    enable = {
+      enable = {
         terminal = true,
         legacy_highlights = true, -- Improve compatibility for previous versions of Neovim
-        migrations = true, -- Handle deprecated options automatically
-    },
+        migrations = true,        -- Handle deprecated options automatically
+      },
 
-    styles = {
+      styles = {
         bold = true,
         italic = false,
         transparency = false,
-    },
+      },
 
-    groups = {
+      groups = {
         border = "muted",
         --border = "rose",
         link = "iris",
@@ -56,23 +59,23 @@ variant = "auto", -- auto, main, moon, or dawn
         h4 = "gold",
         h5 = "pine",
         h6 = "foam",
-    },
+      },
 
-    palette = {
+      palette = {
         -- Override the builtin palette per variant
         -- moon = {
         --     base = '#18191a',
         --     overlay = '#363738',
         -- },
-    },
+      },
 
 
-    highlight_groups = {
+      highlight_groups = {
         -- Comment = { fg = "foam" },
         -- VertSplit = { fg = "muted", bg = "muted" },
-    },
+      },
 
-    before_highlight = function(group, highlight, palette)
+      before_highlight = function(group, highlight, palette)
         -- Disable all undercurls
         -- if highlight.undercurl then
         --     highlight.undercurl = false
@@ -82,13 +85,13 @@ variant = "auto", -- auto, main, moon, or dawn
         -- if highlight.fg == palette.pine then
         --     highlight.fg = palette.foam
         -- end
-    end,
+      end,
 
-},
-},
+    },
+  },
 
 
---[[
+  --[[
 { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
@@ -106,7 +109,7 @@ variant = "auto", -- auto, main, moon, or dawn
       vim.cmd.hi 'Comment gui=none'
     end,
 },
-]]--
+]] --
 
 
 }

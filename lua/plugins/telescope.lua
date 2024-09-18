@@ -1,5 +1,6 @@
 -- https://github.com/orgs/nvim-telescope/repositories
 -- https://medium.com/@jogarcia/delete-buffers-on-telescope-21cc4cf61b63
+-- https://www.reddit.com/r/neovim/comments/qspemc/close_buffers_with_telescope/
 
 -- Ctrl + d while you browse the buffer finder will delete the selected buffer !
 
@@ -20,8 +21,8 @@ return {
     dependencies = {
       'nvim-lua/plenary.nvim',
       'smartpde/telescope-recent-files',
-      'nvim-telescope/telescope-dap.nvim', --https://github.com/nvim-telescope/telescope-dap.nvim
-      {                                    -- If encountering errors, see telescope-fzf-native README for installation instructions
+      --      'nvim-telescope/telescope-dap.nvim', --https://github.com/nvim-telescope/telescope-dap.nvim
+      { -- If encountering errors, see telescope-fzf-native README for installation instructions
         'nvim-telescope/telescope-fzf-native.nvim',
 
         -- `build` is used to run some command when the plugin is installed/updated.
@@ -41,7 +42,7 @@ return {
     },
     config = function()
       require("telescope").load_extension("recent_files")
-      require("telescope").load_extension('dap') --https://github.com/nvim-telescope/telescope-dap.nvim
+      --      require("telescope").load_extension('dap') --https://github.com/nvim-telescope/telescope-dap.nvim
 
       vim.api.nvim_set_keymap("n", "<Leader><Leader>",
         [[<cmd>lua require('telescope').extensions.recent_files.pick()<CR>]],

@@ -78,19 +78,6 @@ vim.opt.sidescrolloff = 15
 --------------------------------------------------------------------------
 
 
--- trigger the hover documentation (which often shows type,
--- function signatures, or other useful info) when hovering over a symbol.
---map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-
---hover documentation to appear automatically after hovering
---the cursor over a variable or function for a brief time
-vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
-
--- Set the delay time in milliseconds (e.g., 1000 ms = 1 second)
--- vim.o.updatetime = 690 --660 --590
-
-
-
 -- Fix those errors while using the terminal
 -- It cleans its buffer when you close the nterminal
 -- after you have used Alt + h to open the terminal
@@ -132,6 +119,8 @@ o.smartindent = true
 vim.o.softtabstop = 2 -- Number of spaces a <Tab> counts for while editing
 o.tabstop = 2         -- Number of spaces a <Tab> in the file counts for
 o.softtabstop = 2
+
+o.autoindent = true
 
 opt.fillchars = { eob = " " }
 o.ignorecase = true
