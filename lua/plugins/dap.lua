@@ -7,6 +7,9 @@
 --  it basically makes some external tasks to run in parralel,
 --  so neovim doesnt freeze
 
+-- NOTE: Plugins such as nvim-dap-python or nvim-dap-lldb are plugins
+-- that only configure your nvim-dap
+
 -- TODO: Configure nvim-dap-ui to show the Call-Stack and the Stack
 --  those are the most important features i use from a debugger
 -- Also try to automate the debugger path and the build path,
@@ -42,6 +45,46 @@ return {
         local widgets = require('dap.ui.widgets')
         widgets.centered_float(widgets.scopes)
       end)
+
+
+
+      ------------------------------------------------------------
+      -- https://github.com/mfussenegger/nvim-dap/wiki/C-C---Rust-(via--codelldb)
+      local dap = require('dap')
+      dap.adapters.codelldb = {
+        type = 'server',
+        port = "${port}",
+        executable = {
+          --command = '/path/to/codelldb/adapter/codelldb',
+          command = 'codelldb',
+          args = { "--port", "${port}" },
+
+          -- On windows you may have to uncomment this:
+          detached = false,
+        }
+      }
+
+      dap.configurations.cpp = {
+        {
+          name = "Launch file",
+          type = "codelldb",
+          request = "launch",
+          program = function()
+            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+          end,
+          cwd = '${workspaceFolder}',
+          stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
+
+          args = {},             -- Arguments to pass to the executable program
+          runInTerminal = false, -- You can customize this depending on your project
+
+          terminal = 'integrated',
+        },
+      }
+
+      dap.configurations.c = dap.configurations.cpp
+
+      ------------------------------------------------------------
     end,
   },
 
@@ -79,9 +122,84 @@ return {
       "nvim-neotest/nvim-nio"
     },
     config = function()
-      require("dapui").setup()
-
       local dap, dapui = require("dap"), require("dapui")
+
+      dapui.setup()
+
+      --[[
+      dapui.setup {
+        -- Set icons to characters that are more likely to work in every terminal.
+        icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
+
+        controls = {
+          enabled = true,   -- Enable controls
+          element = "repl", -- Controls will target the REPL window
+          icons = {
+            pause = '⏸',
+            play = '▶',
+            step_into = '⏎',
+            step_over = '⏭',
+            step_out = '⏮',
+            step_back = 'b',
+            run_last = '▶▶',
+            terminate = '⏹',
+            disconnect = '⏏',
+          },
+        },
+
+        -- Add required fields with either custom or default values
+        mappings = {
+          -- Custom key mappings for the UI
+          expand = { "<CR>", "<2-LeftMouse>" },
+          open = "o",
+          remove = "d",
+          edit = "e",
+          repl = "r",
+          toggle = "t",
+        },
+
+        element_mappings = {}, -- Default: empty table
+
+        expand_lines = true,   -- Default: expand the number of lines in stack trace elements
+
+        force_buffers = true,  -- Force creating buffers for DAP elements
+
+        layouts = {
+          {
+            elements = {
+              { id = "scopes",      size = 0.25 },
+              { id = "breakpoints", size = 0.25 },
+              { id = "stacks",      size = 0.25 },
+              { id = "watches",     size = 0.25 },
+            },
+            size = 40,
+            position = "left", -- Can be "left", "right", "top", or "bottom"
+          },
+          {
+            elements = {
+              { id = "repl",    size = 0.5 },
+              { id = "console", size = 0.5 },
+            },
+            size = 10,
+            position = "bottom", -- Can be "left", "right", "top", or "bottom"
+          },
+        },
+
+        floating = {
+          max_height = nil,  -- These can be a number or function, defaults to nil
+          max_width = nil,   -- Floating window max width
+          border = "single", -- Border style, "single", "double" or "rounded"
+          mappings = {
+            close = { "q", "<Esc>" },
+          },
+        },
+
+        render = {
+          indent = 1,            -- How deep indenting should be for hierarchical structures
+          max_type_length = nil, -- Limit length of type displayed
+        },
+      }
+      ]] --
 
       dap.listeners.before.attach.dapui_config = function()
         dapui.open()
@@ -151,6 +269,7 @@ return {
   -- https://github.com/vadimcn/codelldb/releases
   -- https://github.com/julianolf/nvim-dap-lldb
 
+  --[[
   {
     "julianolf/nvim-dap-lldb",
     dependencies = { "mfussenegger/nvim-dap" },
@@ -190,7 +309,7 @@ return {
       require("dap-lldb").setup(cfg)
     end,
   }
-
+  ]] --
 
 
 }
