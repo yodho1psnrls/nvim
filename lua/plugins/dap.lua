@@ -21,16 +21,20 @@ return {
   {
     "mfussenegger/nvim-dap",
     config = function()
-      vim.keymap.set('n', '<F5>', function() require('dap').continue() end)
-      vim.keymap.set('n', '<F10>', function() require('dap').step_over() end)
-      vim.keymap.set('n', '<F11>', function() require('dap').step_into() end)
-      vim.keymap.set('n', '<F12>', function() require('dap').step_out() end)
-      vim.keymap.set('n', '<Leader>b', function() require('dap').toggle_breakpoint() end)
-      vim.keymap.set('n', '<Leader>B', function() require('dap').set_breakpoint() end)
+      local dap = require('dap')
+
+      vim.keymap.set('n', '<F5>', function() dap.continue() end)
+      vim.keymap.set('n', '<F10>', function() dap.step_over() end)
+      vim.keymap.set('n', '<F11>', function() dap.step_into() end)
+      vim.keymap.set('n', '<F12>', function() dap.step_out() end)
+      vim.keymap.set('n', '<Leader>b', function() dap.toggle_breakpoint() end)
+      --vim.keymap.set('n', '<Leader>B', function() dap.set_breakpoint() end)
+      vim.keymap.set('n', '<Leader>B',
+        function() dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ') end)
       vim.keymap.set('n', '<Leader>lp',
-        function() require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: ')) end)
-      vim.keymap.set('n', '<Leader>dr', function() require('dap').repl.open() end)
-      vim.keymap.set('n', '<Leader>dl', function() require('dap').run_last() end)
+        function() dap.set_breakpoint(nil, nil, vim.fn.input('Log point message: ')) end)
+      vim.keymap.set('n', '<Leader>dr', function() dap.repl.open() end)
+      vim.keymap.set('n', '<Leader>dl', function() dap.run_last() end)
       vim.keymap.set({ 'n', 'v' }, '<Leader>dh', function()
         require('dap.ui.widgets').hover()
       end)
@@ -49,8 +53,14 @@ return {
 
 
       ------------------------------------------------------------
+
+      -- This tells nvim-dap to automatically handle threads in the background,
+      -- avoiding the need for manual selection.
+      dap.defaults.fallback.force_external_terminal = true
+
+
       -- https://github.com/mfussenegger/nvim-dap/wiki/C-C---Rust-(via--codelldb)
-      local dap = require('dap')
+      --local dap = require('dap')
       dap.adapters.codelldb = {
         type = 'server',
         port = "${port}",
@@ -59,7 +69,7 @@ return {
           command = 'codelldb',
           args = { "--port", "${port}" },
 
-          -- On windows you may have to uncomment this:
+          -- If you're on Windows and facing detachment issues, uncomment the next line
           detached = false,
         }
       }
@@ -79,10 +89,23 @@ return {
           runInTerminal = false, -- You can customize this depending on your project
 
           terminal = 'integrated',
+
+          --[[
+          setupCommands = {
+            {
+              text = "-enable-pretty-printing", -- Pretty printing for C++
+              description = "Enable pretty printing",
+              ignoreFailures = false
+            },
+          },
+          ]] --
+
         },
       }
 
       dap.configurations.c = dap.configurations.cpp
+
+
 
       ------------------------------------------------------------
     end,
@@ -213,6 +236,29 @@ return {
       dap.listeners.before.event_exited.dapui_config = function()
         dapui.close()
       end
+
+
+      -----------------------------------------------------
+
+      -- Close nvim-tree when dap-ui opens
+      dap.listeners.after.event_initialized["dapui_config"] = function()
+        local api = require('nvim-tree.api')
+        api.tree.close()
+      end
+
+      -- Optionally re-open nvim-tree after dap-ui closes
+      dap.listeners.after.event_terminated["dapui_config"] = function()
+        local api = require('nvim-tree.api')
+        api.tree.open()
+      end
+
+      dap.listeners.after.event_exited["dapui_config"] = function()
+        local api = require('nvim-tree.api')
+        api.tree.open()
+      end
+
+
+      -----------------------------------------------------
     end,
   },
 
@@ -273,41 +319,6 @@ return {
   {
     "julianolf/nvim-dap-lldb",
     dependencies = { "mfussenegger/nvim-dap" },
-
-    -- no need for path to codelldb, because it is set
-    -- on PATH as an environmental variable
-    --opts = { codelldb_path = "/path/to/codelldb" },
-
-    config = function()
-      local cfg = {
-        configurations = {
-          -- C lang configurations
-          cpp = {
-            {
-              name = "Launch debugger",
-              type = "lldb",
-              request = "launch",
-              cwd = "${workspaceFolder}",
-              program = function()
-                -- Build with debug symbols
-                local out = vim.fn.system({ "make", "debug" })
-                -- Check for errors
-                if vim.v.shell_error ~= 0 then
-                  vim.notify(out, vim.log.levels.ERROR)
-                  return nil
-                end
-                -- Return path to the debuggable program
-                return "path/to/executable"
-              end,
-            },
-          },
-
-          --c = cpp
-        },
-      }
-
-      require("dap-lldb").setup(cfg)
-    end,
   }
   ]] --
 
