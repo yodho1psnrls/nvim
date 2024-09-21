@@ -24,9 +24,9 @@ return {
       local dap = require('dap')
 
       vim.keymap.set('n', '<F5>', function() dap.continue() end)
-      vim.keymap.set('n', '<F10>', function() dap.step_over() end)
-      vim.keymap.set('n', '<F11>', function() dap.step_into() end)
-      vim.keymap.set('n', '<F12>', function() dap.step_out() end)
+      vim.keymap.set('n', '<F2>', function() dap.step_over() end)
+      vim.keymap.set('n', '<F1>', function() dap.step_into() end)
+      vim.keymap.set('n', '<F3>', function() dap.step_out() end)
       vim.keymap.set('n', '<Leader>b', function() dap.toggle_breakpoint() end)
       --vim.keymap.set('n', '<Leader>B', function() dap.set_breakpoint() end)
       vim.keymap.set('n', '<Leader>B',
@@ -88,7 +88,7 @@ return {
           args = {},             -- Arguments to pass to the executable program
           runInTerminal = false, -- You can customize this depending on your project
 
-          terminal = 'integrated',
+          --terminal = 'integrated',
 
           --[[
           setupCommands = {
@@ -104,7 +104,6 @@ return {
       }
 
       dap.configurations.c = dap.configurations.cpp
-
 
 
       ------------------------------------------------------------
