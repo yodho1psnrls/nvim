@@ -2,10 +2,10 @@
 
 function CreateNewProject()
   -- Prompt for the destination path
-  local path = vim.fn.input('Enter the path for the new project: ')
+  local path = vim.fn.input('Enter path for the new cpp project: ')
 
   if path == '' then
-    print("New Project Cancelled.")
+    print("Cancelled the new cpp project.")
     return
   end
 
@@ -58,6 +58,23 @@ return {
             key = 'u'
           },
 
+          -- Add your custom shortcut to open the Neovim config folder
+          {
+            desc = 'Config',                             -- Description of the shortcut
+            group = '@property',                         -- Highlight group for the text
+            action = 'cd ~/AppData/Local/nvim | edit .', -- Action to open the config folder
+            key = 'c',                                   -- Shortcut key (in this case, 'c')
+          },
+
+          --NEW PROJECT Shortcut
+          {
+            --desc = 'New Project',               -- Description for the new project option
+            desc = 'New',
+            group = 'DashboardPureWhite',       -- Highlight group
+            action = ':lua CreateNewProject()', -- Lua function to handle project creation
+            key = 'n',                          -- Shortcut key for the action
+          },
+
           --[[
 		{
         --desc = 'Last Session',
@@ -94,14 +111,6 @@ return {
             key = 's',
           },
 
-          -- Add your custom shortcut to open the Neovim config folder
-          {
-            desc = 'Config',                             -- Description of the shortcut
-            group = '@property',                         -- Highlight group for the text
-            action = 'cd ~/AppData/Local/nvim | edit .', -- Action to open the config folder
-            key = 'c',                                   -- Shortcut key (in this case, 'c')
-          },
-
           -- Blank line to separate the shortcuts and put the next one on a new line
           -- Add a blank space for separation without causing issues
           -- { desc = '', action = '' },  -- empty shortcut to force a line break
@@ -128,14 +137,6 @@ return {
         key = 'd',
         },
 		]] --
-
-          --NEW PROJECT Shortcut
-          {
-            desc = 'New Project',               -- Description for the new project option
-            group = 'DashboardPureWhite',       -- Highlight group
-            action = ':lua CreateNewProject()', -- Lua function to handle project creation
-            key = 'n',                          -- Shortcut key for the action
-          },
 
 
 
