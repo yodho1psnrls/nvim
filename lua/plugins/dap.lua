@@ -23,7 +23,7 @@ return {
     config = function()
       local dap = require('dap')
 
-      vim.keymap.set('n', '<F5>', function() dap.continue() end)
+      --vim.keymap.set('n', '<F5>', function() dap.continue() end)
       vim.keymap.set('n', '<F2>', function() dap.step_over() end)
       vim.keymap.set('n', '<F1>', function() dap.step_into() end)
       vim.keymap.set('n', '<F3>', function() dap.step_out() end)
@@ -79,9 +79,13 @@ return {
           name = "Launch file",
           type = "codelldb",
           request = "launch",
-          program = function()
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-          end,
+
+          --program = function()
+          --  return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+          --end,
+
+          program = vim.fn.getcwd() .. '\\Debug\\bin\\proj.exe',
+
           cwd = '${workspaceFolder}',
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
 

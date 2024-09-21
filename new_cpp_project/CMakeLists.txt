@@ -9,9 +9,9 @@ project(proj)
 
 
 # Ensure build type is Debug if not specified
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
-endif()
+#if(NOT CMAKE_BUILD_TYPE)
+#    set(CMAKE_BUILD_TYPE Debug)
+#endif()
 
 # Set compiler flags for Debug builds
 set(CMAKE_C_FLAGS_DEBUG "-g -O0")
@@ -19,6 +19,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
 #set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0")
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+
+set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 
 # Set the output directories for all configurations

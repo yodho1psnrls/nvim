@@ -25,6 +25,8 @@ require "config.autocmds"
 --require "config.mappings"
 require "config.border"
 
+require "config.build"
+
 
 -- load theme (if necessary for your setup)
 --dofile(vim.g.base46_cache .. "defaults")

@@ -1,9 +1,39 @@
 -- https://www.reddit.com/r/neovim/comments/17pzdxs/how_do_you_customize_the_dashboard_in_lazyvim/
 
+function CreateNewProject()
+  -- Prompt for the destination path
+  local path = vim.fn.input('Enter the path for the new project: ')
+
+  if path == '' then
+    print("New Project Cancelled.")
+    return
+  end
+
+  -- Define source and destination
+  --local source_dir = vim.fn.expand('~/AppData/Local/nvim/new_cpp_project/*')
+  local source_dir = vim.fn.expand('~/AppData/Local/nvim/new_cpp_project')
+  local destination_dir = vim.fn.expand(path)
+
+  -- Remove trailing slash if present
+  destination_dir = destination_dir:gsub("/$", "")
+
+  -- Execute the commands
+  os.execute('cp -r ' .. source_dir .. ' ' .. destination_dir)
+  --os.execute('cd ' .. destination_dir)
+  vim.cmd('cd ' .. destination_dir)
+  --vim.cmd('edit ' .. destination_dir .. '/src/main.cpp')
+  vim.cmd('edit src/main.cpp')
+
+  -- Notify user
+  print('New project created at: ' .. destination_dir)
+end
+
 -- Some color cmds for the shortcuts (website: https://www.rapidtables.com/web/color/RGB_Color.html)
 vim.cmd [[highlight DashboardLastSession guifg=#31DEC1 ctermfg=Green]]
 --vim.cmd [[highlight DashboardSessions guifg=#FCB767 ctermfg=215]]  -- 215 is closest to #FCB767
 vim.cmd [[highlight DashboardSessions guifg=#FFC786]]
+
+vim.cmd [[highlight DashboardPureWhite guifg=#FFFFFF]]
 
 return {
 
@@ -100,14 +130,13 @@ return {
 		]] --
 
           --NEW PROJECT Shortcut
-          --[[
-		{
-        desc = 'New Project',    -- Description for the new project option
-        group = 'Label',                -- Highlight group
-        action = ':lua CreateNewProject()', -- Lua function to handle project creation
-        key = 'n',                      -- Shortcut key for the action
-        },
-		]] --
+          {
+            desc = 'New Project',               -- Description for the new project option
+            group = 'DashboardPureWhite',       -- Highlight group
+            action = ':lua CreateNewProject()', -- Lua function to handle project creation
+            key = 'n',                          -- Shortcut key for the action
+          },
+
 
 
 
