@@ -7,8 +7,9 @@
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
---vim.keymap.set('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+--vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>q', ':q<CR>', { desc = 'Close Window', noremap = true, silent = true })
 
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
@@ -17,7 +18,9 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+--vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
 
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
@@ -69,7 +72,7 @@ map("n", "<leader>fm", function()
 end, { desc = "General Format file" })
 
 -- global lsp mappings
-map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "LSP Diagnostic loclist" })
+--map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "LSP Diagnostic loclist" })
 
 -- tabufline
 --map("n", "<leader>b", "<cmd>enew<CR>", { desc = "buffer new" })
@@ -98,7 +101,7 @@ map("v", "<leader>/", "gc", { desc = "Toggle comment", remap = true })
 -- nvimtree
 --map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
 map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
-map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
+--map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
 
 -- telescope
 map("n", "<leader>fw", "<cmd>Telescope live_grep<CR>", { desc = "telescope live grep" })
@@ -143,7 +146,9 @@ end, { desc = "terminal new vertical window" })
 
 -------------------------------------------------------------------------------------
 
+-- TODO: Make an equivalent of this for your build terminal in build.lua
 
+--[[
 -- Function to check if a terminal buffer with a specific name is open
 local function is_terminal_open(name)
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
@@ -178,7 +183,7 @@ end, { desc = "Toggle vertical terminal" })
 map({ "n", "t" }, "<A-h>", function()
   toggle_terminal("htoggleTerm", "sp")
 end, { desc = "Toggle horizontal terminal" })
-
+]] --
 
 -------------------------------------------------------------------------------------
 
@@ -280,9 +285,8 @@ map('i', '<S-Right>', '<Esc>v<Right>', opts)
 -- Toggle between insert and normal mode (Double Tab \)
 -- Inspired by jj in here:
 -- https://medium.com/@adamregaszrethy/vim-where-to-remap-esc-6f556d11fb75
-map('i', '\\\\', '<Esc>', opts)
---map('n', '\\\\', 'i', opts)
-map('n', '\\', 'i', opts)
+--map('i', '\\\\', '<Esc>', opts)
+--map('n', '\\', 'i', opts)
 
 
 -- Replace wordA with wordB when <leader>rp is pressed

@@ -3,7 +3,7 @@
 
 return {
 
-{"nvim-tree/nvim-web-devicons"},   -- it is a dependancy for other plugins
+  { "nvim-tree/nvim-web-devicons" }, -- it is a dependancy for other plugins
 
   {
     "nvim-tree/nvim-tree.lua",
@@ -25,6 +25,7 @@ return {
       },
       filters = {
         dotfiles = true,
+        custom = { "compile_commands.json" },
       },
 
     },
@@ -32,4 +33,3 @@ return {
   }
 
 }
-

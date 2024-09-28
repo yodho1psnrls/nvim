@@ -7,6 +7,13 @@
 --  it basically makes some external tasks to run in parralel,
 --  so neovim doesnt freeze
 
+--https://www.reddit.com/r/neovim/comments/1dfx9vk/how_do_i_setup_nvimdap_irl_it_seems_so_cozy_in/
+--https://github.com/rcarriga/nvim-dap-ui/issues/387
+
+
+--https://github.com/mfussenegger/nvim-dap/issues/198
+
+
 -- NOTE: Plugins such as nvim-dap-python or nvim-dap-lldb are plugins
 -- that only configure your nvim-dap
 
@@ -23,40 +30,106 @@ return {
     config = function()
       local dap = require('dap')
 
+      local function BreakLastLine()
+        local original_pos = vim.api.nvim_win_get_cursor(0)
+
+        vim.cmd("normal! G")                         -- Move to the last line
+        dap.set_breakpoint()
+        vim.api.nvim_win_set_cursor(0, original_pos) -- Move cursor to previous position
+
+        print("Breakpoint set at the last line.")
+      end
+
       --vim.keymap.set('n', '<F5>', function() dap.continue() end)
       vim.keymap.set('n', '<F2>', function() dap.step_over() end)
       vim.keymap.set('n', '<F1>', function() dap.step_into() end)
       vim.keymap.set('n', '<F3>', function() dap.step_out() end)
-      vim.keymap.set('n', '<Leader>b', function() dap.toggle_breakpoint() end)
+      vim.keymap.set('n', '<F4>', function() dap.step_back() end)
+
+      vim.keymap.set('n', '<leader>dq', function() dap.terminate() end, { desc = 'Quit Debugger' })
+      vim.keymap.set('n', '<leader>rb', function() dap.clear_breakpoints() end,
+        { desc = 'Remove All Breakpoints' })
+
+      -- https://github.com/mfussenegger/nvim-dap/blob/master/doc/dap.txt (lines 875 and 878)
+      vim.keymap.set('n', '<leader>+', function() dap.up() end, { desc = "Go up in current stacktrace" })
+      vim.keymap.set('n', '<leader>-', function() dap.down() end, { desc = "Go down in current stacktrace" })
+
+
+      -- https://github.com/mfussenegger/nvim-dap/discussions/576
+      --[[
+      -- Ask user to stop on which kinds of exceptions
+      dap.set_exception_breakpoints()
+      -- don't stop on exceptions
+      dap.set_exception_breakpoints({})
+      -- stop only on certain exceptions (debugpy offers "raised", "uncaught")
+      dap.set_exception_breakpoints({ "uncaughted" })
+      dap.set_exception_breakpoints({ "raised", "uncaught" })
+      -- use default settings of debug adapter
+      dap.set_exception_breakpoints("default")
+  ]] --
+
+      --    You can also set the default value via a `defaults.fallback` table:
+      --dap.defaults.fallback.exception_breakpoints = { 'raised' }
+      --dap.defaults.fallback.exception_breakpoints = { "Notice", "Warning", "Error", "Exception" }
+
+      vim.keymap.set('n', '<leader>E', function() BreakLastLine() end,
+        { desc = 'Set breakpoint at last line', noremap = true, silent = true })
+      vim.keymap.set('n', '<leader>df', function() dap.focus_frame() end,
+        { desc = 'Move cursor to current dap line', noremap = true, silent = true })
+
+
+      vim.keymap.set('n', '<Leader>b', function() dap.toggle_breakpoint() end, { desc = 'Toggle breakpoint' })
       --vim.keymap.set('n', '<Leader>B', function() dap.set_breakpoint() end)
       vim.keymap.set('n', '<Leader>B',
-        function() dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ') end)
+        function() dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ') end,
+        { desc = 'Set conditional breakpoint' })
       vim.keymap.set('n', '<Leader>lp',
-        function() dap.set_breakpoint(nil, nil, vim.fn.input('Log point message: ')) end)
-      vim.keymap.set('n', '<Leader>dr', function() dap.repl.open() end)
+        function() dap.set_breakpoint(nil, nil, vim.fn.input('Log point message: ')) end, { desc = 'Log point message' })
+      vim.keymap.set('n', '<Leader>dr', function() dap.repl.open() end, { desc = 'Open dap repl' })
       vim.keymap.set('n', '<Leader>dl', function() dap.run_last() end)
-      vim.keymap.set({ 'n', 'v' }, '<Leader>dh', function()
+
+      vim.keymap.set({ 'n', 'v' }, '<Leader>dh', function() -- https://github.com/mfussenegger/nvim-dap/issues/161
         require('dap.ui.widgets').hover()
-      end)
+      end, { desc = 'Hover DapUI widgets' })
       vim.keymap.set({ 'n', 'v' }, '<Leader>dp', function()
         require('dap.ui.widgets').preview()
-      end)
-      vim.keymap.set('n', '<Leader>df', function()
+      end, { desc = 'Preview DapUI Widgets' })
+      vim.keymap.set('n', '<Leader>dw', function()
         local widgets = require('dap.ui.widgets')
         widgets.centered_float(widgets.frames)
-      end)
+      end, { desc = 'Center widget frames' })
       vim.keymap.set('n', '<Leader>ds', function()
         local widgets = require('dap.ui.widgets')
         widgets.centered_float(widgets.scopes)
-      end)
+      end, { desc = 'Center widget scopes' })
 
+
+      -------------------------------------------------------
+
+      -- Automatically breaks that the end of the program, so you can still use the debugger
+      --dap.listeners.after['event_initialized']['set_final_breakpoint'] = function()
+      -- Assuming you know how to determine the last line of your program
+      --  local current_frame = require 'dap'.session().current_frame
+      --  local last_line = current_frame.source.end_line -- logic to get the last line
+      --  dap.set_breakpoint(nil, last_line)              -- Set a breakpoint at the end
+      --end
+      --[[
+      dap.listeners.before.attach.dapui_config = function()
+        break_at_end()
+      end
+      dap.listeners.before.launch.dapui_config = function()
+        break_at_end()
+      end
+      ]] --
 
 
       ------------------------------------------------------------
 
       -- This tells nvim-dap to automatically handle threads in the background,
       -- avoiding the need for manual selection.
-      dap.defaults.fallback.force_external_terminal = true
+      -- dap.defaults.fallback.force_external_terminal = true
+      -- dap.defaults.fallback.focus_terminal = true -- If the integrated terminal should get focus when its created
+
 
 
       -- https://github.com/mfussenegger/nvim-dap/wiki/C-C---Rust-(via--codelldb)
@@ -84,29 +157,79 @@ return {
           --  return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
           --end,
 
-          program = vim.fn.getcwd() .. '\\Debug\\bin\\proj.exe',
+          --program = vim.fn.getcwd() .. '\\Debug\\bin\\proj.exe',
+          program = '\\Debug\\bin\\proj.exe',
+          --cwd = '${workspaceFolder}',
+          cwd = vim.fn.getcwd(),
 
-          cwd = '${workspaceFolder}',
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
 
           args = {},             -- Arguments to pass to the executable program
-          runInTerminal = false, -- You can customize this depending on your project
+          runInTerminal = false, -- Runs the program and hopefoly shows a life preview of the program execution during debbuging
 
           --terminal = 'integrated',
 
-          --[[
           setupCommands = {
             {
+              -- https://www.reddit.com/r/neovim/comments/13m46c0/custom_pretty_printerdebug_helpers_for_c_debugging/
+              -- Visualizes data structures like map, vector, etc better, than just raw pointers
+              -- Makes them more human readable and easier to debug
               text = "-enable-pretty-printing", -- Pretty printing for C++
               description = "Enable pretty printing",
               ignoreFailures = false
             },
+
+            --[[
+            {
+              text = "break set -E c++", -- Break on C++ exceptions
+              description = "Break on unhandled C++ exceptions",
+              ignoreFailures = false
+            },
+            {
+              text = "break set -n __assert_fail", -- Break on failed assertions in Linux (glibc)
+              description = "Break on failed assertions",
+              ignoreFailures = false
+            },
+            {
+              text = "break set -n _assert", -- Break on failed assertions (other platforms)
+              description = "Break on failed assertions",
+              ignoreFailures = false
+            },
+            {
+              text = "break set -n abort", -- Break on abort signals
+              description = "Break on abort (e.g., failed assertions)",
+              ignoreFailures = false
+            }
+            ]] --
+            --[[
+            {
+              -- Break on C++ exceptions (adjust depending on your system)
+              text = "break set -E c++",
+              description = "Break on unhandled C++ exceptions",
+              ignoreFailures = false
+            },
+            {
+              -- Break on abort() (for failed assertions)
+              text = "breakpoint set --name abort",
+              description = "Break on failed assertions (abort function)",
+              ignoreFailures = false
+            },
+            {
+              -- Handle SIGABRT signal (abort signal)
+              text = "process handle SIGABRT --stop true --pass true --notify true",
+              description = "Stop on SIGABRT (for failed assertions)",
+              ignoreFailures = false
+            }
+]]                                                                                     --
+
+            { text = "process handle SIGABRT --stop true --pass true --notify true" }, -- For failed assertions
+            { text = "break set -E c++" },                                             -- For unhandled C++ exceptions
+            { text = "-enable-pretty-printing" }                                       -- Pretty printing for more readable call stacks
+
           },
-          ]] --
 
         },
       }
-
       dap.configurations.c = dap.configurations.cpp
 
 
@@ -233,6 +356,7 @@ return {
       dap.listeners.before.launch.dapui_config = function()
         dapui.open()
       end
+
       dap.listeners.before.event_terminated.dapui_config = function()
         dapui.close()
       end
@@ -243,26 +367,67 @@ return {
 
       -----------------------------------------------------
 
-      -- Close nvim-tree when dap-ui opens
+      -- Toggle nvim-tree when dap-ui toggles
+
+      local nvim_tree = require('nvim-tree.api')
+      --local was_tree_opened = false
+
       dap.listeners.after.event_initialized["dapui_config"] = function()
-        local api = require('nvim-tree.api')
-        api.tree.close()
+        --[[
+        was_tree_opened = nvim_tree.tree.is_open()
+        nvim_tree.tree.close()
+        ]] --
+        --[[
+        if nvim_tree.tree.close() then
+          was_tree_opened = true
+        else
+          was_tree_opened = false
+        end
+        ]] --
+
+        nvim_tree.tree.close()
       end
 
-      -- Optionally re-open nvim-tree after dap-ui closes
-      dap.listeners.after.event_terminated["dapui_config"] = function()
-        local api = require('nvim-tree.api')
-        api.tree.open()
+      --[[
+      local function reopen_nvim_tree_if_opened()
+        if was_tree_opened then
+          -- I dont want my cursor to go to the tree at reopening
+          local view = vim.fn.winsaveview() -- Save the current view
+
+          nvim_tree.tree.open()
+
+          vim.fn.winrestview(view) -- Restore the saved view
+        end
       end
 
-      dap.listeners.after.event_exited["dapui_config"] = function()
-        local api = require('nvim-tree.api')
-        api.tree.open()
-      end
-
+      dap.listeners.after.event_terminated["dapui_config"] = reopen_nvim_tree_if_opened
+      dap.listeners.after.event_exited["dapui_config"] = reopen_nvim_tree_if_opened
+      ]] --
 
       -----------------------------------------------------
     end,
+  },
+
+  -- https://github.com/mfussenegger/nvim-dap/discussions/576
+  {
+    "lucaSartore/nvim-dap-exception-breakpoints",
+    dependencies = { "mfussenegger/nvim-dap" },
+
+    config = function()
+      local set_exception_breakpoints = require("nvim-dap-exception-breakpoints")
+
+      --[[
+      vim.api.nvim_set_keymap(
+        "n",
+        "<leader>dc",
+        "",
+        { desc = "[D]ebug [C]ondition breakpoints", callback = set_exception_breakpoints }
+      )
+      ]] --
+
+      --require('dap').defaults.fallback.exception_breakpoints = {'raised'}
+      --require('dap').defaults.cpp.assertions = { 'raised' } -- I dont think this is valid
+    end
   },
 
   {

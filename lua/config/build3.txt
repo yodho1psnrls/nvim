@@ -1,0 +1,267 @@
+local dap = require('dap')
+local build_term_buf = nil
+
+
+--[[
+function OpenTerminal()
+  if build_term_buf == nil or not vim.api.nvim_buf_is_valid(build_term_buf) then
+    -- Create a new terminal buffer
+    vim.cmd("vsplit") -- Opens terminal in a vertical split; you can change this
+    vim.cmd("terminal")
+    build_term_buf = vim.api.nvim_get_current_buf()
+  else
+    -- Reuse the existing terminal buffer
+    vim.api.nvim_set_current_buf(build_term_buf)
+  end
+end
+]] --
+
+function OpenTerminal()
+  -- Check if the terminal buffer exists and is valid
+  if build_term_buf == nil or not vim.api.nvim_buf_is_valid(build_term_buf) then
+    -- Create a new terminal buffer in a vertical split if it doesn't exist
+    --vim.cmd("vsplit")
+    vim.cmd("10split")
+    vim.cmd("terminal")
+    build_term_buf = vim.api.nvim_get_current_buf()
+  else
+    -- Check if the terminal buffer is currently displayed in any window
+    local term_win = nil
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_buf(win) == build_term_buf then
+        term_win = win
+        break
+      end
+    end
+
+    if term_win then
+      -- If the terminal is open in a window, switch to that window
+      vim.api.nvim_set_current_win(term_win)
+    else
+      -- If the terminal is not visible, reopen it in a split
+      vim.cmd("10split")
+      vim.api.nvim_set_current_buf(build_term_buf)
+    end
+  end
+end
+
+--[[
+function RunInBuildTerminal(commands)
+  -- Ensure terminal is open
+  OpenTerminal()
+
+  -- Execute each command in the terminal
+  for _, cmd in ipairs(commands) do
+    vim.api.nvim_chan_send(vim.b.terminal_job_id, cmd .. "\r")
+  end
+end
+]] --
+
+function RunInBuildTerminal(commands)
+  -- Ensure terminal is open
+  OpenTerminal()
+
+  local function execute_command(cmd, callback)
+    -- Start a job for the command
+    local job_id = vim.fn.jobstart(cmd, {
+      on_exit = function(_, return_code)
+        if return_code == 0 then
+          if callback then callback() end -- Execute the callback if successful
+        else
+          print("Command failed: " .. cmd)
+        end
+      end,
+      stdout_buffered = true,
+      stderr_buffered = true,
+      on_stdout = function(_, data)
+        if data and #data > 0 then
+          for _, line in ipairs(data) do
+            print(line) -- Print stdout output to Neovim
+          end
+        end
+      end,
+      on_stderr = function(_, data)
+        if data and #data > 0 then
+          for _, line in ipairs(data) do
+            if not string.len(line) == 0 then
+              print("Error: " .. line) -- Print stderr output to Neovim
+            end
+          end
+        end
+      end,
+    })
+
+    -- Send the command to the terminal
+    vim.api.nvim_chan_send(vim.b.terminal_job_id, cmd .. "\r")
+  end
+
+  -- Function to execute commands in sequence
+  local function execute_commands(index)
+    if index > #commands then
+      --print("-------------------------------------------------")
+      --vim.api.nvim_chan_send(vim.b.terminal_job_id, "-------------------------------------------------\r\n")
+      return -- No more commands to execute
+    end
+
+    local cmd = commands[index]
+    execute_command(cmd, function() -- Callback to execute next command
+      execute_commands(index + 1)
+      ----------------
+
+      --      if string.sub(cmd, -4) == '.exe' or string.sub(cmd, -5) == '.exe"' then
+      -- Switch to insert mode when running an executable
+      --vim.api.nvim_chan_send(vim.b.terminal_job_id, "i")
+      --        vim.api.nvim_feedkeys("i", "n", true)
+      --      end
+
+      --      if index == #commands then
+      --        -- Switch to insert mode to run the executable
+      --        vim.api.nvim_chan_send(vim.b.terminal_job_id, "i") -- Enter insert mode
+      --      end
+
+      ----------------
+      --execute_commands(index + 1)
+    end)
+  end
+
+  execute_commands(1) -- Start executing from the first command
+
+  -- Go back to normal mode after executing the last command
+  --  vim.api.nvim_chan_send(vim.b.terminal_job_id, "<C-c>") -- Exit insert mode (Ctrl+C to stop input)
+end
+
+--------------------------------------------------------------------------
+
+local generate_cmake_commands = {
+  'rm -rf "Debug"',                                               -- Remove Debug directory
+  'rm -rf "Release"',                                             -- Remove Release directory
+  'cmake -S . -B "Debug" -DCMAKE_BUILD_TYPE=Debug',               -- Generate Debug build files
+  'cmake -S . -B "Release" -DCMAKE_BUILD_TYPE=Release',           -- Generate Release build files
+  -- 'ln -s "Debug/compile_commands.json" "compile_commands.json"'  -- Create symlink (Linux/macOS)
+  'mklink "Debug\\compile_commands.json" "compile_commands.json"' -- Create symlink (Windows)
+}
+
+
+local build_and_run_cpp_commands = {
+  'cmake --build "Release" --config Release',
+  '.\\Release\\bin\\proj.exe'
+}
+
+local build_and_debug_cpp_commands = {
+  'cmake --build "Debug" --config Debug',
+  --'.\\Debug\\bin\\proj.exe',
+  --'lldb ./Debug/bin/proj.exe\rbreak set --name abort\rbreak set -E c++\rprocess handle SIGABRT --stop true --pass true --notify true\rrun\rbt'
+  'lldb ./Debug/bin/proj.exe',
+  '(lldb) break set --name abort',
+  '(lldb) break set -E c++',
+  '(lldb) process handle SIGABRT --stop true --pass true --notify true',
+  '(lldb) run',
+  '(lldb) bt'
+}
+
+local run_python_commands = {
+  'python %'
+}
+
+
+local debug_python_commands = {
+  --'python %'
+}
+
+
+--------------------------------------------------------------------------
+
+--[[
+-- Function to get the unique filetype if only one type of programming language is detected
+function DetectSingleFileType()
+  local open_filetypes = {}
+
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
+
+    -- Skip empty buffers, terminal buffers or nvim-tree buffer
+    if filetype ~= "" and filetype ~= "terminal" and filetype ~= "nvimtree" then
+      open_filetypes[filetype] = true
+    end
+  end
+
+  -- Get the unique filetypes
+  local filetypes = vim.tbl_keys(open_filetypes)
+
+  -- If there's exactly one filetype, return it, else return nil
+  if #filetypes == 1 then
+    return filetypes[1]
+  else
+    return nil
+  end
+end
+]] --
+
+-- Function to get the unique filetype if only one type of programming language (cpp, python, lua) is detected
+function DetectSingleFileType()
+  local valid_filetypes = { cpp = true, python = true, lua = true }
+  local detected_filetypes = {}
+
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
+
+    -- Only consider valid filetypes (cpp, python, lua)
+    if valid_filetypes[filetype] then
+      detected_filetypes[filetype] = true
+    end
+  end
+
+  -- Get the unique filetypes
+  local filetypes = vim.tbl_keys(detected_filetypes)
+
+  -- If there's exactly one valid filetype, return it; else return nil
+  if #filetypes == 1 then
+    return filetypes[1]
+  else
+    return nil
+  end
+end
+
+-- Function to Build and Run based on detected filetype
+function BuildAndRun(is_debug)
+  vim.cmd('wa') -- Save all buffers
+
+  -- Try to detect a single filetype across all windows
+  local filetype = DetectSingleFileType()
+
+  if filetype == nil then
+    print("Ambiguous filetypes in open windows.")
+    return
+  end
+
+  if is_debug == true then
+    -- Execute commands based on the detected filetype
+    if filetype == 'cpp' then
+      RunInBuildTerminal(build_and_debug_cpp_commands)
+      --dap.continue()
+    elseif filetype == 'python' then
+      RunInBuildTerminal(debug_python_commands)
+      --dap.continue()
+    else
+      print("No Build and Debug Configuration for File Type: " .. filetype)
+    end
+  else
+    -- Execute commands based on the detected filetype
+    if filetype == 'cpp' then
+      RunInBuildTerminal(build_and_run_cpp_commands)
+    elseif filetype == 'python' then
+      RunInBuildTerminal(run_python_commands)
+    else
+      print("No Build and Run Configuration for File Type: " .. filetype)
+    end
+  end
+end
+
+------------------------------------------------------------------------
+
+--vim.keymap.set('n', '<F7>', function() GenerateCMake() end) -- Only for CPP
+vim.keymap.set('n', '<F7>', function() RunInBuildTerminal(generate_cmake_commands) end) -- Only for CPP
+vim.keymap.set('n', '<F6>', function() BuildAndRun(false) end)
+vim.keymap.set('n', '<F5>', function() BuildAndRun(true) end)

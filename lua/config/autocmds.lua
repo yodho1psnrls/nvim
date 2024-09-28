@@ -23,6 +23,16 @@ vim.cmd [[
 --vim.api.nvim_set_hl(0, 'IncSearch', { fg = 'Black', bg = 'Yellow' })
 
 
+-- By Default .cpp, .hpp, .cc, .cxx, .c++ files are usually detected as cpp.
+-- but sometimes it detects .h files as c language files
+-- This ensures it detects .h files as part of the cpp language
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*.h" },
+  callback = function()
+    vim.bo.filetype = "cpp"
+  end,
+})
+
 
 -- trigger the hover documentation (which often shows type,
 -- function signatures, or other useful info) when hovering over a symbol.

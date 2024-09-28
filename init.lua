@@ -25,7 +25,6 @@ require "config.autocmds"
 --require "config.mappings"
 require "config.border"
 
-require "config.build"
 
 
 -- load theme (if necessary for your setup)
@@ -38,8 +37,6 @@ require "config.build"
 
 -- Schedule mappings to be loaded after all configurations
 vim.schedule(function()
-  --require "nvchad.options"   -- Load NVChad options
-  --require "nvchad.mappings"  -- Load NVChad mappings
   require "config.keymaps"
-  --require "nvchad.autocmds"  -- Load NVChad autocommands
+  require "config.build"
 end)
