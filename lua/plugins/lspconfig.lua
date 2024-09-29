@@ -9,6 +9,44 @@ return {
     "neovim/nvim-lspconfig",
 
     config = function()
+      local warnings_enabled = true
+      local function ToggleWarnings()
+        if warnings_enabled then
+          vim.diagnostic.config({
+            virtual_text = {
+              severity = { min = vim.diagnostic.severity.ERROR }, -- Hide warnings
+            },
+            signs = true,
+            update_in_insert = false,
+            underline = true,
+          })
+          print("LSP Warnings Disabled")
+        else
+          vim.diagnostic.config({
+            virtual_text = {
+              severity = { min = vim.diagnostic.severity.INFO }, -- Show warnings
+            },
+            signs = true,
+            update_in_insert = false,
+            underline = true,
+          })
+          print("LSP Warnings Enabled")
+        end
+        warnings_enabled = not warnings_enabled
+      end
+
+      vim.keymap.set('n', '<leader>tw', function() ToggleWarnings() end,
+        { noremap = true, silent = true })
+
+      -- Function to jump to the next diagnostic
+      vim.keymap.set('n', '<leader>dn', function() vim.diagnostic.goto_next() end,
+        { desc = 'Go to next diagnostic', noremap = true, silent = true})
+
+      -- Function to jump to the previous diagnostic
+      vim.keymap.set('n', '<leader>dp', function() vim.diagnostic.goto_prev() end,
+        { desc = 'Go to previous diagnostic', noremap = true, silent = true })
+
+
       local M = {}
 
       -- Custom on_attach function for key mappings

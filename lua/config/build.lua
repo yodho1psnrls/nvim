@@ -48,17 +48,49 @@ function BuildAndRunCpp()
   --  end
 
   -- Non-Blocking version of the above
+  --[[
   vim.fn.jobstart('cmake --build Release --config Release', {
     on_exit = function(_, exit_code)
       if exit_code == 0 then
         -- If successful, run the executable in a terminal
         vim.cmd('term .\\Release\\bin\\proj.exe')
       else
-        -- Print an error message if the build failed
+       -- Print an error message if the build failed
         print("Build failed with exit code: " .. exit_code)
       end
     end
   })
+  ]]--
+vim.fn.jobstart('cmake --build "Release" --config Release', {
+  stdout_buffered = true,
+  stderr_buffered = true,
+  on_stdout = function(_, data)
+    if data and #data > 0 then
+      -- Print standard output messages
+      print(table.concat(data, "\n"))
+    end
+  end,
+
+  on_stderr = function(_, data)
+    if data and #data > 0 then
+      -- Print error messages from stderr
+      print("Error during build:\n" .. table.concat(data, "\n"))
+    end
+  end,
+
+  on_exit = function(_, exit_code)
+    if exit_code ~= 0 then
+      -- If the build failed, print the exit code and show all messages
+      print("Build failed with exit code: " .. exit_code)
+      vim.cmd('messages')
+      --vim.defer_fn(function() vim.cmd('messages') end, 100) -- same as above, but with delay
+    else
+      -- If successful, run the executable in a terminal
+      --vim.cmd('term .\\Release\\bin\\proj.exe')
+      vim.cmd('10split | term .\\Release\\bin\\proj.exe')
+    end
+  end,
+})
 end
 
 -- Some Trash very Buggy functions that ChatGayPT generated
@@ -140,6 +172,7 @@ function BuildAndDebugCpp()
   end]] --
 
   -- Non-Blocking version of the above
+  --[[
   vim.fn.jobstart('cmake --build "Debug" --config Debug', {
     on_exit = function(_, exit_code)
       if exit_code == 0 then
@@ -159,6 +192,37 @@ function BuildAndDebugCpp()
       end
     end
   })
+  ]]--
+  vim.fn.jobstart('cmake --build "Debug" --config Debug', {
+  stdout_buffered = true,
+  stderr_buffered = true,
+  on_stdout = function(_, data)
+    if data and #data > 0 then
+      -- Print standard output messages
+      print(table.concat(data, "\n"))
+    end
+  end,
+
+  on_stderr = function(_, data)
+    if data and #data > 0 then
+      -- Print error messages from stderr
+      print("Error during build:\n" .. table.concat(data, "\n"))
+    end
+  end,
+
+  on_exit = function(_, exit_code)
+    if exit_code ~= 0 then
+      -- If the build failed, print the exit code and show all messages
+      print("Build failed with exit code: " .. exit_code)
+      vim.cmd('messages')
+      --vim.defer_fn(function() vim.cmd('messages') end, 100) -- same as above, but with delay
+    else
+      -- If successful, run the executable with the debugger
+      dap.continue()
+      --vim.cmd('term .\\Debug\\bin\\proj.exe')
+    end
+  end,
+})
 end
 
 ------------------------------------------------------------------------
