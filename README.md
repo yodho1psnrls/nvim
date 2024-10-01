@@ -15,7 +15,7 @@ Installation:
    mingw-ninja instead - https://www.youtube.com/watch?v=jnI1gMxtrB4)
 
     - Open MSYS2
-    - (add the MSYS2 and MSYS2/usr/bin folders to path)
+    - (add the MSYS2, MSYS2/usr/bin and MSYS2\mingw64\bin folders to path)
     - pacman -Syu (initial update)
     - (close and reopen MSYS2)
     - pacman -Sy  (secondary update)
