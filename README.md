@@ -2,6 +2,8 @@
 my nvim config, enhanced for c++, shaders, and python development
 
 Installation:
+0) Install Neovim
+
 1) Install lua-language-server (so you can easily confige nvim)
 
 2) Install python, which should come with pip
@@ -32,6 +34,10 @@ Installation:
 8) Install nerdfont(JetBrainsMonoExtraBold is my preffered one)
 
 9) Optional: Install ripgrep through pacman
+
+10) Install the config
+    cd ~/AppData/Local
+    git clone https://github.com/yodho1psnrls/nvim
 
 NOTE: All those things should be set on the PATH environmental variable on windows !!!
        and some additional environmental variables such as:
