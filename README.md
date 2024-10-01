@@ -39,6 +39,8 @@ Installation:
     cd ~/AppData/Local
     git clone https://github.com/yodho1psnrls/nvim
 
+11) Install Windows Terminal
+
 NOTE: All those things should be set on the PATH environmental variable on windows !!!
        and some additional environmental variables such as:
         - name: CMAKE_C_COMPILER, value: clang
