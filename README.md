@@ -14,9 +14,11 @@ Installation:
    mingw-gcc and mingw-make, we will use mingw-clang and
    mingw-ninja instead - https://www.youtube.com/watch?v=jnI1gMxtrB4)
 
+    - Open MSYS2
     - (add the MSYS2 and MSYS2/usr/bin folders to path)
     - pacman -Syu (initial update)
-    - (close and reopen the terminal)
+    - (close and reopen MSYS2)
+    - pacman -Sy  (secondary update)
     - pacman -Su  (secondary update)
     - pacman -S mingw-w64-x86_64-clang
     - pacman -S mingw-w64-x86_64-ninja
