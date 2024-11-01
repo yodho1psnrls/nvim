@@ -227,7 +227,7 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'QuitPre' }, {
 })
 
 
--- Make Nvim-Tree to always focus the file that you are currently in
+-- Make Nvim-Tree always focus the file that you are currently in
 vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter' }, {
   callback = function()
     local tree_api = require('nvim-tree.api')
@@ -236,10 +236,20 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter' }, {
     local current_file = vim.api.nvim_buf_get_name(current_buf)
 
     -- Check if nvim-tree is visible and if the current buffer is valid (not empty and not modified)
-    if tree.is_visible() and current_file ~= "" and not vim.api.nvim_buf_get_option(current_buf, 'mod') then
+--    if tree.is_visible() and current_file ~= "" and not vim.api.nvim_buf_get_option(current_buf, 'mod') then
       -- Focus on the current file in nvim-tree
-      tree.find_file(current_file)
+--      tree.find_file(current_file)
+--    end
+
+    -- Check if nvim-tree is visible and if the current buffer has a valid file path
+    if tree.is_visible() and current_file ~= "" then
+      -- Check if the file exists using vim.fn.filereadable
+      if vim.fn.filereadable(current_file) == 1 then
+        -- Focus on the current file in nvim-tree
+        tree.find_file(current_file)
+      end
     end
+
   end,
 })
 
