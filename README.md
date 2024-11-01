@@ -2,6 +2,8 @@
 my nvim config, enhanced for c++, shaders, and python development
 
 Installation:
+0) Install Neovim
+
 1) Install lua-language-server (so you can easily confige nvim)
 
 2) Install python, which should come with pip
@@ -14,9 +16,11 @@ Installation:
    mingw-gcc and mingw-make, we will use mingw-clang and
    mingw-ninja instead - https://www.youtube.com/watch?v=jnI1gMxtrB4)
 
-    - (add the MSYS2 and MSYS2/usr/bin folders to path)
+    - Open MSYS2
+    - (add the MSYS2, MSYS2/usr/bin and MSYS2\mingw64\bin folders to path)
     - pacman -Syu (initial update)
-    - (close and reopen the terminal)
+    - (close and reopen MSYS2)
+    - pacman -Sy  (secondary update)
     - pacman -Su  (secondary update)
     - pacman -S mingw-w64-x86_64-clang
     - pacman -S mingw-w64-x86_64-ninja
@@ -30,6 +34,12 @@ Installation:
 8) Install nerdfont(JetBrainsMonoExtraBold is my preffered one)
 
 9) Optional: Install ripgrep through pacman
+
+10) Install the config
+    cd ~/AppData/Local
+    git clone https://github.com/yodho1psnrls/nvim
+
+11) Install Windows Terminal
 
 NOTE: All those things should be set on the PATH environmental variable on windows !!!
        and some additional environmental variables such as:
