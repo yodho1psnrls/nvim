@@ -61,7 +61,7 @@ function BuildAndRunCpp()
     end
   })
   ]]--
-vim.fn.jobstart('cmake --build "Release" --config Release', {
+  vim.fn.jobstart('cmake --build "Release" --config Release', {
   stdout_buffered = true,
   stderr_buffered = true,
   on_stdout = function(_, data)
@@ -231,7 +231,7 @@ end
 function BuildAndRunPython()
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
-  vim.cmd('term python %')
+  vim.cmd('10split | term python %')
 end
 
 function BuildAndDebugPython()
@@ -242,6 +242,7 @@ end
 
 
 function BuildAndRun()
+  vim.cmd('messages clear')
   vim.cmd('wa') -- Save all buffers
 
   local filetype = vim.bo.filetype
@@ -256,6 +257,7 @@ function BuildAndRun()
 end
 
 function BuildAndDebug()
+  vim.cmd('messages clear')
   vim.cmd('wa') -- Save all buffers
 
   local filetype = vim.bo.filetype

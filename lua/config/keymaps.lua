@@ -86,11 +86,15 @@ end, { desc = "General Format file" })
 --  require("nvchad.tabufline").prev()
 --end, { desc = "buffer goto prev" })
 
+
 -- Go to the next buffer
 map('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true, desc = "Go to next buffer" })
 
 -- Go to the previous buffer
 map('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true, desc = "Go to previous buffer" })
+
+-- Delete a buffer (works directly out of neovim)
+--map('n', '<leader>x', ':bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
 
 
 

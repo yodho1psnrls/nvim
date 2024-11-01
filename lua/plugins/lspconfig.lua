@@ -1,5 +1,8 @@
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#ccls
 
+-- TODO: Fix the Code Action Feature
+--		and some others that dont work properly or have their keymaps overriten like Go To Implementation
+
 return {
 
   --https://github.com/Issafalcon/lsp-overloads.nvim
@@ -70,10 +73,12 @@ return {
 
         map("n", "<leader>D", vim.lsp.buf.type_definition, opts "Go to type definition")
 
+        -- @todo: Do this without NVChad so, you can use the rename functionality
         map("n", "<leader>ra", function()
           require "nvchad.lsp.renamer" ()
         end, opts "NvRenamer")
 
+        -- THIS IS THE ACTUAL THING THAT GENERATES YOU FUNCTION OR METHOD DEFINITIONS BASED ON DECLARATIONS !!!
         map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
         map("n", "gr", vim.lsp.buf.references, opts "Show references")
       end

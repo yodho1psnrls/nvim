@@ -42,6 +42,10 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 --the cursor over a variable or function for a brief time
 vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
 
+-- Diagnostics hover window
+--vim.diagnostic.config({ virtual_text = false, })
+--vim.cmd [[ autocmd CursorHold * lua vim.diagnostic.open_float(nil, { focusable = false }) ]]
+
 
 -- Set the delay time in milliseconds (e.g., 1000 ms = 1 second)
 -- vim.o.updatetime = 690 --660 --590
@@ -144,4 +148,119 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 --]]
 
----------------------------------
+-----------------------------------------------------------------------------
+
+-- https://github.com/nvim-tree/nvim-tree.lua/wiki/Recipes#workaround-when-using-rmagattiauto-session
+-- Workaround when using rmagatti/auto-session
+--[[
+vim.api.nvim_create_autocmd({ 'BufEnter' }, {
+  pattern = 'NvimTree*',
+  callback = function()
+    local api = require('nvim-tree.api')
+    local view = require('nvim-tree.view')
+
+    if not view.is_visible() then
+      api.tree.open()
+    end
+  end,
+})
+]]--
+
+
+-- Make :bd and :q behave as usual when tree is visible
+-- Is this compatible with nvim-bufdelete ???
+vim.api.nvim_create_autocmd({ 'BufEnter', 'QuitPre' }, {
+  nested = false,
+  callback = function(e)
+    local tree = require('nvim-tree.api').tree
+
+    -- Nothing to do if tree is not opened
+    if not tree.is_visible() then
+      return
+    end
+
+    -- Do nothing if we are focused over the nvim-tree window
+    local current_win_id = vim.api.nvim_get_current_win()
+    local tree_win_id = require('nvim-tree.view').get_winnr()
+    if current_win_id == tree_win_id then
+      return
+    end
+
+    -- How many focusable windows do we have? (excluding e.g. incline status window)
+    local winCount = 0
+    for _, winId in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_config(winId).focusable then
+        winCount = winCount + 1
+      end
+    end
+
+    -- Check if there are any unsaved changes
+    -- local has_unsaved_changes = false
+    -- for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      -- if vim.api.nvim_buf_is_modified(buf) then
+        -- has_unsaved_changes = true
+        -- break
+      -- end
+    -- end
+
+    -- We want to quit and only one window besides tree is left
+    if e.event == 'QuitPre' and winCount == 2 then
+--      if (has_unsaved_changes) then
+--        return
+--      else
+        vim.api.nvim_cmd({ cmd = 'qall' }, {})
+--      end
+    end
+
+    -- :bd was probably issued an only tree window is left
+    -- Behave as if tree was closed (see `:h :bd`)
+    if e.event == 'BufEnter' and winCount == 1 then
+      -- Required to avoid "Vim:E444: Cannot close last window"
+      vim.defer_fn(function()
+        -- close nvim-tree: will go to the last buffer used before closing
+        tree.toggle({ find_file = true, focus = true })
+        -- re-open nivm-tree
+        tree.toggle({ find_file = true, focus = false })
+      end, 10)
+    end
+  end
+})
+
+
+-- Make Nvim-Tree to always focus the file that you are currently in
+vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter' }, {
+  callback = function()
+    local tree_api = require('nvim-tree.api')
+    local tree = tree_api.tree
+    local current_buf = vim.api.nvim_get_current_buf()
+    local current_file = vim.api.nvim_buf_get_name(current_buf)
+
+    -- Check if nvim-tree is visible and if the current buffer is valid (not empty and not modified)
+    if tree.is_visible() and current_file ~= "" and not vim.api.nvim_buf_get_option(current_buf, 'mod') then
+      -- Focus on the current file in nvim-tree
+      tree.find_file(current_file)
+    end
+  end,
+})
+
+
+-- Make Nvim-Tree to always focus the file that you are currently in
+-- But if nvim-tree is not loaded(if its lazy loaded), it will not trigger
+--[[
+vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter' }, {
+  callback = function()
+    local status_ok, tree_api = pcall(require, 'nvim-tree.api')
+    if not status_ok then return end  -- Exit if nvim-tree is not loaded
+
+    local tree = tree_api.tree
+    local current_buf = vim.api.nvim_get_current_buf()
+    local current_file = vim.api.nvim_buf_get_name(current_buf)
+
+    -- Only focus if nvim-tree is visible
+    if tree.is_visible() and current_file ~= "" and not vim.api.nvim_buf_get_option(current_buf, 'mod') then
+      tree.find_file(current_file)  -- Focus on the current file
+    end
+  end,
+})
+]]--
+

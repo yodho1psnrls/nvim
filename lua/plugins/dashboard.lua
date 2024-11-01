@@ -94,11 +94,12 @@ local function ClearCache()
         if selection then
           local folder_path = folders[selection.value]
           if folder_path then
-            local cmd = 'rm -rf "' .. folder_path .. '/*"'
-            --local cmd = 'del /Q "' .. folder_path .. '/*.*"'
+            --local cmd = 'del ' .. folder_path .. '/*.*'
+            local cmd = 'rm -rf ' .. folder_path .. '/*'
             os.execute(cmd)
+            --vim.cmd('!' .. cmd)
             print(selection.value .. ' Cache Cleared !')
-            --print(cmd)
+            -- print(cmd)
           end
         end
       end)
@@ -214,7 +215,7 @@ return {
             action = function()
               ClearCache()
             end,
-            key = 'R'
+            key = 'r'
           }
 
           --[[

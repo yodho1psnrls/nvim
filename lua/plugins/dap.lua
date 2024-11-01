@@ -51,8 +51,8 @@ return {
         { desc = 'Remove All Breakpoints' })
 
       -- https://github.com/mfussenegger/nvim-dap/blob/master/doc/dap.txt (lines 875 and 878)
-      vim.keymap.set('n', '<leader>+', function() dap.up() end, { desc = "Go up in current stacktrace" })
-      vim.keymap.set('n', '<leader>-', function() dap.down() end, { desc = "Go down in current stacktrace" })
+      vim.keymap.set('n', '<leader>-', function() dap.up() end, { desc = "Go up in current stacktrace" })
+      vim.keymap.set('n', '<leader>+', function() dap.down() end, { desc = "Go down in current stacktrace" })
 
 
       -- https://github.com/mfussenegger/nvim-dap/discussions/576
@@ -237,6 +237,8 @@ return {
     end,
   },
 
+  -- THIS PLUGIN I CAUSING A MASSIVE LAG SPIKE WHEN OPENING OR CLOSING FILES
+  --[[
   {
     -- A plugin that auto-saves the breakpoints and some additional features
     -- https://www.reddit.com/r/neovim/comments/177zwub/daphelpernvim_small_helper_plugin_for_nvimdap_and/
@@ -246,6 +248,7 @@ return {
       require("dap-helper").setup()
     end,
   },
+  ]]--
 
   {
     "nvim-neotest/nvim-nio", -- dependancy for nvim-dap-ui
@@ -368,8 +371,7 @@ return {
       -----------------------------------------------------
 
       -- Toggle nvim-tree when dap-ui toggles
-
-      local nvim_tree = require('nvim-tree.api')
+--      local nvim_tree = require('nvim-tree.api')
       --local was_tree_opened = false
 
       dap.listeners.after.event_initialized["dapui_config"] = function()
@@ -385,7 +387,13 @@ return {
         end
         ]] --
 
-        nvim_tree.tree.close()
+--        nvim_tree.tree.close()
+
+          -- Check if nvim-tree is loaded
+        local status_ok, nvim_tree = pcall(require, 'nvim-tree.api')
+        if status_ok then
+          nvim_tree.tree.close()
+        end
       end
 
       --[[

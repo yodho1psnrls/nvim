@@ -13,7 +13,8 @@ vim.o.hidden = true
 --  For more options, you can see `:help option-list`
 
 -- Make line numbers default
-vim.opt.number = true
+ --vim.opt.number = true
+vim.opt.number = false
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
 vim.opt.relativenumber = true
@@ -69,11 +70,11 @@ vim.opt.listchars = { tab = '  ', trail = ' ', nbsp = '␣' }
 vim.opt.inccommand = 'split'
 
 -- Show which line your cursor is on
-vim.opt.cursorline = true
+vim.opt.cursorline = false
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 5
-vim.opt.sidescrolloff = 15
+vim.opt.scrolloff = 8
+vim.opt.sidescrolloff = 18
 
 --------------------------------------------------------------------------
 
