@@ -13,7 +13,7 @@ vim.o.hidden = true
 --  For more options, you can see `:help option-list`
 
 -- Make line numbers default
- --vim.opt.number = true
+--vim.opt.number = true
 vim.opt.number = false
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
@@ -106,7 +106,10 @@ local g = vim.g
 g.toggle_theme_icon = "   "
 
 -------------------------------------- options ------------------------------------------
+
+-- https://github.com/neovim/neovim/pull/17266
 o.laststatus = 3 -- 2 means - always show the status line
+
 o.showmode = false
 
 o.clipboard = "unnamedplus"
@@ -124,14 +127,26 @@ o.softtabstop = 2
 o.autoindent = true
 
 opt.fillchars = { eob = " " }
+--[[
+opt.fillchars = {
+  eob = " ",        -- Existing setting for end-of-buffer
+  horiz = '─',      -- Character for horizontal separators
+  horizup = '┬',    -- Character for horizontal separator pointing up
+  horizdown = '┴',  -- Character for horizontal separator pointing down
+  vertleft = '├',   -- Character for vertical separator pointing left
+  vertright = '┤',  -- Character for vertical separator pointing right
+  verthoriz = '┼'   -- Character for vertical separator connecting horizontal
+}
+]] --
+
 o.ignorecase = true
 o.smartcase = true
 o.mouse = "a"
 
 -- Numbers
 o.number = true
-o.numberwidth = 2
-o.ruler = false -- Show the cursor position all the time
+o.numberwidth = 1 -- (default: 2) Minimum width of the line number column
+o.ruler = false   -- Show the cursor position all the time
 
 -- disable nvim intro
 opt.shortmess:append "sI"

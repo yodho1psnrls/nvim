@@ -63,6 +63,8 @@ return {
           icons_enabled = true,
           theme = 'auto', -- You can set this to 'rose-pine' or any theme you prefer
 
+          laststatus = 3,
+
           --[[theme = {
             normal = {
               a = { fg = '#ffffff', bg = '#1c1c1c' }, -- Active section colors
@@ -84,7 +86,7 @@ return {
             winbar = {},
           },
           always_divide_middle = true,
-          globalstatus = false,
+          globalstatus = true, -- true(global status line), false(separate status lines per each window)
         },
         sections = {
           lualine_a = { 'mode' },
