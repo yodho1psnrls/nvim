@@ -101,10 +101,9 @@ return {
           -- Make sure `cdate` and `ctime` are available from lualine-time
           --lualine_x = {'encoding', 'fileformat', 'filetype', 'cdate', 'ctime'},
           --lualine_x = {'cdate', 'ctime' },
-          -- lualine_x = {'ctime'},
+          lualine_x = {'ctime'}, -- Shows hours, minutes and seconds
+          --lualine_x = { { 'time', fmt = function() return os.date("%H:%M") end } }, -- Show only hours and minutes
 
-          -- Show only hours and minutes
-          lualine_x = { { 'time', fmt = function() return os.date("%H:%M") end } },
           --[[lualine_x = {
             { 'time', fmt = function()
               os.setlocale("en_US.UTF-8")  -- Set locale to ensure AM/PM works
