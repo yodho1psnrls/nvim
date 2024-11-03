@@ -67,9 +67,6 @@ map("n", "<leader>ln", "<cmd>set nu!<CR>", { desc = "Toggle line number" })
 map("n", "<leader>rn", "<cmd>set rnu!<CR>", { desc = "Toggle relative number" })
 --map("n", "<leader>ch", "<cmd>NvCheatsheet<CR>", { desc = "Toggle nvcheatsheet" })
 
-map("n", "<leader>fm", function()
-  require("conform").format { lsp_fallback = true }
-end, { desc = "General Format file" })
 
 -- global lsp mappings
 --map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "LSP Diagnostic loclist" })
@@ -105,14 +102,16 @@ map("v", "<leader>/", "gc", { desc = "Toggle comment", remap = true })
 -- NvimTree
 --map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
 -- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
-map("n", "<leader>n", function() require('nvim-tree.api').tree.toggle({ find_file = true, focus = true }) end, { desc = "nvimtree toggle window" })
+map("n", "<leader>n", function() require('nvim-tree.api').tree.toggle({ find_file = true, focus = true }) end,
+  { desc = "nvimtree toggle window" })
 --map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
 
 -- telescope
 map("n", "<leader>fw", "<cmd>Telescope live_grep<CR>", { desc = "telescope live grep" })
 map("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "telescope find buffers" })
 map("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "telescope help page" })
-map("n", "<leader>ma", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
+--map("n", "<leader>ma", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
+map("n", "<leader>fm", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
 map("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "telescope find oldfiles" })
 map("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>", { desc = "telescope find in current buffer" })
 map("n", "<leader>cm", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
@@ -126,6 +125,14 @@ map(
   "<cmd>Telescope find_files follow=true no_ignore=true hidden=true<CR>",
   { desc = "telescope find all files" }
 )
+--[[map("n", "<leader>fm", function()
+  require("conform").format { lsp_fallback = true }
+end, { desc = "General Format file" })]]--
+
+map("n", "<leader>fs", '<cmd>Telescope session-lens search_session<CR>', { desc = "telescope session lens" })
+
+
+map("n", "<leader>m", ":messages<CR>", { desc = "Messages" })
 
 -- terminal
 map("t", "<C-x>", "<C-\\><C-N>", { desc = "terminal escape terminal mode" })

@@ -173,6 +173,7 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'QuitPre' }, {
   nested = false,
   callback = function(e)
     local tree = require('nvim-tree.api').tree
+    --local autosession = require('auto-session').sa
 
     -- Nothing to do if tree is not opened
     if not tree.is_visible() then
@@ -208,7 +209,15 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'QuitPre' }, {
 --      if (has_unsaved_changes) then
 --        return
 --      else
-        vim.api.nvim_cmd({ cmd = 'qall' }, {})
+
+        --vim.api.nvim_cmd({ cmd = 'qall' }, {})
+
+        -- This should fix quitting on unsaved buffers and save on session when the tree is open
+        tree.toggle({ find_file = true, focus = true }) -- close nvim-tree: will go to the last buffer used before closing
+        --vim.cmd('NvimTreeClose')
+        vim.cmd('SessionSave')
+        vim.api.nvim_cmd({ cmd = 'q' }, {})
+
 --      end
     end
 

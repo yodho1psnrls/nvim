@@ -5,6 +5,7 @@ return {
     lazy = false,
     dependencies = {
       'nvim-telescope/telescope.nvim', -- Only needed if you want to use session lens
+    --  'nvim-tree/nvim-tree.lua',       -- In order for nvim-tree to close
     },
 
     config = function()
@@ -36,11 +37,17 @@ return {
         args_allow_files_auto_save = true,
         continue_restore_on_error = true,
 
+        -- NOTE: Fix the issue that it doesnt save the session on exit when nvim-tree is open
+        -- And that when you cd to a folder it doesnt restore the last session
+
         -- This is what closes nvim-tree on cwd change !!
 --        cwd_change_handling = true,
 --        pre_cwd_changed_cmds = { "NvimTreeClose" },
+
         cwd_change_handling = false,
-        --pre_cwd_changed_cmds = nil,
+--        pre_cwd_changed_cmds = nil,
+--        pre_save_cmds = { "NvimTreeClose" },
+
 
         -- Other good options:
         --pre_cwd_changed_cmds
