@@ -283,3 +283,18 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter' }, {
 })
 ]]--
 
+
+
+--local function save_session()
+--  vim.cmd("AutoSessionSave")
+  -- Schedule the next save
+--  vim.defer_fn(save_session, 900000)  -- 900000 ms = 15 minutes
+--end
+
+-- Start the first save
+--save_session()
+
+
+
+
+

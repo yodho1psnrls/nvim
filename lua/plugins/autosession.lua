@@ -40,6 +40,9 @@ return {
         -- NOTE: Fix the issue that it doesnt save the session on exit when nvim-tree is open
         -- And that when you cd to a folder it doesnt restore the last session
 
+        -- NOTE: An Auto Session is not loaded when changing directories,
+        -- its only loaded if loaded from session-lens
+
         -- This is what closes nvim-tree on cwd change !!
 --        cwd_change_handling = true,
 --        pre_cwd_changed_cmds = { "NvimTreeClose" },
