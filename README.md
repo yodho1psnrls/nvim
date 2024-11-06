@@ -56,4 +56,16 @@ NOTE: If there are any problems use:
     :checkhealth lsp
     :checkhealth dap
 
+https://stackoverflow.com/questions/62578458/vim-nvim-not-filling-windows-terminal
+NOTE: If you use windows terminal and there are back bars 
+       at the right and the bottom, then you should either:
+1) Go to the terminal setting (both the default and the powershell)
+    set padding to 0 and scrollbar visibility to hidden
+2) If 1) doesnt work, then go to 
+    C:\Users\Todor\AppData\Local\Packages
+    \Microsoft.WindowsTerminal\LocalState\settings.json
+    and set
+    "padding": "0, 0, -10, -10",
+    "scrollbarState": "hidden",
+
 
