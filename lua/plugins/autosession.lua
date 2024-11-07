@@ -1,3 +1,7 @@
+--TODO: Fix auto-session to load the session that you cwd into
+-- Currently it only loads them, if you pick them from session-lens
+
+
 return {
 
   {

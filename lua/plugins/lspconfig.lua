@@ -74,12 +74,18 @@ return {
         map("n", "<leader>D", vim.lsp.buf.type_definition, opts "Go to type definition")
 
         -- @todo: Do this without NVChad so, you can use the rename functionality
-        map("n", "<leader>ra", function()
-          require "nvchad.lsp.renamer" ()
-        end, opts "NvRenamer")
+        --map("n", "<leader>ra", function()
+        --  require "nvchad.lsp.renamer" ()
+        --end, opts "NvRenamer")
+
+        map("n", "<leader>ra", vim.lsp.buf.rename, opts "LSP Rename")
 
         -- THIS IS THE ACTUAL THING THAT GENERATES YOU FUNCTION OR METHOD DEFINITIONS BASED ON DECLARATIONS !!!
-        map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
+        -- THIS ALSO DOES FIXES AVAILABLE CODE ACTIONS
+        --map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
+        -- Try to keymap it as it is in Visual Studio (Ctrl - . - Enter(enter when the window shows up))
+        --map({ "n", "v" }, "C-.", vim.lsp.buf.code_action, opts "Code action")
+
         map("n", "gr", vim.lsp.buf.references, opts "Show references")
       end
 
@@ -131,6 +137,10 @@ return {
 
       -- pylsp for Python
       lspconfig.pylsp.setup({
+        on_attach = M.on_attach,
+        on_init = M.on_init,
+        capabilities = M.capabilities,
+
         cmd = { 'pylsp' },
         filetypes = { 'python' },
         root_dir = function(fname)
@@ -150,6 +160,10 @@ return {
       -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#clangd
       --lspconfig.clangd.setup{}
       lspconfig.clangd.setup {
+        on_attach = M.on_attach,
+        on_init = M.on_init,
+        capabilities = M.capabilities,
+
         -- make clang to use cache indexing (as ccls)
         cmd = { "clangd", "--background-index" },
         -- It will save the cache on a default path
@@ -248,6 +262,10 @@ return {
       -------------------------------------------------------------------------
 
       lspconfig.lua_ls.setup({
+        on_attach = M.on_attach,
+        on_init = M.on_init,
+        capabilities = M.capabilities,
+
         cmd = { 'lua-language-server' }, -- Make sure this path is correct
         filetypes = { 'lua' },
         settings = {
