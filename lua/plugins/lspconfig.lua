@@ -82,7 +82,7 @@ return {
 
         -- THIS IS THE ACTUAL THING THAT GENERATES YOU FUNCTION OR METHOD DEFINITIONS BASED ON DECLARATIONS !!!
         -- THIS ALSO DOES FIXES AVAILABLE CODE ACTIONS
-        --map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
+        map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
         -- Try to keymap it as it is in Visual Studio (Ctrl - . - Enter(enter when the window shows up))
         --map({ "n", "v" }, "C-.", vim.lsp.buf.code_action, opts "Code action")
 
