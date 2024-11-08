@@ -69,3 +69,15 @@ NOTE: If you use windows terminal and there are back bars
     "scrollbarState": "hidden",
 
 
+NOTE: You can use ccache for caching during building of a project
+       for faster build times, but it is not so benefitial for largely
+       templated header files
+       1) Install it: pacman -S mingw-w64-x86_64-ccache
+       2) Check cache size and location: ccache -s
+       3) Change caches size: ccache --max-size=20G (Default is 5G)
+       4) After running a build, check ccache statistics: ccache -s
+       5) You can also configure ccache with a "~/.ccache/ccache.conf" file
+            This is how ccache.conf should look like:
+            max_size = 20.0G         # Set cache size to 20GB
+            compression = true       # Enable compression for cache files
+            compression_level = 5    # Set compression level
