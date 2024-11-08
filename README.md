@@ -81,3 +81,6 @@ NOTE: You can use ccache for caching during building of a project
             max_size = 20.0G         # Set cache size to 20GB
             compression = true       # Enable compression for cache files
             compression_level = 5    # Set compression level
+       6) After a while you may need to clean the cache, so
+           to fully clean: ccache -C
+           to clean only old or least-used cache entries: ccache -c
