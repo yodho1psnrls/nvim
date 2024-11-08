@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.25)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -6,6 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(proj)
+
+
+# Link-Time Optimization allows the compiler to perform
+#  optimizations across the entire program, which can reduce
+#  the final binary size and improve runtime. While it increases
+#  the initial compilation time, it can potentially reduce link
+#  times and increase the speed of your application at runtime
+#set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 
 # Ensure build type is Debug if not specified
@@ -35,7 +43,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 
+# Include the external libraries
+set(EXTERNAL_LIB_DIR "D:/libraries")
+include_directories(${EXTERNAL_LIB_DIR}/include)
+link_directories(${EXTERNAL_LIB_DIR}/lib)
+
 # Add the src directory (which contains the rest of the project structure)
 add_subdirectory(src)
 
-
+# Add glad.c as an external source file to the existing `proj` target
+target_sources(proj PRIVATE ${EXTERNAL_LIB_DIR}/src/glad/glad.c)
+# Use `GL` for Linux or `opengl32` for Windows
+target_link_libraries(proj glfw3 opengl32)
