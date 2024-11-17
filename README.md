@@ -1,6 +1,9 @@
 # nvim-config
 my nvim config, enhanced for c++, shaders, and python development
 
+Links that may come in handy:
+https://www.reddit.com/r/neovim/comments/1crdv93/neovim_on_windows_using_windows_terminal_and/
+
 Installation:
 0) Install Neovim
 
@@ -50,6 +53,10 @@ NOTE: All those things should be set on the PATH environmental variable on windo
         - name: CXX, value: path/to/clang++.exe
 
 NOTE: Use the powershell from the terminal, so it displays icons properly !
+
+NOTE: Set up a default directory, when you open powershell
+       Run "echo $profile" in powershell
+       Then open this ps1 file and type: Set-Location -Path "D:\"
 
 NOTE: If there are any problems use:
     :checkhealth lazy

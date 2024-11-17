@@ -26,10 +26,20 @@
 --  so you can debug or just build and run the project just by one keybind
 -- And also add some icons for the breakpoints to look prettier
 
+-- TODO:
+-- Make nvim-dap and all its related plugins to lazy load,
+--  so if you do a coding session where you dont use the debugger
+--  it and all its other plugins are not loaded at all !!!
+-- Make it load on F6(When you run it) and <leader>b (When you set a breakpoint)
+
+
 return {
 
   {
     "mfussenegger/nvim-dap",
+
+--    lazy = true;
+
     config = function()
       local dap = require('dap')
 
