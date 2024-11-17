@@ -2,6 +2,10 @@
 -- https://medium.com/@shaikzahid0713/file-explorer-for-neovim-c324d2c53657
 -- https://github.com/nvim-tree/nvim-tree.lua/wiki/Recipes#workaround-when-using-rmagattiauto-session
 
+-- TODO: Make the Root Folder Name to always apper at the Top
+--        when scroll down and the first line of nvim-tree
+--        is no longer visible 
+
 return {
 
   { "nvim-tree/nvim-web-devicons" }, -- it is a dependancy for other plugins
@@ -18,6 +22,7 @@ return {
       sort = {
         sorter = "case_sensitive",
       },
+
       view = {
         width = 24,
         side = "left",
@@ -31,19 +36,36 @@ return {
 
       actions = {
         change_dir = { global = true } -- Enable global directory change
-
       },
+
       renderer = {
         group_empty = true,
+
         -- Show only the root folder name
         root_folder_label = function()
           return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
         end,
+
+--        root_folder_label = false,  -- Disable the default one, because of out custom one
+
       },
+
       filters = {
         dotfiles = true,
         custom = { "compile_commands.json" },
       },
+
+      -- Custom function to handle a sticky root folder
+      --[[on_attach = function(bufnr)
+      --  local api = require('nvim-tree.api')
+        local root_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+        vim.api.nvim_buf_set_lines(bufnr, 0, 0, false, { "Root: " .. root_name })
+        vim.api.nvim_buf_add_highlight(bufnr, -1, "NvimTreeRootFolder", 0, 0, -1)
+
+        -- Optionally bind keymaps or custom commands here
+      --  api.config.mappings.default_on_attach(bufnr)
+      end,
+      ]]--
 
     },
 

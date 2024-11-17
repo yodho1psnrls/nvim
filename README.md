@@ -68,6 +68,18 @@ NOTE: If you use windows terminal and there are back bars
     "padding": "0, 0, -10, -10",
     "scrollbarState": "hidden",
 
+TIP: On Windows 10/11 the Windows Defender can significantly
+      slow down nvim's startup time
+      see - https://www.reddit.com/r/neovim/comments/1gtbiko/windows_defender_making_neovim_slow_on_windows_11/
+     But you dont have to stop the entire windows defender.
+     So to Fix it:
+      Win Button -> type defender -> virus and threat protection ->
+      -> virus and threat protection setting (Manage Settings) ->
+      -> Exclusions (Add or remove exclusions) ->
+      -> Add an exclusin process -> type "nvim" -> Done
+     Also you can exclude git, grep and any other processes
+      that nvim uses regularly
+
 
 NOTE: You can use ccache for caching during building of a project
        for faster build times, but it is not so benefitial for largely

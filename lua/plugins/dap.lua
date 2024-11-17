@@ -13,6 +13,9 @@
 
 --https://github.com/mfussenegger/nvim-dap/issues/198
 
+-- NOTE:
+-- What is the difference between 
+--  dap.configurations and dap.adapters ???
 
 -- NOTE: Plugins such as nvim-dap-python or nvim-dap-lldb are plugins
 -- that only configure your nvim-dap

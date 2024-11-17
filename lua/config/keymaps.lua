@@ -1,5 +1,7 @@
 -- print("KeyMaps are Loaded !") -- dubug message
 
+-- list of all modes: { 'n', 'i', 'v', 'x', 's', 'o', 'c' }
+
 --  See `:help vim.keymap.set()`
 
 -- Clear highlights on search when pressing <Esc> in normal mode

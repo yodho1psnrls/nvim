@@ -273,6 +273,6 @@ end
 
 ------------------------------------------------------------------------
 
-vim.keymap.set('n', '<F7>', function() GenerateCMake() end) -- Only for CPP
-vim.keymap.set('n', '<F5>', function() BuildAndRun() end)
-vim.keymap.set('n', '<F6>', function() BuildAndDebug() end)
+vim.keymap.set({'n', 'i'}, '<F8>', function() GenerateCMake() end) -- Only for CPP
+vim.keymap.set({'n', 'i'}, '<F5>', function() BuildAndRun() end)
+vim.keymap.set({'n', 'i'}, '<F6>', function() BuildAndDebug() end)
