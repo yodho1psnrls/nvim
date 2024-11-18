@@ -1,8 +1,3 @@
---vim.cmd("colorscheme catppuccin")
---vim.cmd("colorscheme rose-pine")
--- vim.cmd("colorscheme rose-pine-main")
-vim.cmd("colorscheme rose-pine-moon")
--- vim.cmd("colorscheme rose-pine-dawn")
 
 -- highlight the border between split windows
 --vim.cmd([[highlight VertSplit guifg=#A9A9A9 gui=NONE " Color of the vertical split separator]])

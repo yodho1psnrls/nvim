@@ -38,7 +38,19 @@ return {
   {
     "mfussenegger/nvim-dap",
 
---    lazy = true;
+    lazy = true,
+
+    keys = { -- The key mappings that will trigger the loading
+      { '<leader>b', desc = "Set Breakpoint" },
+      { '<F6>', desc = "Run Debugger" },
+    },
+
+    dependencies = {
+      "rcarriga/nvim-dap-ui",
+      "theHamsta/nvim-dap-virtual-text",
+      "lucaSartore/nvim-dap-exception-breakpoints",
+      "mfussenegger/nvim-dap-python",
+    },
 
     config = function()
       local dap = require('dap')
@@ -263,10 +275,12 @@ return {
   },
   ]]--
 
-  {
-    "nvim-neotest/nvim-nio", -- dependancy for nvim-dap-ui
-  },
+  -- dependancy for nvim-dap-ui
+--  { "nvim-neotest/nvim-nio", },
 
+  -- This plugin and its configuration is good and works,
+  --  but i just dont need it
+--[[
   {
     -- integration with telescope, so you can browse
     -- breakpoints and other debug related stuff
@@ -279,11 +293,13 @@ return {
       require('telescope').load_extension('dap')
     end,
   },
+]]--
 
   {
     "rcarriga/nvim-dap-ui",
+    lazy = true,
     dependencies = {
-      "mfussenegger/nvim-dap",
+ --     "mfussenegger/nvim-dap",
       "nvim-neotest/nvim-nio"
     },
     config = function()
@@ -432,8 +448,8 @@ return {
   -- https://github.com/mfussenegger/nvim-dap/discussions/576
   {
     "lucaSartore/nvim-dap-exception-breakpoints",
-    dependencies = { "mfussenegger/nvim-dap" },
-
+--    dependencies = { "mfussenegger/nvim-dap" },
+    lazy = true,
     config = function()
       local set_exception_breakpoints = require("nvim-dap-exception-breakpoints")
 
@@ -453,6 +469,7 @@ return {
 
   {
     "theHamsta/nvim-dap-virtual-text",
+    lazy = true,
     config = function()
       require("nvim-dap-virtual-text").setup {
         enabled = true,                     -- enable this plugin (the default)
@@ -495,6 +512,7 @@ return {
 
   {
     "mfussenegger/nvim-dap-python",
+    lazy = true,
     config = function()
       require("dap-python").setup("python")
     end,

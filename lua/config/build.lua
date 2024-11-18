@@ -10,7 +10,7 @@
 -- https://stackoverflow.com/questions/7597249/vim-script-how-to-execute-a-command-in-a-vim-function
 -- https://neovim.discourse.group/t/how-to-new-a-terminal-and-send-to-run-command-with-lua/4218
 
-local dap = require('dap')
+-- local dap = require('dap')
 
 -------------------------------------------------------------------------
 
@@ -218,7 +218,8 @@ function BuildAndDebugCpp()
       --vim.defer_fn(function() vim.cmd('messages') end, 100) -- same as above, but with delay
     else
       -- If successful, run the executable with the debugger
-      dap.continue()
+      --dap.continue()
+      require('dap').continue()
       --vim.cmd('term .\\Debug\\bin\\proj.exe')
     end
   end,
@@ -235,7 +236,8 @@ function BuildAndRunPython()
 end
 
 function BuildAndDebugPython()
-  dap.continue()
+  --dap.continue()
+  require('dap').continue()
 end
 
 ------------------------------------------------------------------------

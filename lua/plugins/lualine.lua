@@ -56,6 +56,10 @@ return {
       "nvim-tree/nvim-web-devicons", -- Icons support
       "archibate/lualine-time",      -- Clock extension
     },
+
+    lazy = true,
+    event = 'BufReadPost',
+
     config = function()
       -- Ensure the time plugin is properly loaded
       require('lualine').setup {
