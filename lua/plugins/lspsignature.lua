@@ -20,14 +20,33 @@ return {
 
   {
     "ray-x/lsp_signature.nvim",
-    event = "InsertEnter",
+
+    --event = "InsertEnter",
+    event = "LspAttach", -- Load when LSP server attaches
+
     opts = {
       bind = true,
       handler_opts = {
         border = "rounded"
-      }
+      },
+
+--      floating_window = true, -- Default: true
+--      hint_enable = true, -- Virtual Hint, Default: true
+      hint_prefix = {
+        above = "↙ ",  -- when the hint is on the line above the current line
+        current = "← ",  -- when the hint is on the same line
+        --current = "↖ ",
+        below = "↖ "  -- when the hint is on the line below the current line
+      },
+
+--      always_trigger = true, -- Default: false
+--      fix_pos = true, -- Default: false -- set to true, the floating window will not auto-close until finish all parameters
+--      select_signature_key = '<S-Tab>', -- cycle to next signature, e.g. '<M-n>' function overloading (Default: nil)
+
     },
-    config = function(_, opts) require 'lsp_signature'.setup(opts) end
+
+    --config = function(_, opts) require 'lsp_signature'.setup(opts) end
+    config = function(_, opts) require 'lsp_signature'.on_attach(opts) end -- Load when LSP server attaches
   }
 
 }
