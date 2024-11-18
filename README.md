@@ -84,8 +84,8 @@ TIP: On Windows 10/11 the Windows Defender can significantly
       -> virus and threat protection setting (Manage Settings) ->
       -> Exclusions (Add or remove exclusions) ->
       -> Add an exclusin process -> type "nvim" -> Done
-     Also you can exclude git, grep and any other processes
-      that nvim uses regularly
+     Also you can exclude all other processes that nvim triggers like:
+      git, grep, gcc, g++, clang, clang++, ninja, cmake, clangd, pylsp, codelldb, debugpy
 
 
 NOTE: You can use ccache for caching during building of a project

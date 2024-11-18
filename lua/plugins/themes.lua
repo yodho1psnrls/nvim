@@ -10,23 +10,24 @@
 return {
 
   -- the colorscheme should be available when starting Neovim
-  {
+
+  --[[{
     "folke/tokyonight.nvim",
     lazy = false,    -- make sure we load this during startup if it is your main colorscheme
     priority = 1000, -- make sure to load this before all the other start plugins
     --    opts = { style = "moon" },
     config = function()
       -- load the colorscheme here
-      vim.cmd([[colorscheme tokyonight]])
+      vim.cmd([[colorscheme tokyonight]]--[[)
     end,
-  },
+  },]]--
 
   --[[
   {
     "catppuccin/nvim",
-    lazy = true,
+    lazy = false,
     name = "catppuccin",
---    priority = 1000,
+    priority = 1000,
     opts = {
       integrations = {
         aerial = true,
@@ -65,6 +66,7 @@ return {
         which_key = true,
       },
     },
+    --[[
     specs = {
       {
         "akinsho/bufferline.nvim",
@@ -76,6 +78,8 @@ return {
         end,
       },
     },
+    ]]--
+    --[[
     -- Load the colorscheme
     config = function()
       vim.cmd("colorscheme catppuccin")
@@ -83,7 +87,6 @@ return {
   },
   ]]--
 
-  --[[
   {
     "rose-pine/neovim",
     name = "rose-pine",
@@ -173,7 +176,7 @@ return {
       --vim.cmd("colorscheme rose-pine-dawn")
     end,
   },
-]] --
+
 
   --[[
 { -- You can easily change to a different colorscheme.
