@@ -3,6 +3,8 @@
 -- https://github.com/petertriho/cmp-git
 -- https://www.reddit.com/r/neovim/comments/so4g5e/if_you_guys_arent_using_lsp_signaturenvim_what/
 
+-- You can integrate this plugin with lsp-singature or lsp-singature-helper
+
 return {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
@@ -15,11 +17,6 @@ return {
     "hrsh7th/cmp-path",
     "hrsh7th/cmp-cmdline",
 
-    -- Comment it out, because i will use lsp-signature
-    --{
-    --  "hrsh7th/cmp-nvim-lsp-signature-help",
-    --  event = "LspAttach", -- Load when LSP server attaches
-    --},
 
   },
   config = function()
@@ -162,7 +159,7 @@ return {
         { name = "nvim_lua" },
         { name = "path" },
         --{ name = "nvim_lsp_signature_help" }, -- Correct source name here
-        {name = "lsp-signature"}
+--        {name = "lsp-signature"}
       },
     }
 

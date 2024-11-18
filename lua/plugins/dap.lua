@@ -42,14 +42,16 @@ return {
 
     keys = { -- The key mappings that will trigger the loading
       { '<leader>b', desc = "Set Breakpoint" },
-      { '<F6>', desc = "Run Debugger" },
+--      { '<F6>', desc = "Run Debugger" },
     },
 
+    -- None of those are dependancies for nvim-dap
+    -- Actually, nvim-dap is dependancy for all of them
     dependencies = {
       "rcarriga/nvim-dap-ui",
       "theHamsta/nvim-dap-virtual-text",
       "lucaSartore/nvim-dap-exception-breakpoints",
-      "mfussenegger/nvim-dap-python",
+      "mfussenegger/nvim-dap-python", -- plugin that configures nvim-dap with pylsp
     },
 
     config = function()
@@ -262,7 +264,9 @@ return {
     end,
   },
 
-  -- THIS PLUGIN I CAUSING A MASSIVE LAG SPIKE WHEN OPENING OR CLOSING FILES
+  -- NOTE: If you want an alternative for this in the future, consider
+  -- Carcuis/dap-breakpoints.nvim or Weissle/persistent-breakpoints.nvim
+  -- BUG: THIS PLUGIN I CAUSING A MASSIVE LAG SPIKE WHEN OPENING OR CLOSING FILES
   --[[
   {
     -- A plugin that auto-saves the breakpoints and some additional features

@@ -5,13 +5,13 @@
 
 return {
 
-  --https://github.com/Issafalcon/lsp-overloads.nvim
-  { "Issafalcon/lsp-overloads.nvim" },
-
   {
     "neovim/nvim-lspconfig",
 
     config = function()
+
+      vim.lsp.set_log_level("OFF") -- Only Enable, it if you debbug some LSP related problems
+
       local warnings_enabled = true
       local function ToggleWarnings()
         if warnings_enabled then
