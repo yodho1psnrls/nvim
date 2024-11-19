@@ -116,8 +116,11 @@ map("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "telescope help 
 map("n", "<leader>fm", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
 map("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "telescope find oldfiles" })
 map("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>", { desc = "telescope find in current buffer" })
-map("n", "<leader>cm", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
-map("n", "<leader>gt", "<cmd>Telescope git_status<CR>", { desc = "telescope git status" })
+
+map("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
+map("n", "<leader>gf", "<cmd>Telescope git_status<CR>", { desc = "telescope git status" })
+map("n", "<leader>gs", "<cmd>Gitsigns<CR>", { desc = "telescope git signs" })
+
 map("n", "<leader>pt", "<cmd>Telescope terms<CR>", { desc = "telescope pick hidden term" })
 map("n", "<leader>th", "<cmd>Telescope themes<CR>", { desc = "telescope nvchad themes" })
 map("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "telescope find files" })
@@ -139,6 +142,7 @@ map("n", "<leader>m", ":messages<CR>", { desc = "Messages" })
 -- terminal
 map("t", "<C-x>", "<C-\\><C-N>", { desc = "terminal escape terminal mode" })
 
+--[[
 -- new terminals
 map("n", "<leader>h", function()
   require("nvchad.term").new { pos = "sp" }
@@ -147,7 +151,7 @@ end, { desc = "terminal new horizontal term" })
 map("n", "<leader>v", function()
   require("nvchad.term").new { pos = "vsp" }
 end, { desc = "terminal new vertical window" })
-
+]]--
 
 -- toggleable
 -- map({ "n", "t" }, "<A-v>", function()

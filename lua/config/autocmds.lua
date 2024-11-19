@@ -28,6 +28,17 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   end,
 })
 
+-- Lazy load gitsigns, when you change directories and it happens
+--  that there is a .git folder inside your current working directory
+vim.api.nvim_create_autocmd('DirChanged', {
+  pattern = '*',
+  callback = function()
+    -- Check if the directory contains a .git folder and trigger lazy load
+    if vim.fn.isdirectory(vim.fn.expand('.git')) == 1 then
+      require('lazy').load({ plugins = { 'gitsigns.nvim' } })
+    end
+  end,
+})
 
 -- trigger the hover documentation (which often shows type,
 -- function signatures, or other useful info) when hovering over a symbol.

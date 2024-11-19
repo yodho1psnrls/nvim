@@ -2,9 +2,27 @@
 -- NOTE: gitsigns is already included in init.lua but contains only the base
 -- config. This will add also the recommended keymaps.
 
+-- https://www.reddit.com/r/neovim/comments/146n4yy/what_is_the_smartest_condition_you_have_used_to/?rdt=57944
+-- https://www.reddit.com/r/neovim/comments/1frxtv4/looking_for_conventional_commit_plugin/
+
 return {
   {
     'lewis6991/gitsigns.nvim',
+
+    -- The actual lazy load logic is in lua/config/autocmds.lua
+    lazy = true,
+
+    -- Lazy load it, when you change directories and it happens
+    --  that there is a .git folder inside your current working directory
+    --[[
+    --event = 'BufRead'
+    event = 'DirChanged',
+    cond = function()
+      -- Check if the current directory contains a .git directory
+      return vim.fn.isdirectory(vim.fn.expand('.git')) == 1
+    end,
+    ]]--
+
     opts = {
       on_attach = function(bufnr)
         local gitsigns = require 'gitsigns'
@@ -57,6 +75,7 @@ return {
         map('n', '<leader>tD', gitsigns.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
       end,
     },
+
   },
 }
 
