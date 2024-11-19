@@ -74,9 +74,9 @@ return {
     },
 
 
-  config = function()
+  config = function(_, opts)
 
-    require'nvim-tree'.setup()
+    require'nvim-tree'.setup(opts)
 
 
     -- Make :bd and :q behave as usual when tree is visible
