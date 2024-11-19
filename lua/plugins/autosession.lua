@@ -6,7 +6,17 @@ return {
 
   {
     'rmagatti/auto-session',
-    lazy = false,
+
+    -- You might say, "But this wont autoload when you enter
+    --  a directory with a session in it", but actually currently
+    --  if you dont explicitly load a session, it still wont load
+    --  it (when you just enter a folder with a session)
+    -- I dont know, why this problem occurs
+    -- So Lazy Loading it, wont change its current behaiviour at all
+    lazy = true,
+    cmd = { 'Telescope session-lens search_session' },
+    --action = { 'Telescope session-lens search_session' },
+
     dependencies = {
       'nvim-telescope/telescope.nvim', -- Only needed if you want to use session lens
     --  'nvim-tree/nvim-tree.lua',       -- In order for nvim-tree to close

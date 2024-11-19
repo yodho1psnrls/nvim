@@ -23,12 +23,12 @@ function GenerateCMake()
   vim.cmd('!cmake -S . -B "Debug" -DCMAKE_BUILD_TYPE=Debug')
   vim.cmd('!cmake -S . -B "Release" -DCMAKE_BUILD_TYPE=Release')
 
-  -- Create a symlink for clangd to work properly
-  --https://www.howtogeek.com/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/
-  --vim.cmd('!mklink "compile_commands.json" "Debug\\compile_commands.json"')
-
+  -- Create a symlink for compile_commands.json, so language server protocols
+  -- like clangd or ccls work properly
   -- Creates a hardlink, so you dont need elevated permissions (no need to restart the terminal)
+  --https://www.howtogeek.com/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/
   vim.cmd('!rm compile_commands.json')
+  --vim.cmd('!mklink "compile_commands.json" "Debug\\compile_commands.json"')
   vim.cmd('!mklink /H "compile_commands.json" "Debug\\compile_commands.json"')
 end
 
