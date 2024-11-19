@@ -45,6 +45,9 @@ return {
 --      { '<F6>', desc = "Run Debugger" },
     },
 
+    -- It would also be lazy loaded on '<F6>'
+    -- See lua/config/build.lua
+
     -- None of those are dependancies for nvim-dap
     -- Actually, nvim-dap is dependancy for all of them
     dependencies = {

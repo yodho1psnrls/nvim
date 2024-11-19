@@ -1,8 +1,18 @@
 return {
 
+  -- TODO: You can try to lazy load it, not on LspAttach, but on
+  -- opening a file that is one of the types listed in ensure_installed
 
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    lazy = true,
+    event = "LspAttach",
+
+    -- Make the sticky headers load, when treesitter is loaded
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter-context",
+    },
+
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -26,8 +36,24 @@ return {
     --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-  }
 
+
+  -- Lazy load it on LspAttach
+  --[[
+  config = function(_, opts)
+
+    local function on_attach(_, _)
+      require('nvim-treesitter.configs').setup(opts)
+    end
+
+    vim.api.nvim_create_autocmd("LspAttach", {
+      callback = on_attach,
+    })
+
+  end,
+  ]]--
+
+  },
 
 --[[
 {

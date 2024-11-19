@@ -4,6 +4,10 @@
 
 -- Ctrl + d while you browse the buffer finder will delete the selected buffer !
 
+-- telescope-fzf-native needs a build system like make or ninja
+--  so if you switch between different build systems, make sure
+--  to update this accordingly
+
 return {
 
   --{"smartpde/telescope-recent-files"},  -- add it as a dependancy instead

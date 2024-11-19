@@ -17,6 +17,9 @@ return {
     lazy = true,
     --    cmd = { 'NvimTreeToggle', 'NvimTreeFocus', 'NvimTreeFindFile' },
 
+    -- It will be lazy loaded on '<leader>n'
+    -- See lua/config/keymaps.lua
+
     dependencies = {
       "nvim-tree/nvim-web-devicons",
     },
@@ -78,6 +81,19 @@ return {
 
     require'nvim-tree'.setup(opts)
 
+  --[[
+    -- Autocommand for when opening Neovim with a directory
+    -- Or when you open a folder like :edit some_folder
+    vim.api.nvim_create_autocmd("VimEnter", {
+      callback = function()
+        -- Check if the current working directory is a directory
+        if vim.fn.isdirectory(vim.fn.getcwd()) == 1 then
+            --open_nvim_tree()
+          require'nvim-tree'.open() -- Load NvimTree if you
+        end
+      end,
+    })
+  ]]--
 
     -- Make :bd and :q behave as usual when tree is visible
     -- Is this compatible with nvim-bufdelete ???
