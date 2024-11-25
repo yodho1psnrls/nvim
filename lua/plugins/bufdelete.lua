@@ -9,12 +9,20 @@
 --map('n', '<leader>x', ':bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
 -- Delete a buffer (with delbuffer plugin, which doesnt affect your window layout)
 
+-- https://www.reddit.com/r/neovim/comments/uv7cuf/bufdeletenvim_new_feature_bdeletepre_and/
+
 return {
 
   {
     "famiu/bufdelete.nvim",
     config = function()
       vim.api.nvim_set_keymap('n', '<leader>x', ':Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+
+      -- Completely remap  :bd to :Bdelete
+      --vim.api.nvim_create_user_command('bd', 'Bdelete', { nargs = 0 })
+      --vim.api.nvim_set_keymap('n', '<leader>x', ':bd<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+
+      -- TODO: Make the terminal buffer exit to use this plugin
 
       -- TODO: Fix it, it doesnt quite work
       -- Test case: open nvim-tree and a cpp file, then run the cpp exe (which opens the terminal in place of the cpp file window)

@@ -104,9 +104,31 @@ return {
           mappings = {
             -- i = { ['<c-enter>'] = 'to_fuzzy_refine' },
             -- Custom key mapping for delete the selected buffer in telescope
-            i = { ["<C-d>"] = require('telescope.actions').delete_buffer, },
+          --  i = { ["<C-d>"] = require('telescope.actions').delete_buffer, },
             -- Custom key mapping for delete the selected buffer in telescope
-            n = { ["<C-d>"] = require('telescope.actions').delete_buffer, },
+          --  n = { ["<C-d>"] = require('telescope.actions').delete_buffer, },
+
+            -- Integrates with BufDelete Plugin, to delete the selected buffers in telescope
+
+            i = {
+              ["<C-d>"] = function(prompt_bufnr)
+                local selection = require('telescope.actions.state').get_selected_entry(prompt_bufnr)
+                if selection then
+                  local buf = selection.bufnr  -- Get the buffer number of the hovered item
+                  require('bufdelete').bufdelete(buf, false)  -- Delete the selected buffer using BufDelete plugin (force delete)
+                end
+              end,
+            },
+
+            n = {
+              ["<C-d>"] = function(prompt_bufnr)
+                local selection = require('telescope.actions.state').get_selected_entry(prompt_bufnr)
+                if selection then
+                  local buf = selection.bufnr  -- Get the buffer number of the hovered item
+                  require('bufdelete').bufdelete(buf, false)  -- Delete the selected buffer using BufDelete plugin (force delete)
+                end
+              end,
+            },
 
           },
         },
@@ -116,7 +138,6 @@ return {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
-
 
           -- File Browser Extension
           file_browser = {

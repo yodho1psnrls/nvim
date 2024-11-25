@@ -10,7 +10,9 @@ return {
 
     config = function()
 
+      -- Available Options: off, error, warn, info, debug, trace
       vim.lsp.set_log_level("OFF") -- Only Enable, it if you debbug some LSP related problems
+      --vim.lsp.set_log_level("trace") -- Verbose (For debugging)
 
       local warnings_enabled = true
       local function ToggleWarnings()
@@ -38,8 +40,8 @@ return {
         warnings_enabled = not warnings_enabled
       end
 
-      vim.keymap.set('n', '<leader>tw', function() ToggleWarnings() end,
-        { noremap = true, silent = true })
+      vim.keymap.set('n', '<leader>wt', function() ToggleWarnings() end,
+        { noremap = true, silent = true, desc = 'Warnings Toggle' })
 
       -- Function to jump to the next diagnostic
       vim.keymap.set('n', '<leader>dn', function() vim.diagnostic.goto_next() end,
@@ -164,8 +166,9 @@ return {
         on_init = M.on_init,
         capabilities = M.capabilities,
 
-        -- make clang to use cache indexing (as ccls)
+        -- The background-index tag makes clang to use cache indexing (as ccls)
         cmd = { "clangd", "--background-index" },
+--        cmd = { "clangd", "--background-index", "--log=verbose" }, -- For Debugging
         -- It will save the cache on a default path
         -- which is ~/AppData/Local/clangd/index
         -- If you want to specify another path

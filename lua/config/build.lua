@@ -4,7 +4,22 @@
 
 -- All those functions expect that the cwd is set on the root directory of the project !
 
--- TODO: Fix the creation of the symlink of the new project
+-- TODO: 
+-- Make the build, run, debug and generate independent of your
+--  current working directory. Make it dependant on the current
+--  buffer that your in. Such that from the buffer that you are in
+--  it traces the root directory of the project.
+-- You can use the same logic that the LSP uses or directly retreive
+--  it from the root directory that the LSP detected
+-- This will be a plus for example, if you are in some folder with
+--  multiple small projects, so you can easily switch between them
+--  just by opening a file from a certain project, without the need
+--  of always changing the directory and keeping track if you are in
+--  an actual root directory of a project, you can always stay in the
+--  upper one that stores all those projects.
+-- Or you can be in a big project, deep inside some library,
+--  and still be able to run the whole project, 
+--  without going to the root directory
 
 -- https://neovim.discourse.group/t/how-to-new-a-terminal-and-send-to-run-command-with-lua/4218
 -- https://stackoverflow.com/questions/7597249/vim-script-how-to-execute-a-command-in-a-vim-function
@@ -24,7 +39,7 @@ function GenerateCMake()
   vim.cmd('!cmake -S . -B "Release" -DCMAKE_BUILD_TYPE=Release')
 
   -- Create a symlink for compile_commands.json, so language server protocols
-  -- like clangd or ccls work properly
+  --  like clangd or ccls work properly
   -- Creates a hardlink, so you dont need elevated permissions (no need to restart the terminal)
   --https://www.howtogeek.com/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/
   vim.cmd('!rm compile_commands.json')
@@ -87,7 +102,8 @@ function BuildAndRunCpp()
     else
       -- If successful, run the executable in a terminal
       --vim.cmd('term .\\Release\\bin\\proj.exe')
-      vim.cmd('10split | term .\\Release\\bin\\proj.exe')
+       vim.cmd('10split | term .\\Release\\bin\\proj.exe')
+      --vim.cmd('term .\\Release\\bin\\proj.exe')
     end
   end,
 })
@@ -232,7 +248,8 @@ end
 function BuildAndRunPython()
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
-  vim.cmd('10split | term python %')
+   vim.cmd('10split | term python %')
+  --vim.cmd('term python %')
 end
 
 function BuildAndDebugPython()
@@ -275,6 +292,11 @@ end
 
 ------------------------------------------------------------------------
 
-vim.keymap.set({'n', 'i'}, '<F8>', function() GenerateCMake() end) -- Only for CPP
-vim.keymap.set({'n', 'i'}, '<F5>', function() BuildAndRun() end)
-vim.keymap.set({'n', 'i'}, '<F6>', function() BuildAndDebug() end)
+-- Better to be only in normal mode, so diagnostics are shown, before building
+vim.keymap.set('n', '<F8>', function() GenerateCMake() end) -- Only for CPP
+vim.keymap.set('n', '<F5>', function() BuildAndRun() end)
+vim.keymap.set('n', '<F6>', function() BuildAndDebug() end)
+
+--vim.keymap.set({'n', 'i'}, '<F8>', function() GenerateCMake() end) -- Only for CPP
+--vim.keymap.set({'n', 'i'}, '<F5>', function() BuildAndRun() end)
+--vim.keymap.set({'n', 'i'}, '<F6>', function() BuildAndDebug() end)

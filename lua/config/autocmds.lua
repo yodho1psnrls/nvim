@@ -1,4 +1,26 @@
 
+-- NOTE: Trying to make diagnostics virtual text to also show in input mode
+
+-- Show diagnostics when entering insert mode
+--vim.cmd [[ autocmd InsertEnter * lua vim.diagnostic.open_float(nil, { focusable = false, scope = "cursor", border = "rounded", width = 40 }) ]]
+-- Hide diagnostics when leaving insert mode
+--vim.cmd [[ autocmd InsertLeave * lua vim.diagnostic.hide(nil) ]]
+
+-- Optional: Customize Diagnostic Floating Window Behavior
+--[[
+vim.lsp.handlers["textDocument/publishDiagnostics"] = function(_, result, ctx, config)
+  -- Make the diagnostic window appear a little less intrusive
+  vim.diagnostic.set(qf_list, result.diagnostics, bufnr)
+  vim.diagnostic.open_float(nil, {
+    focusable = false,
+    scope = "cursor",  -- show at the cursor position
+    border = "rounded",  -- make the border rounded for a nicer UI
+    width = 40,  -- control window width
+  })
+end
+]]--
+
+
 -- highlight the border between split windows
 --vim.cmd([[highlight VertSplit guifg=#A9A9A9 gui=NONE " Color of the vertical split separator]])
 --vim.cmd [[highlight VertSplit guifg=#A9A9A9 guibg=NONE]]
@@ -30,7 +52,7 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 
 -- Lazy load gitsigns, when you change directories and it happens
 --  that there is a .git folder inside your current working directory
-vim.api.nvim_create_autocmd('DirChanged', {
+vim.api.nvim_create_autocmd({'VimEnter', 'DirChanged'}, {
   pattern = '*',
   callback = function()
     -- Check if the directory contains a .git folder and trigger lazy load
@@ -63,6 +85,7 @@ vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
 
 ---------- Because i cant see cmp select line while typing in a file -------------------
 -- Override highlights for nvim-cmp
+
 --[[
 vim.cmd([[
   highlight! default link CmpPmenu Pmenu
@@ -91,6 +114,10 @@ vim.cmd([[
 -- the theme and then override just these highlights without changing the
 -- rest of the theme
 -- (apply your custom highlights)
+
+-- Most of the themes dont have such highlights for nvim-cmp
+--  (the autocomplete suggestions window), so keep them centralized
+--  here in autocmds.lua, and not per theme config
 
 vim.cmd([[
   highlight! CmpPmenu guibg=#1f1d2e guifg=#e0def4

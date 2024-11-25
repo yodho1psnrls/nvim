@@ -81,20 +81,21 @@ return {
     ]]--
     --[[
     -- Load the colorscheme
-    config = function()
+    config = function(_, opts)
+      require'catppuccin'.setup(opts)
       vim.cmd("colorscheme catppuccin")
     end,
   },
   ]]--
 
-  {
+  { -- https://github.com/rose-pine/neovim
     "rose-pine/neovim",
     name = "rose-pine",
     opts = {
 
       variant = "auto",      -- auto, main, moon, or dawn
       dark_variant = "main", -- main, moon, or dawn
-      dim_inactive_windows = false,
+      dim_inactive_windows = true, -- Default: false
       extend_background_behind_borders = true,
 
       enable = {
@@ -169,10 +170,11 @@ return {
 
     },
 
-    config = function()
+    config = function(_, opts)
+      require('rose-pine').setup(opts)
       --vim.cmd("colorscheme rose-pine")
       --vim.cmd("colorscheme rose-pine-main")
-      vim.cmd("colorscheme rose-pine-moon")
+       vim.cmd("colorscheme rose-pine-moon")
       --vim.cmd("colorscheme rose-pine-dawn")
     end,
   },

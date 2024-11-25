@@ -6,7 +6,8 @@ vim.g.maplocalleader = ' '
 
 
 -- auto-seesion option
-vim.o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,localoptions"
+--vim.o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,localoptions"
+vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 
 -- nvim-tree options
 -- disable netrw at the very start of your init.lua

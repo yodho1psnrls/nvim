@@ -122,7 +122,10 @@ map("n", "<leader>gf", "<cmd>Telescope git_status<CR>", { desc = "telescope git 
 map("n", "<leader>gs", "<cmd>Gitsigns<CR>", { desc = "telescope git signs" })
 
 map("n", "<leader>pt", "<cmd>Telescope terms<CR>", { desc = "telescope pick hidden term" })
-map("n", "<leader>th", "<cmd>Telescope themes<CR>", { desc = "telescope nvchad themes" })
+
+-- This is NvChad Specific
+--map("n", "<leader>th", "<cmd>Telescope themes<CR>", { desc = "telescope nvchad themes" })
+
 map("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "telescope find files" })
 map(
   "n",
@@ -134,7 +137,66 @@ map(
   require("conform").format { lsp_fallback = true }
 end, { desc = "General Format file" })]]--
 
+-- This doesnt save any buffers, nor tell you for unsaved buffers between switching sessions !
 map("n", "<leader>fs", '<cmd>Telescope session-lens search_session<CR>', { desc = "telescope session lens" })
+
+-- This saves all buffers, when you open the session_lens window
+--map("n", "<leader>fs", function() vim.cmd('wa') require'telescope'.session_lens.search_session() end, { desc = "telescope session lens" })
+--map("n", "<leader>fs", function() vim.cmd('wa') vim.cmd('Telescope session-lens search_session') end, { desc = "telescope session lens" })
+
+-- This saves all buffers only, if you actually sellect to switch to another session !!!
+--  and not just saving all buffers only if you just had opened the window 
+--  (you may had buffers that you dont want to save)
+--[[
+local actions = require('telescope.actions')
+--local session_lens = require('session-lens')
+map("n", "<leader>fs", function()
+  require('telescope.builtin').session_lens({
+    on_action = function(prompt_bufnr)
+      vim.cmd('wa')  -- Save all buffers
+      actions.select_default(prompt_bufnr)  -- Then select the session
+    end,
+  })
+end, { desc = "telescope session lens with save buffers" })
+]]--
+--[[
+map("n", "<leader>fs", function()
+  -- Check for unsaved buffers
+  local unsaved_buffers = false
+  local unsaved_bufnr = nil
+
+  -- Iterate over all buffers to check for unsaved ones
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_option(bufnr, 'modified') and vim.api.nvim_buf_is_loaded(bufnr) then
+      unsaved_buffers = true
+      unsaved_bufnr = bufnr
+      break
+    end
+  end
+
+  -- If there are unsaved buffers, warn and highlight the unsaved buffer
+  if unsaved_buffers then
+    -- Highlight the unsaved buffer
+    vim.api.nvim_set_current_buf(unsaved_bufnr)
+
+    -- Show a warning message similar to :qa
+    vim.notify("Warning: You have unsaved changes! Please save them before continuing.", vim.log.levels.WARN)
+
+    -- Optionally, return early to prevent opening session lens
+    return
+  end
+
+  -- If no unsaved buffers, save all buffers and open session lens
+  vim.cmd("wa")
+  vim.cmd("Telescope session-lens search_session")
+end, { desc = "Telescope session lens with unsaved buffer check" })
+]]--
+
+-- https://www.reddit.com/r/neovim/comments/ypaq3e/lsp_find_reference_results_in_telescope/
+-- https://github.com/Slotos/telescope-lsp-handlers.nvim
+map('n', '<leader>fr', function() require('telescope.builtin').lsp_references() end,
+  { noremap = true, silent = true, desc = "LSP Find References" })
+
 
 
 map("n", "<leader>m", ":messages<CR>", { desc = "Messages" })
@@ -216,6 +278,8 @@ map("n", "<leader>wk", function()
   vim.cmd("WhichKey " .. vim.fn.input "WhichKey: ")
 end, { desc = "whichkey query lookup" })
 
+
+--[[ -- This works only for NvChad !
 -- blankline
 map("n", "<leader>cc", function()
   local config = { scope = {} }
@@ -231,6 +295,7 @@ map("n", "<leader>cc", function()
     end
   end
 end, { desc = "blankline jump to current context" })
+]]--
 
 -----------------------------------------------------------------------------------
 --===============================================================================--

@@ -15,6 +15,15 @@
 --  https://github.com/uga-rosa/sticky-header.nvim
 --  is also an alternative
 
+-- BUG:
+-- When in insert mode and going up and down with the arrow keys
+--  sometimes the line number at your current cursor position flickers
+--  with the previous line number
+-- I am not quite sure, but this may be from this plugin, because it
+--  uses the line numbers for display at the top and before installing
+--  this plugin, i had not seen such an issue
+
+
 return {
 
   "nvim-treesitter/nvim-treesitter-context",

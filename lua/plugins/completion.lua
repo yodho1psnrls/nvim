@@ -5,6 +5,12 @@
 
 -- You can integrate this plugin with lsp-singature or lsp-singature-helper
 
+-- https://www.reddit.com/r/neovim/comments/vtgrsn/nvimcmp_in_terminal_mode/
+-- https://github.com/hrsh7th/nvim-cmp/wiki/List-of-sources
+
+-- TODO: Completion, for :! commands
+--  Currently, you can just enable it, but it lag-spikes heavily
+
 return {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
@@ -190,6 +196,7 @@ return {
           name = 'cmdline',
           option = {
             ignore_cmds = { 'Man', '!' }
+            --ignore_cmds = { 'Man' } -- If we dont ignore the ! commands, it lags heavily
           }
         }
       })

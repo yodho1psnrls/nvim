@@ -118,7 +118,10 @@ return {
       vim.keymap.set('n', '<Leader>dr', function() dap.repl.open() end, { desc = 'Open dap repl' })
       vim.keymap.set('n', '<Leader>dl', function() dap.run_last() end)
 
-      vim.keymap.set({ 'n', 'v' }, '<Leader>dh', function() -- https://github.com/mfussenegger/nvim-dap/issues/161
+      -- NOTE: Those may come in handy, but currenly i am not sure what to use them for
+      --[[
+      -- https://github.com/mfussenegger/nvim-dap/issues/161
+      vim.keymap.set({ 'n', 'v' }, '<Leader>dh', function()
         require('dap.ui.widgets').hover()
       end, { desc = 'Hover DapUI widgets' })
       vim.keymap.set({ 'n', 'v' }, '<Leader>dp', function()
@@ -132,7 +135,7 @@ return {
         local widgets = require('dap.ui.widgets')
         widgets.centered_float(widgets.scopes)
       end, { desc = 'Center widget scopes' })
-
+      ]]--
 
       -------------------------------------------------------
 

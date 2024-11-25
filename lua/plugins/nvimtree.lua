@@ -5,6 +5,7 @@
 -- TODO: Make the Root Folder Name to always apper at the Top
 --        when scroll down and the first line of nvim-tree
 --        is no longer visible
+--       Just like https://github.com/nvim-tree/nvim-tree.lua/discussions/2822
 
 return {
 
@@ -34,6 +35,11 @@ return {
         width = 24,
         side = "left",
         signcolumn = "no",
+
+        -- Unique highlight to current viewing buffer
+        -- https://github.com/nvim-tree/nvim-tree.lua/discussions/2925
+        --number = true,
+        --cursorline = true,
 
         preserve_window_proportions = true, -- Option to keep nvim-tree open
         --  sync_root_with_cwd = true,
@@ -80,6 +86,11 @@ return {
   config = function(_, opts)
 
     require'nvim-tree'.setup(opts)
+
+    -- Highlighing groups for current buffer/file
+      -- vim.cmd[[ highlight NvimTreeCursorLine guibg=#512C57 gui=bold]]
+    --vim.cmd[[ highlight NvimTreeCursorLine guibg=#484069 guifg=#FFFFFF gui=bold]]
+    --vim.cmd[[ highlight NvimTreeCursorLineNr guifg=red]]
 
   --[[
     -- Autocommand for when opening Neovim with a directory
