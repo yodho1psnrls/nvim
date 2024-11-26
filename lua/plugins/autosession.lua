@@ -83,7 +83,7 @@ return {
         -- auto-session does not save properly some buffers that
         -- cannot be saved as terminals and others, and on load,
         -- it restores them as empty buffers, so we will do this
-        --TODO: post_restore_cmds = { function() require('utilities').close_empty_buffers() end },
+        -- TODO: post_restore_cmds = { function() require('utilities').close_empty_buffers() end },
 
         --post_cwd_changed_cmds
 

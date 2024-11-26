@@ -92,6 +92,7 @@ return {
 
       completion = {
         completeopt = "menu,menuone,noselect,noinsert",
+        keyword_length = 3, -- The number of characters needed to trigger auto-completion
       },
 
       window = {
@@ -127,8 +128,14 @@ return {
         ["<C-d>"] = cmp.mapping.scroll_docs(-4),
         ["<C-f>"] = cmp.mapping.scroll_docs(4),
         ["<C-Space>"] = cmp.mapping.complete(),
-        ["<C-e>"] = cmp.mapping.close(),
+       -- ["<C-e>"] = cmp.mapping.close(),
+        ['<C-e>'] = cmp.mapping.abort(),
+       -- ['<CR>'] = cmp.mapping.confirm({ select = true }),
 
+        -- This is a custom select, that wont select the first
+        --  suggestion on enter, (it is annoyng to press enter
+        --  when you want to go to new line and suddenly,
+        --  some suggestion just expands)
         ["<CR>"] = cmp.mapping(function(fallback)
           if cmp.visible() and cmp.get_selected_entry() then
             cmp.confirm({ behavior = cmp.ConfirmBehavior.Insert, select = false })
@@ -158,14 +165,31 @@ return {
         end, { "i", "s" }),
       },
 
+      -- https://github.com/hrsh7th/nvim-cmp/blob/main/doc/cmp.txt#L591
       sources = {
         { name = "nvim_lsp" },
-        { name = "luasnip" },
-        { name = "buffer" },
+        { name = "luasnip",
+          option = {
+            use_show_condition = false, -- Default: true
+            show_autosnippets = true,   -- Default: false
+          }
+        },
+        { name = "buffer",
+         -- keyword_length = 3, -- Only suggest buffer words with 3+ characters
+          option = {
+            -- Gives suggestions from all buffers
+            get_bufnrs = function()
+              return vim.api.nvim_list_bufs()
+            end
+          }
+        },
+
         { name = "nvim_lua" },
         { name = "path" },
-        --{ name = "nvim_lsp_signature_help" }, -- Correct source name here
---        {name = "lsp-signature"}
+
+        -- You dont need those, since the lsp source is from nvim_lsp
+        -- { name = "nvim_lsp_signature_help" }, -- Correct source name here
+        -- {name = "lsp-signature"}
       },
     }
 
@@ -177,8 +201,9 @@ return {
 
     ----------------------------------------------------
 
-    -- `/` cmdline setup.
-    cmp.setup.cmdline('/', {
+  -- Use buffer source for `/` and `?` (if you enabled 
+  --  `native_menu`, this won't work anymore).
+    cmp.setup.cmdline({ '/', '?' }, {
       mapping = cmp.mapping.preset.cmdline(),
       sources = {
         { name = 'buffer' }
@@ -186,7 +211,7 @@ return {
     })
 
 
-    -- `:` cmdline setup.
+    -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
     cmp.setup.cmdline(':', {
       mapping = cmp.mapping.preset.cmdline(),
       sources = cmp.config.sources({
@@ -199,9 +224,27 @@ return {
             --ignore_cmds = { 'Man' } -- If we dont ignore the ! commands, it lags heavily
           }
         }
-      })
+      }),
+      matching = { disallow_symbol_nonprefix_matching = false }
     })
 
     ------------------------------------------------
+
+    --[[
+    -- Set up lspconfig.
+    local capabilities = require('cmp_nvim_lsp').default_capabilities()
+    -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
+    require('lspconfig')['clangd'].setup {
+      capabilities = capabilities
+    }
+    require('lspconfig')['pylsp'].setup {
+      capabilities = capabilities
+    }
+    --require('lspconfig')['lua-language-server'].setup {
+    require('lspconfig')['lua_ls'].setup {
+      capabilities = capabilities
+    }
+    ]]--
+
   end
 }

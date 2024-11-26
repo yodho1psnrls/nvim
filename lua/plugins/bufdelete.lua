@@ -16,7 +16,12 @@ return {
   {
     "famiu/bufdelete.nvim",
     config = function()
+
       vim.api.nvim_set_keymap('n', '<leader>x', ':Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+
+      --vim.api.nvim_set_keymap('n', '<leader>x',
+      --  ':lua require("bufdelete").bufdelete(buf, false)<CR>',
+      --{ noremap = true, silent = true, desc = "Close buffer" })
 
       -- Completely remap  :bd to :Bdelete
       --vim.api.nvim_create_user_command('bd', 'Bdelete', { nargs = 0 })

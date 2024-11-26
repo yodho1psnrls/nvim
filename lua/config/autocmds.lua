@@ -1,4 +1,45 @@
 
+
+vim.api.nvim_create_user_command("PrintBuffers", function()
+  local bufs = vim.fn.getbufinfo({ bufloaded = 1 })
+  vim.notify(vim.inspect(bufs), vim.log.levels.INFO)
+end, {})
+
+-- TODO: Make it such that when you open a new buffer
+--  if previously the only open buffer was empty buffer
+--  to remove it
+
+-- "BufAdd", "BufEnter"
+--[[
+vim.api.nvim_create_autocmd("BufReadPost", {
+  callback = function()
+    -- Get all listed buffers
+    local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+
+    -- Filter out hidden buffers
+    local non_hidden_bufs = vim.tbl_filter(function(buf)
+      return buf.hidden == 0 and buf.listed == 1
+    end, bufs)
+
+    if #non_hidden_bufs == 2 then
+      local empty_buf = nil
+      for _, buf in ipairs(non_hidden_bufs) do
+        -- Check if the buffer is empty (no name, 1 line)
+        if buf.name == "" and buf.linecount == 1 then
+          empty_buf = buf.bufnr
+        end
+      end
+      if empty_buf then
+        vim.schedule(function()
+          -- Delete the empty buffer
+          vim.cmd("Bdelete " .. empty_buf)
+        end)
+      end
+    end
+  end,
+})
+]]--
+
 -- NOTE: Trying to make diagnostics virtual text to also show in input mode
 
 -- Show diagnostics when entering insert mode

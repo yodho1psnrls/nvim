@@ -1,4 +1,6 @@
 -- https://github.com/nvim-lua/lsp-status.nvim
+-- This is a Neovim plugin/library for generating
+--  statusline components from the built-in LSP client.
 
 return {
 "nvim-lua/lsp-status.nvim",

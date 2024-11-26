@@ -28,88 +28,74 @@ function CreateNewProject()
   print('New project created at: ' .. destination_dir)
 end
 
---[[
-function ClearCache()
-  local folders = {
-    shada = '~/AppData/Local/nvim-data/shada',
-    sessions = '~/AppData/Local/nvim-data/sessions',
-    swap = '~/AppData/Local/nvim-data/swap',
-    undo = '~/AppData/Local/nvim-data/undo',
-  }
 
-  local options = {}
-  for folder in pairs(folders) do
-    table.insert(options, folder)
-  end
 
-  local choice = vim.fn.inputlist({
-    'Select a folder to clear:',
-    unpack(options),
-    '0 - Cancel'
-  })
+-- Function to delete all files in the selected folder
+function DeleteFilesInFolder(folder)
+  local folder_path = vim.fn.expand("~") .. "/AppData/Local/nvim-data/" .. folder
 
-  if choice == 0 then return end -- Cancel
+  -- Use vim.fn.isdirectory to check if the folder exists
+  if vim.fn.isdirectory(folder_path) == 1 then
+    -- List all files and directories in the folder
+    local files = vim.fn.globpath(folder_path, '*', false, true)
 
-  local selected_folder = options[choice]
-  local folder_path = folders[selected_folder]
+    -- Check if the folder contains files
+    if #files == 0 then
+      print("No files found in " .. folder)
+      return
+    end
 
-  if folder_path then
-    local cmd = 'rm -rf ' .. folder_path .. '/*'
-    os.execute(cmd)
-    print(selected_folder .. ' cleared.')
+    -- Confirm before deleting files
+    local confirm = vim.fn.confirm("Are you sure you want to delete all files in " .. folder .. "?", "&Yes\n&No", 2)
+    if confirm == 1 then
+      -- Delete all files in the folder
+      for _, file in ipairs(files) do
+        vim.fn.delete(file, "rf")
+      end
+      print("All files in " .. folder .. " have been deleted.")
+    else
+      print("Deletion cancelled.")
+    end
+  else
+    print(folder .. " does not exist.")
   end
 end
-]] --
 
+-- Function to list and select folders using Telescope
+function ClearCache()
+  -- List of folders to choose from
+  local cache_folders = { "shada", "swap", "sessions", "undo" }
 
--- TODO: Fix ClearCache
+  -- Telescope entry maker for the cache folders
+  local make_entry = require('telescope.make_entry')
 
--- Make sure to require Telescope
-local telescope = require('telescope.builtin')
-
--- Define a function to clear folder contents
-local function ClearCache()
-  local folders = {
-    Shada = '~/AppData/Local/nvim-data/shada',
-    Swap = '~/AppData/Local/nvim-data/swap',
-    Sessions = '~/AppData/Local/nvim-data/sessions',
-    Undo = '~/AppData/Local/nvim-data/undo',
-  }
-
-  -- Convert the folder keys into a format suitable for Telescope
-  local folder_list = {}
-  for folder_name, folder_path in pairs(folders) do
-    table.insert(folder_list, folder_name)
-  end
-
-  -- Use Telescope to select a folder
-  telescope.find_files({
-    prompt_title = 'Select Folder to Clear',
-    cwd = '~/AppData/Local/nvim-data/',
+  -- Open Telescope with these folders for selection
+  require('telescope.pickers').new({}, {
+    prompt_title = "Select Cache Folder to Clear",
+    finder = require('telescope.finders').new_table({
+      results = cache_folders,
+      entry_maker = make_entry.gen_from_string(),  -- Entry maker for string-based entries
+    }),
+    sorter = require('telescope.sorters').get_generic_fuzzy_sorter(),
+--    attach_mappings = function(prompt_bufnr, map)
     attach_mappings = function(_, map)
-      map('i', '<CR>', function(prompt_bufnr)
+      map('i', '<CR>', function()
         local selection = require('telescope.actions.state').get_selected_entry()
-        require('telescope.actions').close(prompt_bufnr)
-
         if selection then
-          local folder_path = folders[selection.value]
-          if folder_path then
-            --local cmd = 'del ' .. folder_path .. '/*.*'
-            local cmd = 'rm -rf ' .. folder_path .. '/*'
-            os.execute(cmd)
-            --vim.cmd('!' .. cmd)
-            print(selection.value .. ' Cache Cleared !')
-            -- print(cmd)
-          end
+          -- Delete all files in the selected folder
+          DeleteFilesInFolder(selection.value)
+          -- Optional:
+          vim.cmd('Telescope close')
         end
       end)
       return true
     end,
-    finder = require('telescope.finders').new_table {
-      results = folder_list,
-    },
-  })
+  }):find()
 end
+
+-- Create a command to run the ClearCache function
+vim.api.nvim_create_user_command('ClearCache', ClearCache, {})
+
 
 
 -- Some color cmds for the shortcuts (website: https://www.rapidtables.com/web/color/RGB_Color.html)
@@ -214,6 +200,11 @@ return {
             group = 'DiagnosticHint',
             action = function()
               ClearCache()
+
+              if vim.g.dashboard then vim.g.dashboard.refresh() end
+              -- vim.cmd('Dashboard')
+              --vim.cmd('redraw')
+
             end,
             key = 'r'
           }

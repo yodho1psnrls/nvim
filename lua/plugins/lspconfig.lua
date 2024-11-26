@@ -3,6 +3,11 @@
 -- TODO: Fix the Code Action Feature
 --		and some others that dont work properly or have their keymaps overriten like Go To Implementation
 
+-- NOTE:
+-- ClangD loads std library from MSVC, but Clang loads it from MSYS2 MinGW's libstdc++
+-- https://github.com/clangd/clangd/issues/2224
+-- https://clangd.llvm.org/guides/system-headers#query-driver
+
 return {
 
   {
@@ -167,8 +172,16 @@ return {
         capabilities = M.capabilities,
 
         -- The background-index tag makes clang to use cache indexing (as ccls)
-        cmd = { "clangd", "--background-index" },
+        --cmd = { "clangd", "--background-index", "--query-driver=D:/Program Files/MSYS2/mingw64/bin/clang++.exe" },
+        cmd = {
+          "clangd",
+          "--background-index", -- cache
+          '--query-driver=**/clang++.exe' -- glob pattern for the compiler, so it loads its own std library implementation
+        },
+
 --        cmd = { "clangd", "--background-index", "--log=verbose" }, -- For Debugging
+--        cmd = { "clangd", "--background-index" },
+
         -- It will save the cache on a default path
         -- which is ~/AppData/Local/clangd/index
         -- If you want to specify another path
