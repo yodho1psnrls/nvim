@@ -300,3 +300,127 @@ vim.keymap.set('n', '<F6>', function() BuildAndDebug() end)
 --vim.keymap.set({'n', 'i'}, '<F8>', function() GenerateCMake() end) -- Only for CPP
 --vim.keymap.set({'n', 'i'}, '<F5>', function() BuildAndRun() end)
 --vim.keymap.set({'n', 'i'}, '<F6>', function() BuildAndDebug() end)
+
+
+---------------------------------- NOTE: -------------------------------------
+------------------------- Previously From KeyMaps -----------------------------
+-------------------------------------------------------------------------------
+
+-- Add key bindings for compiling and running C++
+
+-- For Unix Shell
+-- Compile and Run
+--map('n', '<F5>', ':!g++ -o %< % && if [ -x %< ]; then ./%<; fi<CR>', { noremap = true, silent = true })
+-- Compile Only
+--map('n', '<F6>', ':!g++ -o %< % && echo "Compiled successfully!" || echo "Compilation failed!"<CR>', { noremap = true, silent = true })
+-- Run Only
+--map('n', '<F7>', ':!./%<<CR>', { noremap = true, silent = true })
+
+-- For Windows Command Prompt
+-- Compile and Run
+--map('n', '<F5>', ':!g++ -o hello hello.cpp && hello.exe<CR>', { noremap = true, silent = true })
+-- Compile Only
+--map('n', '<F6>', ':!g++ -o hello hello.cpp && echo Compilation successful!<CR>', { noremap = true, silent = true })
+-- Run Only
+--map('n', '<F7>', ':!hello.exe<CR>', { noremap = true, silent = true })
+
+-- For Windows PowerShell
+-- Compile and Run
+-- map('n', '<F5>', ':!g++ -o hello hello.cpp if (Test-Path ./hello.exe) { ./hello }<CR>', { noremap = true, silent = true })
+-- Compile Only
+-- map('n', '<F6>', ':!g++ -o hello hello.cpp echo "Compilation successful!"<CR>', { noremap = true, silent = true })
+-- Run Only
+-- map('n', '<F7>', ':!./hello<CR>', { noremap = true, silent = true })
+
+
+--[[
+-- Function to compile and run the project
+local function build_and_run()
+    vim.cmd('!cmake --build build')
+    --vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
+	vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
+end
+
+-- Function to compile the project
+local function build_only()
+    vim.cmd('!cmake --build build')
+end
+
+-- Function to run the project
+local function run_only()
+    vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
+end
+]] --
+
+-- Key mappings
+--vim.api.nvim_set_keymap('n', '<F5>', [[:lua build_and_run()<CR>]], { noremap = true, silent = true })
+--vim.api.nvim_set_keymap('n', '<F6>', [[:lua build_only()<CR>]], { noremap = true, silent = true })
+--vim.api.nvim_set_keymap('n', '<F7>', [[:lua run_only()<CR>]], { noremap = true, silent = true })
+
+
+--[[
+-- new terminals
+map("n", "<leader>h", function()
+  require("nvchad.term").new { pos = "sp" }
+end, { desc = "terminal new horizontal term" })
+
+map("n", "<leader>v", function()
+  require("nvchad.term").new { pos = "vsp" }
+end, { desc = "terminal new vertical window" })
+]]--
+
+-- toggleable
+-- map({ "n", "t" }, "<A-v>", function()
+-- require("nvchad.term").toggle { pos = "vsp", id = "vtoggleTerm" }
+-- end, { desc = "terminal toggleable vertical term" })
+
+-- map({ "n", "t" }, "<A-h>", function()
+-- require("nvchad.term").toggle { pos = "sp", id = "htoggleTerm" }
+-- end, { desc = "terminal new horizontal term" })
+
+
+-------------------------------------------------------------------------------------
+-- TODO: Make an equivalent of this for your build terminal in build.lua
+
+--[[
+-- function to check if a terminal buffer with a specific name is open
+local function is_terminal_open(name)
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_option(bufnr, "buftype") == "terminal" then
+      local term_name = vim.api.nvim_buf_get_name(bufnr)
+      if term_name:match(name) then
+        return bufnr
+      end
+    end
+  end
+  return nil
+end
+
+-- function to toggle terminal
+local function toggle_terminal(name, pos)
+  local bufnr = is_terminal_open(name)
+  if bufnr then
+    -- close the terminal
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+  else
+    -- open a new terminal
+    require("nvchad.term").toggle { pos = pos, name = name }
+  end
+end
+
+-- toggleable vertical terminal
+map({ "n", "t" }, "<a-v>", function()
+  toggle_terminal("vtoggleterm", "vsp")
+end, { desc = "toggle vertical terminal" })
+
+-- toggleable horizontal terminal
+map({ "n", "t" }, "<a-h>", function()
+  toggle_terminal("htoggleterm", "sp")
+end, { desc = "toggle horizontal terminal" })
+]] --
+
+--map({ "n", "t" }, "<a-i>", function()
+--  require("nvchad.term").toggle { pos = "float", id = "floatterm" }
+--end, { desc = "terminal toggle floating term" })
+
+

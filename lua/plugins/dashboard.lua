@@ -1,5 +1,24 @@
 -- https://www.reddit.com/r/neovim/comments/17pzdxs/how_do_you_customize_the_dashboard_in_lazyvim/
 
+-- Function to close all windows except the current one
+local function close_all_splits()
+  local current_win = vim.api.nvim_get_current_win()
+  local windows = vim.api.nvim_list_wins()
+
+  if #windows > 1 then
+    for _, win in ipairs(windows) do
+      if win ~= current_win then
+        vim.api.nvim_win_close(win, true)
+      end
+    end
+  end
+end
+
+local function open_dashboard()
+  close_all_splits()
+  vim.cmd('Dashboard') -- Adjust this if your dashboard plugin uses a different command
+end
+
 function CreateNewProject()
   -- Prompt for the destination path
   local path = vim.fn.input('Enter path for the new cpp project: ')
@@ -27,8 +46,6 @@ function CreateNewProject()
   -- Notify user
   print('New project created at: ' .. destination_dir)
 end
-
-
 
 -- Function to delete all files in the selected folder
 function DeleteFilesInFolder(folder)
@@ -74,10 +91,10 @@ function ClearCache()
     prompt_title = "Select Cache Folder to Clear",
     finder = require('telescope.finders').new_table({
       results = cache_folders,
-      entry_maker = make_entry.gen_from_string(),  -- Entry maker for string-based entries
+      entry_maker = make_entry.gen_from_string(), -- Entry maker for string-based entries
     }),
     sorter = require('telescope.sorters').get_generic_fuzzy_sorter(),
---    attach_mappings = function(prompt_bufnr, map)
+    --    attach_mappings = function(prompt_bufnr, map)
     attach_mappings = function(_, map)
       map('i', '<CR>', function()
         local selection = require('telescope.actions.state').get_selected_entry()
@@ -85,7 +102,7 @@ function ClearCache()
           -- Delete all files in the selected folder
           DeleteFilesInFolder(selection.value)
           -- Optional:
-          vim.cmd('Telescope close')
+          -- vim.cmd('Telescope close')
         end
       end)
       return true
@@ -111,10 +128,10 @@ return {
     "nvimdev/dashboard-nvim",
     opts = {
 
-
       theme = 'hyper',
 
       config = {
+
         week_header = {
           enable = true,
         },
@@ -204,7 +221,6 @@ return {
               if vim.g.dashboard then vim.g.dashboard.refresh() end
               -- vim.cmd('Dashboard')
               --vim.cmd('redraw')
-
             end,
             key = 'r'
           }
@@ -284,6 +300,12 @@ return {
 
 
     },
+
+    config = function ()
+      --require('dashboard').setup(opts)
+      vim.keymap.set('n', '<leader>db', open_dashboard, { noremap = true, silent = true })
+      --map('n', '<leader>db', ':Dashboard<CR>', opts)
+    end
 
   }
 

@@ -6,6 +6,7 @@
 -- https://www.reddit.com/r/neovim/comments/1frxtv4/looking_for_conventional_commit_plugin/
 
 return {
+
   {
     'lewis6991/gitsigns.nvim',
 
@@ -75,7 +76,55 @@ return {
         map('n', '<leader>tD', gitsigns.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
       end,
     },
-
   },
+
+  --[[{
+    -- https://neovimcraft.com/plugin/isak102/telescope-git-file-history.nvim/
+    -- https://github.com/isak102/telescope-git-file-history.nvim
+    "isak102/telescope-git-file-history.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "tpope/vim-fugitive",
+      "nvim-telescope/telescope.nvim"
+    },
+    config = function ()
+      require("telescope").load_extension("git_file_history")
+    end
+  },
+  ]]--
+
+  --[[
+  {
+    'ThePrimeagen/git-worktree.nvim',
+    config = function ()
+      require("git-worktree").setup({
+        change_directory_command = 'cd',  -- default: "cd",
+        update_on_change = true,          -- default: true,
+        update_on_change_command = 'e .', -- default: "e .",
+        clearjumps_on_change = true,      -- default: true,
+        autopush = false,                 -- default: false,
+      })
+      
+      -- Creates a worktree.  Requires the path, branch name, and the upstream
+      -- Example:
+      :lua require("git-worktree").create_worktree("feat-69", "master", "origin")
+
+      -- switches to an existing worktree.  Requires the path name
+      -- Example:
+      :lua require("git-worktree").switch_worktree("feat-69")
+
+      -- deletes to an existing worktree.  Requires the path name
+      -- Example:
+      :lua require("git-worktree").delete_worktree("feat-69")
+
+    end,
+  },
+  ]]--
+
+  --{
+    -- https://github.com/parmardiwakar150/neovim-config/blob/main/lua/core/plugin_config/diffview.lua
+    -- https://github.com/sindrets/diffview.nvim
+  --},
+
 }
 

@@ -15,13 +15,15 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.opt.termguicolors = true -- optionally enable 24-bit colour
 
+-- Moving options up here, because of quick-scope plugin
+require "config.options"
 
 require("config.lazy")
 require("lazy").setup("plugins")
 
 
 -- Load additional configurations
-require "config.options"
+ -- require "config.options"
 require "config.autocmds"
 --require "config.mappings"
 require "config.border"
@@ -40,4 +42,7 @@ require "config.border"
 vim.schedule(function()
   require "config.keymaps"
   require "config.build"
+  require "config.whichwrap"
 end)
+
+

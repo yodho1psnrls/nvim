@@ -1,5 +1,8 @@
 ----------------------------- KICKSTARTER -----------------------------------------
 
+-- quick-scope (if you dont set those, it is always visible)
+--vim.g.qs_highlight_on_keys = { 'f', 'F', 't', 'T' }
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 vim.opt.wrap = false
@@ -23,6 +26,9 @@ vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
+
+-- Disable mouse for specific window types
+--vim.api.nvim_set_option('mouse', 'a') -- Deprecated
 
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
@@ -139,9 +145,9 @@ opt.fillchars = {
 }
 ]] --
 
-o.ignorecase = true
-o.smartcase = true
-o.mouse = "a"
+--o.ignorecase = true
+--o.smartcase = true
+--o.mouse = "a"
 
 -- Numbers
 o.number = true
@@ -160,11 +166,13 @@ o.undofile = true
 -- interval for writing swap file to disk, also used by gitsigns
 o.updatetime = 250
 
+
 -- go to previous/next line with h,l,left arrow and right arrow
 -- when cursor reaches end/beginning of line
+-- you need to feed it all the keys appended one after another
 opt.whichwrap:append "<>[]hl"
 
--- g.mapleader = " "
+
 
 -- disable some default providers
 g.loaded_node_provider = 0

@@ -92,7 +92,7 @@ return {
 
       completion = {
         completeopt = "menu,menuone,noselect,noinsert",
-        keyword_length = 3, -- The number of characters needed to trigger auto-completion
+        --keyword_length = 3, -- The number of characters needed to trigger auto-completion
       },
 
       window = {
@@ -175,7 +175,7 @@ return {
           }
         },
         { name = "buffer",
-         -- keyword_length = 3, -- Only suggest buffer words with 3+ characters
+          keyword_length = 3, -- Only suggest buffer words with 3+ characters
           option = {
             -- Gives suggestions from all buffers
             get_bufnrs = function()

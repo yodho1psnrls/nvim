@@ -10,15 +10,15 @@
 --https://www.reddit.com/r/neovim/comments/1dfx9vk/how_do_i_setup_nvimdap_irl_it_seems_so_cozy_in/
 --https://github.com/rcarriga/nvim-dap-ui/issues/387
 
-
 --https://github.com/mfussenegger/nvim-dap/issues/198
 
--- NOTE:
+-- NOTE: Debug Adapter Protocol
+
 -- What is the difference between 
 --  dap.configurations and dap.adapters ???
 
--- NOTE: Plugins such as nvim-dap-python or nvim-dap-lldb are plugins
--- that only configure your nvim-dap
+-- Plugins such as nvim-dap-python or nvim-dap-lldb are plugins
+--  that only configure your nvim-dap
 
 -- TODO: Configure nvim-dap-ui to show the Call-Stack and the Stack
 --  those are the most important features i use from a debugger

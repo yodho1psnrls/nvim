@@ -25,7 +25,13 @@ return {
     dependencies = {
       'nvim-lua/plenary.nvim',
       'smartpde/telescope-recent-files',
-      --      'nvim-telescope/telescope-dap.nvim', --https://github.com/nvim-telescope/telescope-dap.nvim
+
+      -- Similar to recent-files, but observes your file access
+      --  pattern for even better suggestions
+      -- 'nvim-telescope/telescope-frecency.nvim',
+
+      -- 'nvim-telescope/telescope-dap.nvim', --https://github.com/nvim-telescope/telescope-dap.nvim
+
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
         'nvim-telescope/telescope-fzf-native.nvim',
 
@@ -47,33 +53,34 @@ return {
       { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
     },
     config = function()
+      -- https://github.com/parmardiwakar150/neovim-config/blob/main/lua/core/plugin_config/telescope.lua#L12
+      ListModifiedBuffers = function()
+        local all_buffers = vim.api.nvim_list_bufs()
+        local modified_buffers = {}
+        for _, bufnr in ipairs(all_buffers) do
+          --local is_modified = vim.api.nvim_buf_get_option(bufnr, "modified")
+          local is_modified = vim.bo[bufnr].modified
+          if is_modified then
+            local file = vim.api.nvim_buf_get_name(bufnr)
+            table.insert(modified_buffers, file)
+          end
+        end
+        return modified_buffers
+      end
+      UnsavedBuffers = function(f_opts)
+        f_opts = f_opts or {}
+        require("telescope.pickers").new(f_opts, {
+          prompt_title = "Modified Buffers",
+          finder = require("telescope.finders").new_table({
+            results = ListModifiedBuffers(),
+          }),
+          sorter = require("telescope.config").values.file_sorter(f_opts),
+          previewer = require("telescope.config").values.file_previewer(f_opts),
+        }):find()
+      end
+      vim.keymap.set('n', '<leader>fu', UnsavedBuffers, { desc = 'Find Unsaved Buffers' })
+      vim.api.nvim_create_user_command('UnsavedBuffers', UnsavedBuffers, { nargs = 0 })
 
-    -- https://github.com/parmardiwakar150/neovim-config/blob/main/lua/core/plugin_config/telescope.lua#L12
-    ListModifiedBuffers = function()
-	    local all_buffers = vim.api.nvim_list_bufs()
-	    local modified_buffers = {}
-	    for _, bufnr in ipairs(all_buffers) do
-		    --local is_modified = vim.api.nvim_buf_get_option(bufnr, "modified")
-		    local is_modified = vim.bo[bufnr].modified
-        if is_modified then
-			    local file = vim.api.nvim_buf_get_name(bufnr)
-			    table.insert(modified_buffers, file)
-		    end
-	    end
-	  return modified_buffers
-    end
-    ModifiedBuffers = function(f_opts)
-	    f_opts = f_opts or {}
-	    require("telescope.pickers").new(f_opts, {
-			  prompt_title = "Modified Buffers",
-			  finder = require("telescope.finders").new_table({
-				  results = ListModifiedBuffers(),
-			  }),
-			  sorter = require("telescope.config").values.file_sorter(f_opts),
-			  previewer = require("telescope.config").values.file_previewer(f_opts),
-		  }):find()
-    end
-    vim.keymap.set('n', '<leader>fu', ModifiedBuffers, { desc = 'Find Unsaved Buffers' })
 
       require("telescope").load_extension("recent_files")
       --      require("telescope").load_extension('dap') --https://github.com/nvim-telescope/telescope-dap.nvim
@@ -122,6 +129,29 @@ return {
       -- Telescope picker. This is really useful to discover what Telescope can
       -- do as well as how to actually do it!
 
+      local save_selected_buffer = function()
+      --local save_selected_buffer = function(prompt_bufnr)
+        local selection = require('telescope.actions.state').get_selected_entry()
+        if selection then
+          local bufnr = vim.fn.bufnr(selection.value)
+          vim.api.nvim_buf_call(bufnr, function()
+            vim.cmd('write') -- Save the selected buffer
+          end)
+        end
+      end
+
+      -- Telescope doesnt Refresh on deletion of a buffer
+      --  with this custom function, try to fix this
+      local function delete_selected_buffer()
+      --local function delete_selected_buffer(prompt_bufnr)
+        local selection = require('telescope.actions.state').get_selected_entry()
+        --local selection = require('telescope.actions.state').get_selected_entry(prompt_bufnr)
+        if selection then
+          local buf = selection.bufnr
+          require('bufdelete').bufdelete(buf, false)
+        end
+      end
+
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
       require('telescope').setup {
@@ -131,37 +161,22 @@ return {
         defaults = {
           mappings = {
             -- i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-            -- Custom key mapping for delete the selected buffer in telescope
-            i = { ["<C-d>"] = require('telescope.actions').delete_buffer, },
-            -- Custom key mapping for delete the selected buffer in telescope
-            n = { ["<C-d>"] = require('telescope.actions').delete_buffer, },
-
-            -- Integrates with BufDelete Plugin, to delete the selected buffers in telescope
---[[
             i = {
-              ["<C-d>"] = function(prompt_bufnr)
-                local selection = require('telescope.actions.state').get_selected_entry(prompt_bufnr)
-                if selection then
-                  local buf = selection.bufnr
-                  --require('bufdelete').bufdelete(buf, false)
-                  --require('telescope.actions').refresh(prompt_bufnr)
-                  require('telescope.actions').delete_buffer(buf)
-                end
-              end,
+              ["<A-j>"] = require('telescope.actions').move_selection_next,
+              ["<A-k>"] = require('telescope.actions').move_selection_previous,
+              ["<C-d>"] = require('telescope.actions').delete_buffer,
+             -- ["<C-d>"] = delete_selected_buffer,
+              ["<C-a>"] = function() vim.cmd(':wa') end,
+              ["<C-s>"] = save_selected_buffer,
             },
-
             n = {
-              ["<C-d>"] = function(prompt_bufnr)
-                local selection = require('telescope.actions.state').get_selected_entry(prompt_bufnr)
-                if selection then
-                  local buf = selection.bufnr
-                  --require('bufdelete').bufdelete(buf, false)
-                  --require('telescope.actions').refresh(prompt_bufnr)
-                  require('telescope.actions').delete_buffer(buf)
-                end
-              end,
+              ["j"] = require('telescope.actions').move_selection_next,
+              ["k"] = require('telescope.actions').move_selection_previous,
+              ["<C-d>"] = require('telescope.actions').delete_buffer,
+             -- ["<C-d>"] = delete_selected_buffer,
+              ["<C-a>"] = function() vim.cmd(':wa') end,
+              ["<C-s>"] = save_selected_buffer,
             },
-]]--
           },
         },
 
@@ -196,7 +211,7 @@ return {
       pcall(require('telescope').load_extension, 'ui-select')
 
 
-      --[[
+--[[
 pcall(require('telescope').load_extension, 'telescope-file-browser')
 vim.keymap.set("n", "<space>fb", ":Telescope file_browser<CR>")
 -- open file_browser with the path of the current buffer
@@ -214,7 +229,7 @@ end)
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
---      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+      --      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
@@ -247,3 +262,60 @@ end)
 
 
 }
+
+
+------------------------ Old Configurations from KeyMaps ------------------------------
+
+-- This saves all buffers, when you open the session_lens window
+--map("n", "<leader>fs", function() vim.cmd('wa') require'telescope'.session_lens.search_session() end, { desc = "telescope session lens" })
+--map("n", "<leader>fs", function() vim.cmd('wa') vim.cmd('Telescope session-lens search_session') end, { desc = "telescope session lens" })
+
+-- This saves all buffers only, if you actually sellect to switch to another session !!!
+--  and not just saving all buffers only if you just had opened the window 
+--  (you may had buffers that you dont want to save)
+--[[
+local actions = require('telescope.actions')
+--local session_lens = require('session-lens')
+map("n", "<leader>fs", function()
+  require('telescope.builtin').session_lens({
+    on_action = function(prompt_bufnr)
+      vim.cmd('wa')  -- Save all buffers
+      actions.select_default(prompt_bufnr)  -- Then select the session
+    end,
+  })
+end, { desc = "telescope session lens with save buffers" })
+]]--
+--[[
+map("n", "<leader>fs", function()
+  -- Check for unsaved buffers
+  local unsaved_buffers = false
+  local unsaved_bufnr = nil
+
+  -- Iterate over all buffers to check for unsaved ones
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_option(bufnr, 'modified') and vim.api.nvim_buf_is_loaded(bufnr) then
+      unsaved_buffers = true
+      unsaved_bufnr = bufnr
+      break
+    end
+  end
+
+  -- If there are unsaved buffers, warn and highlight the unsaved buffer
+  if unsaved_buffers then
+    -- Highlight the unsaved buffer
+    vim.api.nvim_set_current_buf(unsaved_bufnr)
+
+    -- Show a warning message similar to :qa
+    vim.notify("Warning: You have unsaved changes! Please save them before continuing.", vim.log.levels.WARN)
+
+    -- Optionally, return early to prevent opening session lens
+    return
+  end
+
+  -- If no unsaved buffers, save all buffers and open session lens
+  vim.cmd("wa")
+  vim.cmd("Telescope session-lens search_session")
+end, { desc = "Telescope session lens with unsaved buffer check" })
+]]--
+
+

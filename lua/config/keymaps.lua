@@ -1,3 +1,22 @@
+local map = vim.keymap.set
+local opts = { noremap = true, silent = true }
+
+--[[
+Normal	n
+Visual	v
+Visual Line	V
+Visual Block	 (Ctrl-V)
+Select	s
+Select Line	S
+Select Block	 (Ctrl-S)
+Insert	i
+Replace	R
+Virtual Replace	Rv
+Command-line	c
+Terminal	t
+Ex-Mode	!
+]]--
+
 -- print("KeyMaps are Loaded !") -- dubug message
 
 -- list of all modes: { 'n', 'i', 'v', 'x', 's', 'o', 'c' }
@@ -24,40 +43,75 @@ vim.keymap.set('n', '<leader>q', ':q<CR>', { desc = 'Close Window', noremap = tr
 vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 
+
+--=============================== MOVEMENT ========================================--
+-- :help ins-special-keys.
+-- https://github.com/unblevable/quick-scope
+-- https://stackoverflow.com/questions/19204396/jump-to-the-next-word-in-insert-mode
+-- https://www.reddit.com/r/neovim/comments/13bzn8i/moving_around_efficiently_while_inserting_text/
+
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
---
+map({"i", "n"}, "<C-b>", "<ESC>^i", { desc = "move beginning of line" })
+--map("i", "<C-e>", "<End>", { desc = "move end of line" })
+map({"i", "n"}, "<C-e>", "<End>", { desc = "move end of line" })
+
+map({"i", 'n', 't', 'v'}, "<A-h>", "<Left>", opts)
+map({"i", 'n', 't', 'v'}, "<A-l>", "<Right>", opts)
+map({"i", 'n', 't', 'v'}, "<A-j>", "<Down>", opts)
+map({"i", 'n', 't', 'v'}, "<A-k>", "<Up>", opts)
+
+-- for some reason, if noremap is true, it doesnt work
+-- https://stackoverflow.com/questions/6920943/navigating-in-vims-command-mode
+map('c', "<A-h>", "<Left>", {noremap = false})
+map('c', "<A-j>", "<Down>", {noremap = false})
+map('c', "<A-k>", "<Up>", {noremap = false})
+map('c', "<A-l>", "<Right>", {noremap = false})
+
+
+-- Scroll up and down half screen, while centered (Thanks Priemagean)
+map({'n', 'v'}, "<C-j>", "<C-d>zz", opts)
+map({'n', 'v'}, "<C-k>", "<C-u>zz", opts)
+map({'i'}, "<C-j>", "<Esc><C-d>zzi", opts)
+map({'i'}, "<C-k>", "<Esc><C-u>zzi", opts)
+
+--map({"i", 'n', 't', 'v'}, "<C-h>", "<S-Left>", opts)
+--map({"i", 'n', 't', 'v'}, "<C-l>", "<S-Right>", opts)
+
+local ww = require('config.whichwrap')
+
+map('n', '<C-h>', ww.left_shift_whichwrap, opts)
+map('n', '<C-l>', ww.right_shift_whichwrap(-1), opts)
+map({'i', 'v'}, '<C-h>', ww.left_shift_whichwrap, opts)
+map({'i', 'v'}, '<C-l>', ww.right_shift_whichwrap(0), opts)
+
+map({'c', 't'}, "<C-h>", "<S-Left>", {noremap = false})
+map({'c', 't'}, "<C-l>", "<S-Right>", {noremap = false})
+
+-- Non-Normal Mode easy to reach keys for erasing a character
+map({'i', 't', 'c'}, '<C-x>', '<Del>', {noremap = false})
+map({'i', 't', 'c'}, '<C-d>', '<BS>', {noremap = false})
+
+
+
+
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+--map("n", "<C-h>", "<C-w>h", { desc = "switch window left" })
+map("n", "<S-h>", "<C-w>h", opts)
+map("n", "<S-l>", "<C-w>l", opts)
+map("n", "<S-j>", "<C-w>j", opts)
+map("n", "<S-k>", "<C-w>k", opts)
+map('n', '<S-Left>', '<C-w><C-h>', opts)
+map('n', '<S-Right>', '<C-w><C-l>', opts)
+map('n', '<S-Down>', '<C-w><C-j>', opts)
+map('n', '<S-Up>', '<C-w><C-k>', opts)
 
 
-
---================================= NVCHAD =======================================--
-
-local map = vim.keymap.set
-local opts = { noremap = true, silent = true }
-
-
-map("i", "<C-b>", "<ESC>^i", { desc = "move beginning of line" })
-map("i", "<C-e>", "<End>", { desc = "move end of line" })
-map("i", "<C-h>", "<Left>", { desc = "move left" })
-map("i", "<C-l>", "<Right>", { desc = "move right" })
-map("i", "<C-j>", "<Down>", { desc = "move down" })
-map("i", "<C-k>", "<Up>", { desc = "move up" })
-
-map("n", "<C-h>", "<C-w>h", { desc = "switch window left" })
-map("n", "<C-l>", "<C-w>l", { desc = "switch window right" })
-map("n", "<C-j>", "<C-w>j", { desc = "switch window down" })
-map("n", "<C-k>", "<C-w>k", { desc = "switch window up" })
+---------------------------------------------------------------------------
 
 map("n", "<Esc>", "<cmd>noh<CR>", { desc = "General Clear highlights" })
 
@@ -77,13 +131,6 @@ map("n", "<leader>rn", "<cmd>set rnu!<CR>", { desc = "Toggle relative number" })
 --map("n", "<leader>b", "<cmd>enew<CR>", { desc = "buffer new" })
 --
 
---map("n", "<tab>", function()
---  require("nvchad.tabufline").next()
---end, { desc = "buffer goto next" })
-
---map("n", "<S-tab>", function()
---  require("nvchad.tabufline").prev()
---end, { desc = "buffer goto prev" })
 
 
 -- Go to the next buffer
@@ -101,101 +148,7 @@ map('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true, desc = "G
 map("n", "<leader>/", "gcc", { desc = "Toggle Comment", remap = true })
 map("v", "<leader>/", "gc", { desc = "Toggle comment", remap = true })
 
--- NvimTree
---map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
--- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
-map("n", "<leader>n", function() require('nvim-tree.api').tree.toggle({ find_file = true, focus = true }) end,
-  { desc = "nvimtree toggle window" })
---map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
 
--- telescope
-map("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", { desc = "telescope Live Grep" })
-map("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "telescope find buffers" })
-map("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "telescope help page" })
---map("n", "<leader>ma", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
-map("n", "<leader>fm", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
-map("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "telescope find oldfiles" })
-map("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>", { desc = "telescope find in current buffer" })
-
-map("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
-map("n", "<leader>gf", "<cmd>Telescope git_status<CR>", { desc = "telescope git status" })
-map("n", "<leader>gs", "<cmd>Gitsigns<CR>", { desc = "telescope git signs" })
-
-map("n", "<leader>pt", "<cmd>Telescope terms<CR>", { desc = "telescope pick hidden term" })
-
--- This is NvChad Specific
---map("n", "<leader>th", "<cmd>Telescope themes<CR>", { desc = "telescope nvchad themes" })
-
-map("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "telescope find files" })
-map(
-  "n",
-  "<leader>fa",
-  "<cmd>Telescope find_files follow=true no_ignore=true hidden=true<CR>",
-  { desc = "telescope find all files" }
-)
---[[map("n", "<leader>fm", function()
-  require("conform").format { lsp_fallback = true }
-end, { desc = "General Format file" })]]--
-
--- This doesnt save any buffers, nor tell you for unsaved buffers between switching sessions !
-map("n", "<leader>fs", '<cmd>Telescope session-lens search_session<CR>', { desc = "telescope session lens" })
-
--- This saves all buffers, when you open the session_lens window
---map("n", "<leader>fs", function() vim.cmd('wa') require'telescope'.session_lens.search_session() end, { desc = "telescope session lens" })
---map("n", "<leader>fs", function() vim.cmd('wa') vim.cmd('Telescope session-lens search_session') end, { desc = "telescope session lens" })
-
--- This saves all buffers only, if you actually sellect to switch to another session !!!
---  and not just saving all buffers only if you just had opened the window 
---  (you may had buffers that you dont want to save)
---[[
-local actions = require('telescope.actions')
---local session_lens = require('session-lens')
-map("n", "<leader>fs", function()
-  require('telescope.builtin').session_lens({
-    on_action = function(prompt_bufnr)
-      vim.cmd('wa')  -- Save all buffers
-      actions.select_default(prompt_bufnr)  -- Then select the session
-    end,
-  })
-end, { desc = "telescope session lens with save buffers" })
-]]--
---[[
-map("n", "<leader>fs", function()
-  -- Check for unsaved buffers
-  local unsaved_buffers = false
-  local unsaved_bufnr = nil
-
-  -- Iterate over all buffers to check for unsaved ones
-  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_get_option(bufnr, 'modified') and vim.api.nvim_buf_is_loaded(bufnr) then
-      unsaved_buffers = true
-      unsaved_bufnr = bufnr
-      break
-    end
-  end
-
-  -- If there are unsaved buffers, warn and highlight the unsaved buffer
-  if unsaved_buffers then
-    -- Highlight the unsaved buffer
-    vim.api.nvim_set_current_buf(unsaved_bufnr)
-
-    -- Show a warning message similar to :qa
-    vim.notify("Warning: You have unsaved changes! Please save them before continuing.", vim.log.levels.WARN)
-
-    -- Optionally, return early to prevent opening session lens
-    return
-  end
-
-  -- If no unsaved buffers, save all buffers and open session lens
-  vim.cmd("wa")
-  vim.cmd("Telescope session-lens search_session")
-end, { desc = "Telescope session lens with unsaved buffer check" })
-]]--
-
--- https://www.reddit.com/r/neovim/comments/ypaq3e/lsp_find_reference_results_in_telescope/
--- https://github.com/Slotos/telescope-lsp-handlers.nvim
-map('n', '<leader>fr', function() require('telescope.builtin').lsp_references() end,
-  { noremap = true, silent = true, desc = "LSP Find References" })
 
 
 
@@ -204,72 +157,9 @@ map("n", "<leader>m", ":messages<CR>", { desc = "Messages" })
 -- terminal
 map("t", "<C-x>", "<C-\\><C-N>", { desc = "terminal escape terminal mode" })
 
---[[
--- new terminals
-map("n", "<leader>h", function()
-  require("nvchad.term").new { pos = "sp" }
-end, { desc = "terminal new horizontal term" })
-
-map("n", "<leader>v", function()
-  require("nvchad.term").new { pos = "vsp" }
-end, { desc = "terminal new vertical window" })
-]]--
-
--- toggleable
--- map({ "n", "t" }, "<A-v>", function()
--- require("nvchad.term").toggle { pos = "vsp", id = "vtoggleTerm" }
--- end, { desc = "terminal toggleable vertical term" })
-
--- map({ "n", "t" }, "<A-h>", function()
--- require("nvchad.term").toggle { pos = "sp", id = "htoggleTerm" }
--- end, { desc = "terminal new horizontal term" })
 
 -------------------------------------------------------------------------------------
 
--- TODO: Make an equivalent of this for your build terminal in build.lua
-
---[[
--- Function to check if a terminal buffer with a specific name is open
-local function is_terminal_open(name)
-  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_get_option(bufnr, "buftype") == "terminal" then
-      local term_name = vim.api.nvim_buf_get_name(bufnr)
-      if term_name:match(name) then
-        return bufnr
-      end
-    end
-  end
-  return nil
-end
-
--- Function to toggle terminal
-local function toggle_terminal(name, pos)
-  local bufnr = is_terminal_open(name)
-  if bufnr then
-    -- Close the terminal
-    vim.api.nvim_buf_delete(bufnr, { force = true })
-  else
-    -- Open a new terminal
-    require("nvchad.term").toggle { pos = pos, name = name }
-  end
-end
-
--- Toggleable vertical terminal
-map({ "n", "t" }, "<A-v>", function()
-  toggle_terminal("vtoggleTerm", "vsp")
-end, { desc = "Toggle vertical terminal" })
-
--- Toggleable horizontal terminal
-map({ "n", "t" }, "<A-h>", function()
-  toggle_terminal("htoggleTerm", "sp")
-end, { desc = "Toggle horizontal terminal" })
-]] --
-
--------------------------------------------------------------------------------------
-
---map({ "n", "t" }, "<A-i>", function()
---  require("nvchad.term").toggle { pos = "float", id = "floatTerm" }
---end, { desc = "terminal toggle floating term" })
 
 -- whichkey
 map("n", "<leader>wK", "<cmd>WhichKey <CR>", { desc = "whichkey all keymaps" })
@@ -425,9 +315,49 @@ map('v', '<C-x>', 'd', opts) -- Map Ctrl + X to cut (delete and yank) the select
 
 -- Map Backspace to delete the selected text without yanking in visual mode
 map('v', '<BS>', '"_d', opts)
+map({'n', 'v'}, '<Del>', '"_x', opts);
 
 -- make Ctrl + r in input mode the same as Ctrl + r in normal mode (Undo)
 map('i', '<C-r>', '<Esc><C-r>i', opts)
+
+map("n", "<CR>", "i<CR><Esc>", opts)
+--map("n", "<BS>", "i<BS><Esc>", { noremap = true, desc = "Backspace in insert mode" })
+map("n", "<BS>", "i<Right><BS><Esc>", opts)
+--map("n", "<BS>", "i<BS><Right><Esc>", { noremap = true, desc = "Backspace in insert mode" })
+
+
+--ctrl + v for normal, insert and visual modes
+map("n", "<C-v>", "p", opts)
+map("i", "<C-v>", "<Esc>pi", opts)
+map("v", "p", "P", opts)
+map("v", "P", "p", opts)
+
+-- https://www.reddit.com/r/neovim/comments/v7s1ts/how_do_i_avoid_replacing_the_content_of_my/
+--map("v", "<C-v>", '"_dp', { noremap = true, desc = "Paste text" })
+--map("v", "<C-v>", 'P', { noremap = true, desc = "Paste text" })
+--map("v", "<C-v>", '"0p', { noremap = true})
+--map("v", "<C-p>", "P", {noremap = true})
+--map("v", "<C-v>", 'P', { noremap = false, desc = "Paste text" })
+ -- map("v", "<C-v>", 'p', { noremap = false, desc = "Paste text" })
+
+--map('n', '<S-Space>', 'i n', { noremap = true, silent = true })
+--map('n', '<S-Space>', '<cmd>lua print("jaja") <CR>', { noremap = true, silent = true })
+
+
+
+
+
+--map("n", "<CR>", ":", { desc = "CMD enter command mode" })
+
+--map('n', '<C-;>', ':!', { noremap = true, silent = false })
+--map('n', '<C-/>', ':!', { noremap = true, silent = false })
+
+--map("n", ";", ":", { desc = "CMD enter command mode" })
+--map("n", ",", ":", { desc = "CMD enter command mode" })
+--map("n", "h", ":", { desc = "CMD enter command mode" })
+--map("i", "jk", "<ESC>")
+
+-- map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
 
 
 
@@ -445,30 +375,6 @@ map('i', '<C-r>', '<Esc><C-r>i', opts)
 -- command line when triggered.
 
 -- Previous Dashboard keymap
-map('n', '<leader>db', ':Dashboard<CR>', opts)
-
--- Function to close all windows except the current one
-local function close_all_splits()
-  local current_buf = vim.api.nvim_get_current_buf()
-  local windows = vim.api.nvim_list_wins()
-  for _, win in ipairs(windows) do
-    local buf = vim.api.nvim_win_get_buf(win)
-    if buf ~= current_buf then
-      vim.api.nvim_win_close(win, true)
-    end
-  end
-end
-
--- Function to open dashboard and close all splits
-local function open_dashboard()
-  close_all_splits()
-  vim.cmd('Dashboard') -- Adjust if your dashboard plugin uses a different command
-end
-
--- Map <Leader>db to the function
--- vim.api.nvim_set_keymap('n', '<Leader>db', '<Cmd>lua open_dashboard()<CR>', opts)
-
-
 
 
 -- To change the CWD(Current Working Directory)
@@ -476,61 +382,11 @@ end
 map('n', '<leader>cd', ':cd %:p:h<CR>', opts)
 
 
--- Use Telescope to search through command history
---  You can also do that with the up and down arrow keys !
--- This binds <leader>fc to open a fuzzy finder for your command history,
---  making it easy to re-run commands without retyping them.
--- map('n', '<leader>fc', ':Telescope command_history<CR>', opts)
-
--- DUBLICATE 
---[[
--- Clear highlights on search when pressing <Esc> in normal mode
---  See `:help hlsearch`
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
-
-
--- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
---
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- or just use <C-\><C-n> to exit terminal mode
--- vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-]]--
-
 -- TIP: Disable arrow keys in normal mode
--- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
--- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
--- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
--- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
-
-
-
-
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> or CTRL + <arrow keys> to switch between windows
---
---  See `:help wincmd` for a list of all window commands
---[[ -- setup for using hjkl
-map('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-map('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-map('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-map('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-]] --
-
---[[
-map('n', '<C-j>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-map('n', '<C-;>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-map('n', '<C-k>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-map('n', '<C-l>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-]] --
-
-map('n', '<C-Left>', '<C-w><C-h>', { desc = 'Move focus to the left window, using arrow keys' })
-map('n', '<C-Right>', '<C-w><C-l>', { desc = 'Move focus to the right window, using arrow keys' })
-map('n', '<C-Down>', '<C-w><C-j>', { desc = 'Move focus to the lower window, using arrow keys' })
-map('n', '<C-Up>', '<C-w><C-k>', { desc = 'Move focus to the upper window, using arrow keys' })
-
+--vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
+--vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
+--vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
+--vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
 
 -- SHIFT THE hjkl keys to jkl; (one key to the right)
@@ -562,80 +418,59 @@ map('n', '<C-Up>', '<C-w><C-k>', { desc = 'Move focus to the upper window, using
 --map('i', '<C-l>', '<Up>', { noremap = true, silent = true })
 --map('i', '<C-;>', '<Right>', { noremap = true, silent = true })
 
-----------------------------------------------------------
 
--- Make Enter in normal mode to enter command mode
+---------------------------------------------------------------------------------
 
---ctrl + v for normal, insert and visual modes
-map("n", "<C-v>", "p", { desc = "Paste text" })
-map("i", "<C-v>", "<Esc>pi", { desc = "Paste text" })
-map("v", "<C-v>", '"_dp', { desc = "Paste text" })
+-- NvimTree
+--map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
+-- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
+map("n", "<leader>n", function() require('nvim-tree.api').tree.toggle({ find_file = true, focus = true }) end,
+  { desc = "nvimtree toggle window" })
+--map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
 
+-- telescope
+map("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", { desc = "telescope Live Grep" })
+map("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "telescope find buffers" })
+map("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "telescope help page" })
+--map("n", "<leader>ma", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
+map("n", "<leader>fm", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
+map("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "telescope find oldfiles" })
+map("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>", { desc = "telescope find in current buffer" })
 
-map("n", "<CR>", "i<CR><Esc>", { desc = "New line in insert mode" })
-map("n", "<BS>", "i<BS><Esc>", { desc = "Backspace in insert mode" })
+map("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
+map("n", "<leader>gs", "<cmd>Telescope git_status<CR>", { desc = "telescope git status" })
+map("n", "<leader>gg", "<cmd>Gitsigns<CR>", { desc = "telescope git signs" })
+map("n", "<leader>gf", require('telescope.builtin').git_files, { desc = "telescope git signs" })
 
---map("n", "<CR>", ":", { desc = "CMD enter command mode" })
+map("n", "<leader>pt", "<cmd>Telescope terms<CR>", { desc = "telescope pick hidden term" })
 
---map('n', '<C-;>', ':!', { noremap = true, silent = false })
---map('n', '<C-/>', ':!', { noremap = true, silent = false })
+-- This is NvChad Specific
+--map("n", "<leader>th", "<cmd>Telescope themes<CR>", { desc = "telescope nvchad themes" })
 
---map("n", ";", ":", { desc = "CMD enter command mode" })
---map("n", ",", ":", { desc = "CMD enter command mode" })
---map("n", "h", ":", { desc = "CMD enter command mode" })
---map("i", "jk", "<ESC>")
+map("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "telescope find files" })
+map(
+  "n",
+  "<leader>fa",
+  "<cmd>Telescope find_files follow=true no_ignore=true hidden=true<CR>",
+  { desc = "telescope find all files" }
+)
+--[[map("n", "<leader>fm", function()
+  require("conform").format { lsp_fallback = true }
+end, { desc = "General Format file" })]]--
 
--- map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
-
-
-
--- Add key bindings for compiling and running C++
-
--- For Unix Shell
--- Compile and Run
---map('n', '<F5>', ':!g++ -o %< % && if [ -x %< ]; then ./%<; fi<CR>', { noremap = true, silent = true })
--- Compile Only
---map('n', '<F6>', ':!g++ -o %< % && echo "Compiled successfully!" || echo "Compilation failed!"<CR>', { noremap = true, silent = true })
--- Run Only
---map('n', '<F7>', ':!./%<<CR>', { noremap = true, silent = true })
-
--- For Windows Command Prompt
--- Compile and Run
---map('n', '<F5>', ':!g++ -o hello hello.cpp && hello.exe<CR>', { noremap = true, silent = true })
--- Compile Only
---map('n', '<F6>', ':!g++ -o hello hello.cpp && echo Compilation successful!<CR>', { noremap = true, silent = true })
--- Run Only
---map('n', '<F7>', ':!hello.exe<CR>', { noremap = true, silent = true })
-
--- For Windows PowerShell
--- Compile and Run
--- map('n', '<F5>', ':!g++ -o hello hello.cpp if (Test-Path ./hello.exe) { ./hello }<CR>', { noremap = true, silent = true })
--- Compile Only
--- map('n', '<F6>', ':!g++ -o hello hello.cpp echo "Compilation successful!"<CR>', { noremap = true, silent = true })
--- Run Only
--- map('n', '<F7>', ':!./hello<CR>', { noremap = true, silent = true })
+-- This doesnt save any buffers, nor tell you for unsaved buffers between switching sessions !
+map("n", "<leader>fs", '<cmd>Telescope session-lens search_session<CR>', { desc = "telescope session lens" })
 
 
---[[
--- Function to compile and run the project
-local function build_and_run()
-    vim.cmd('!cmake --build build')
-    --vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
-	vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
-end
+-- https://www.reddit.com/r/neovim/comments/ypaq3e/lsp_find_reference_results_in_telescope/
+-- https://github.com/Slotos/telescope-lsp-handlers.nvim
+map('n', '<leader>fr', function() require('telescope.builtin').lsp_references() end,
+  { noremap = true, silent = true, desc = "LSP Find References" })
 
--- Function to compile the project
-local function build_only()
-    vim.cmd('!cmake --build build')
-end
+-- https://github.com/parmardiwakar150/neovim-config/blob/main/lua/core/plugin_config/telescope.lua#L37
+map('n', '<leader>ch', function() require('telescope.builtin').command_history() end,
+  { noremap = true, silent = true, desc = "Command History" })
 
--- Function to run the project
-local function run_only()
-    vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
-end
-]] --
 
--- Key mappings
---vim.api.nvim_set_keymap('n', '<F5>', [[:lua build_and_run()<CR>]], { noremap = true, silent = true })
---vim.api.nvim_set_keymap('n', '<F6>', [[:lua build_only()<CR>]], { noremap = true, silent = true })
---vim.api.nvim_set_keymap('n', '<F7>', [[:lua run_only()<CR>]], { noremap = true, silent = true })
+
+

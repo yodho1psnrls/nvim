@@ -8,8 +8,9 @@
 -- https://github.com/rafamadriz/friendly-snippets
 
 -- NOTE:
--- So as it turns out, this plugin indeed works, but you should manually define snippets
---  So thats why there are predefined snippet libraries that you can use 
+-- So as it turns out, this plugin indeed works, but it is only
+--  a snippet engine, so you should manually define snippets
+--  Thats why there are predefined snippet libraries that you can use 
 --  (friendly-snippets is one such library)
 
 -- LuaSnip alone will work by expanding the snippets, triggered by some
