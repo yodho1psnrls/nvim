@@ -14,7 +14,7 @@
 --  (friendly-snippets is one such library)
 
 -- LuaSnip alone will work by expanding the snippets, triggered by some
---  sequence of words, but if you use nvim-cmp, you can trigger them by
+--  sequence of characters, but if you use nvim-cmp, you can trigger them by
 --  the suggestions from nvim-cmp, but for that to work, you need
 --  nvim-cmp-luasnip as a dependency
 
@@ -28,9 +28,14 @@ return {
     build = "ninja install_jsregexp",
 
     lazy = true,
+    -- event = 'BufModifiedSet',
+    event = 'InsertCharPre',
 
     -- Install the snippet library
-    dependencies = { "rafamadriz/friendly-snippets" },
+    dependencies = {
+      "saadparwaiz1/cmp_luasnip",
+      "rafamadriz/friendly-snippets",
+    },
 
     config = function()
       local ls = require('luasnip')

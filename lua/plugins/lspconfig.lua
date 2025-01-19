@@ -17,7 +17,7 @@ return {
 
       -- Available Options: off, error, warn, info, debug, trace
       vim.lsp.set_log_level("OFF") -- Only Enable, it if you debbug some LSP related problems
-      --vim.lsp.set_log_level("trace") -- Verbose (For debugging)
+      -- vim.lsp.set_log_level("trace") -- Verbose (For debugging)
 
       local warnings_enabled = true
       local function ToggleWarnings()
@@ -48,13 +48,43 @@ return {
       vim.keymap.set('n', '<leader>wt', function() ToggleWarnings() end,
         { noremap = true, silent = true, desc = 'Warnings Toggle' })
 
+      -- BUILT IN NEOVIM DIAGNOSTICS WINDOW ------------------------------------------------------------
+      -- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
+      -- https://neovim.io/doc/user/diagnostic.html
+      -- https://neovim.io/doc/user/quickfix.html#quickfix
+
+      vim.keymap.set('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open diagno[S]tic list' })
+      vim.keymap.set('n', '<leader>dq', vim.diagnostic.setqflist, { desc = 'Open diagnostic [Q]uickfix list' })
+      -- vim.keymap.set('n', '<leader>da', vim.diagnostic.setqflist, { desc = 'Open [A]ll diagnostic lists' })
+
+      --vim.keymap.set('n', '<S-CR>', vim.diagnostic.open_float, { desc = 'Go to diagnostic'})
+      vim.keymap.set('n', '<leader>dg', vim.lsp.util.jump_to_location, { desc = '[G]o to diagnostic'})
+
+      -- https://www.reddit.com/r/neovim/comments/18qh3mg/how_to_show_entire_diagnostic_message/
+      --vim.keymap.set('n', '<leader>df', vim.diagnostic.open_float,
+      --  { desc = 'Open floating diagnostic window, while the cursor is on a line with diagnostic message'})
+
+      -- :lua vim.diagnostic.open_float() is the command that executes when you normally press Enter
+      --  in the diagnostics window, but since we remapped Enter in normal mode, we need to make it
+      --  apply the logic for it to execute that
+      --[[vim.api.nvim_create_autocmd("FileType", {
+        pattern = "vim.diagnostic.float",
+        callback = function()
+          vim.keymap.set("n", "<CR>", function()
+            local __opts = { float = true }
+            vim.diagnostic.goto_next(__opts) -- Automatically jumps to the diagnostic window really-simeilfe
+          end)
+        end,
+      })]]--
+
       -- Function to jump to the next diagnostic
-      vim.keymap.set('n', '<leader>dn', function() vim.diagnostic.goto_next() end,
-        { desc = 'Go to next diagnostic', noremap = true, silent = true})
+      vim.keymap.set('n', '<leader>dn', vim.diagnostic.goto_next,
+        { desc = 'Go to [N]ext diagnostic', noremap = true, silent = true})
 
       -- Function to jump to the previous diagnostic
-      vim.keymap.set('n', '<leader>dp', function() vim.diagnostic.goto_prev() end,
-        { desc = 'Go to previous diagnostic', noremap = true, silent = true })
+      vim.keymap.set('n', '<leader>dp', vim.diagnostic.goto_prev,
+        { desc = 'Go to [P]revious diagnostic', noremap = true, silent = true })
+      ---------------------------------------------------------------------------------
 
 
       local M = {}
@@ -173,10 +203,22 @@ return {
 
         -- The background-index tag makes clang to use cache indexing (as ccls)
         --cmd = { "clangd", "--background-index", "--query-driver=D:/Program Files/MSYS2/mingw64/bin/clang++.exe" },
+        -- pacman -S mingw-w64-x86_64-clang-tools-extra (To install clang-tidy(static analysis tool, that compliments the lsp))
+        -- Other tools from clang-tools-extra that you need to consider:
+        --  Clang-Format, Clang-Apply-Replacements, Clang-Check, Clang-Scan-Dependencies, Clang-Syntax
+        --  Extra clang-tidy checks: modernize-*, readability-*, performance-*
+        --  Run this below in the bash to see full list of available checks in the modernize, readability, and performance categories
+        --  clang-tidy -list-checks | grep "modernize\|readability\|performance"
         cmd = {
           "clangd",
           "--background-index", -- cache
-          '--query-driver=**/clang++.exe' -- glob pattern for the compiler, so it loads its own std library implementation
+          '--query-driver=**/clang++.exe', -- glob pattern for the compiler, so it loads its own std library implementation
+
+          "--clang-tidy",
+          -- Enable all performance-related checks for clang-tidy
+          --"--checks=performance-*",     
+          -- Or you can enable performance related checks one by one
+          --'--checks="*,clang-analyzer-optin.performance.GCDAntipattern,clang-analyzer-optin.performance.Padding"',
         },
 
 --        cmd = { "clangd", "--background-index", "--log=verbose" }, -- For Debugging

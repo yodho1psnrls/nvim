@@ -122,6 +122,7 @@ vim.cmd [[highlight DashboardSessions guifg=#FFC786]]
 
 vim.cmd [[highlight DashboardPureWhite guifg=#FFFFFF]]
 
+
 return {
 
   {
@@ -301,11 +302,17 @@ return {
 
     },
 
-    config = function ()
+	config = function(_, opts)
+      require('dashboard').setup(opts) -- Pass the opts properly
+      vim.keymap.set('n', '<leader>db', open_dashboard, { noremap = true, silent = true })
+    end
+	
+    --[[config = function ()
+	  require('dashboard').setup(opts)
       --require('dashboard').setup(opts)
       vim.keymap.set('n', '<leader>db', open_dashboard, { noremap = true, silent = true })
       --map('n', '<leader>db', ':Dashboard<CR>', opts)
-    end
+    end]]--
 
   }
 

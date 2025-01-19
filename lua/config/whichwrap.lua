@@ -143,6 +143,14 @@ vim.keymap.set('n', '<S-Left>', left_shift_whichwrap, { noremap = true, silent =
 
 local M = {}
 
+-- There was some error happening with the cursom (hjkl based enchansed remaps)
+-- i  A-w         * <Lua 38: ~/AppData/Local/nvim/lua/config/whichwrap.lua:176>
+-- Last set from Lua (run Nvim with -V1 for more details)
+-- i  A-b         * <Lua 31: ~/AppData/Local/nvim/lua/config/whichwrap.lua:147>                                 
+-- Last set from Lua (run Nvim with -V1 for more details)
+
+
+-- Works for both default and onemore virtualedit option
 function M.left_shift_whichwrap()
   -- Get current previous position (row, col)
   local cursor0 = vim.api.nvim_win_get_cursor(0)
@@ -155,6 +163,7 @@ function M.left_shift_whichwrap()
     vim.cmd('normal! h')
     cursor0 = vim.api.nvim_win_get_cursor(0)
     vim.api.nvim_win_set_cursor(0, { cursor0[1], cursor0[2] + 1 })
+    -- vim.cmd('normal! <End>')
   else
     --vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<S-Left>", true, false, true), "n", false)
     vim.cmd('normal! b')
@@ -167,12 +176,16 @@ function M.left_shift_whichwrap()
 end
 
 
+
+-- Works for both default and onemore virtualedit option
+--  but insert and visual mode should be with offset of 0
+--   and normal mode should be with offset -1
 function M.right_shift_whichwrap(offset)
 return function()
   -- Get current previous position (row, col)
   local cursor0 = vim.api.nvim_win_get_cursor(0)
   local line_len = #vim.fn.getline(cursor0[1])
-  --local end_pos = #line - 1
+  -- local end_pos = line_len -1
   local end_pos = line_len + offset
 
   -- Check if the cursor is at the end of the line
@@ -191,6 +204,37 @@ return function()
   end
 end
 end
+
+
+--[[
+-- https://vi.stackexchange.com/questions/14451/move-cursor-to-new-line-character
+-- see :help 've
+-- vim.o.virtualedit = 'onemore' -- This is already set in options.lua !
+-- Works for only virautledit option set to onemore
+function M.right_shift_whichwrap()
+  -- Get current previous position (row, col)
+  local cursor0 = vim.api.nvim_win_get_cursor(0)
+  local line_len = #vim.fn.getline(cursor0[1])
+  local end_pos = line_len -- -1
+ -- local end_pos = line_len + offset
+
+  -- Check if the cursor is at the end of the line
+  if line_len == 0 or cursor0[2] == end_pos then
+    --vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Left>", true, false, true), "n", false)
+    vim.cmd('normal! l')
+  else
+    --vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<S-Left>", true, false, true), "n", false)
+    vim.cmd('normal! w')
+    local cursor1 = vim.api.nvim_win_get_cursor(0)
+
+    if cursor0[1] ~= cursor1[1] then
+      vim.api.nvim_win_set_cursor(0, { cursor0[1], end_pos })
+      --vim.cmd('normal! h')
+    end
+  end
+end
+]]--
+
 
 return M
 
@@ -212,9 +256,6 @@ vim.keymap.set('n', 'w', right_shift_whichwrap(-1), opts)
 -- Ctrl + b and w (okay, but Ctrl + b in insert goes to begin of line )
 -- Best Option
 -- Ctrl + n and (m or .) (these dont do anything reasonable neither in insert or normal mode)
-
-
-
 
 
 

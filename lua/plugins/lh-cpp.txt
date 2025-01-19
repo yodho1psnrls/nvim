@@ -1,0 +1,16 @@
+return {
+  -- Core plugin
+  {
+    "LucHermitte/lh-cpp",
+    branch = "gotoimpl_with_libclang",
+    dependencies = {
+      { "LucHermitte/lh-vim-lib", version = "4.7.1" }, -- Core library
+      "LucHermitte/lh-style", -- Style-related functions
+      "LucHermitte/lh-brackets", -- Bracket handling
+      "LucHermitte/mu-template", -- Template management
+      "LucHermitte/lh-dev", -- Developer tools
+      "LucHermitte/alternate-lite", -- File alternation
+    },
+    ft = { "cpp", "hpp", "h" }, -- Load only for C/C++ files
+  },
+}

@@ -2,8 +2,8 @@
 
 return {
 
-    { 
--- Useful plugin to show you pending keybinds.
+    {
+    -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -55,5 +55,15 @@ return {
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
+
+    config = function ()
+
+      vim.keymap.set("n", "<leader>wK", "<cmd>WhichKey <CR>", { desc = "whichkey all keymaps" })
+
+      vim.keymap.set("n", "<leader>wk", function()
+        vim.cmd("WhichKey " .. vim.fn.input "WhichKey: ")
+      end, { desc = "whichkey query lookup" })
+
+    end
   },
 }

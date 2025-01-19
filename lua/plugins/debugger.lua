@@ -55,6 +55,14 @@ return {
       "theHamsta/nvim-dap-virtual-text",
       "lucaSartore/nvim-dap-exception-breakpoints",
       "mfussenegger/nvim-dap-python", -- plugin that configures nvim-dap with pylsp
+
+      -- Optional, but i dont think i need it currently
+      --[[{"nvim-telescope/telescope-dap.nvim",
+        dependencies = {
+          "nvim-telescope/telescope.nvim",
+          "nvim-treesitter/nvim-treesitter",
+        },
+      },]]--
     },
 
     config = function()
@@ -182,7 +190,8 @@ return {
 
       dap.configurations.cpp = {
         {
-          name = "Launch file",
+          --name = "Launch file",
+          name = "Launch Project",
           type = "codelldb",
           request = "launch",
 
@@ -192,8 +201,8 @@ return {
 
           --program = vim.fn.getcwd() .. '\\Debug\\bin\\proj.exe',
           program = '\\Debug\\bin\\proj.exe',
-          --cwd = '${workspaceFolder}',
           cwd = vim.fn.getcwd(),
+          -- cwd = '${workspaceFolder}',
 
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
 
@@ -262,6 +271,36 @@ return {
           },
 
         },
+
+        {
+          name = "Launch Test",
+          type = "codelldb",
+          request = "launch",
+
+          program = '\\Debug\\bin\\proj_test.exe',
+          cwd = vim.fn.getcwd(),
+
+          stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
+
+          args = {},             -- Arguments to pass to the executable program
+          runInTerminal = false, -- Runs the program and hopefoly shows a life preview of the program execution during debbuging
+
+          --terminal = 'integrated',
+
+          setupCommands = {
+            {
+              text = "-enable-pretty-printing", -- Pretty printing for C++
+              description = "Enable pretty printing",
+              ignoreFailures = false
+            },
+
+            { text = "process handle SIGABRT --stop true --pass true --notify true" }, -- For failed assertions
+            { text = "break set -E c++" },                                             -- For unhandled C++ exceptions
+            { text = "-enable-pretty-printing" }                                       -- Pretty printing for more readable call stacks
+          },
+
+        },
+
       }
       dap.configurations.c = dap.configurations.cpp
 

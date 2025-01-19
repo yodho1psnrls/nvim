@@ -1,0 +1,55 @@
+--[[
+LSP-Based Navigation Features:
+
+Go to Definition:
+Navigate directly to where a function, variable, or class is defined, even across files.
+Command: :lua vim.lsp.buf.definition().
+
+Go to Declaration:
+Similar to definition but jumps to where the symbol is declared.
+Command: :lua vim.lsp.buf.declaration().
+
+Find References:
+Lists all references to a symbol in the entire project.
+Command: :lua vim.lsp.buf.references().
+
+Hover and Signature Help:
+Display detailed information about a symbol or function signature under the cursor.
+Command: :lua vim.lsp.buf.hover().
+
+Workspace Symbol Search:
+Searches for symbols across the entire project or workspace.
+Command: :lua vim.lsp.buf.workspace_symbol().
+
+Smart Renaming:
+Renames symbols across the project while maintaining correctness.
+Command: :lua vim.lsp.buf.rename().
+
+
+Key Differences from tags:
+Feature:	              LSP:	                                Tags:
+Symbol Understanding:	  Semantic (syntax-aware)	              Based on text patterns in the tags file
+Accuracy:	              Handles complex cases like overloads	Limited by regular expressions
+Real-Time Analysis:	    Dynamic updates with code changes	    Requires manual ctags update
+Cross-File Navigation:	Smarter across projects/workspaces	  Only as good as the tags file covers
+]]--
+
+-- NOTE: 
+-- Using Ctrl + ] or :tags is NOT the same as using gd or gD 
+--  keys for lsp go to definition and lsp go to declaration !!!
+
+
+-- https://github.com/ludovicchabant/vim-gutentags
+-- https://github.com/skywind3000/gutentags_plus
+-- https://github.com/skywind3000/vim-preview
+
+-- NOTE:
+-- You need to install ctags and set up in environmental variables
+-- Use msys2's pacman manager
+-- https://packages.msys2.org/packages/mingw-w64-x86_64-ctags
+
+
+return {
+  "ludovicchabant/vim-gutentags",
+  "skywind3000/gutentags_plus",
+}

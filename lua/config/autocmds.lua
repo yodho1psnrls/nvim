@@ -1,12 +1,58 @@
 
 
+
+-----------------------------------------------------------------------------
+
 --7AA62C --BD5637
 vim.cmd [[
   highlight QuickScopePrimary guifg=#7AA62C gui=underline ctermfg=155 cterm=underline
   highlight QuickScopeSecondary guifg=#CA5C3B gui=underline ctermfg=81 cterm=underline
 ]]
 
+
+-- Function to check if the current buffer is writable
+local function is_buffer_writable()
+  --local bufnr = vim.api.nvim_get_current_buf()
+  --return not vim.bo[bufnr].readonly
+  -- return not vim.bo.readonly
+
+  local bufnr = vim.api.nvim_get_current_buf()
+  local bufname = vim.api.nvim_buf_get_name(bufnr)
+
+  -- Check if the buffer is a terminal buffer (which is always writable)
+  if vim.bo.buftype == 'terminal' then
+    --print("Jajjaja")
+    return true
+  end
+
+  -- Check if the buffer is writable and not "[No Name]"
+  return not vim.bo.readonly and bufname ~= "" and bufname ~= "[No Name]"
+
+end
+
+-- Enable quick-scope if the buffer is writable, disable otherwise
+local function toggle_on_buffer_writable()
+  if is_buffer_writable() then
+    vim.g.qs_enable = 1     -- Enable QuickScope
+    vim.keymap.set("n", "<CR>", "i<CR><Esc>", { noremap = false, desc = "Enter as in Insert Mode" })
+  else
+    vim.g.qs_enable = 0     -- Disable QuickScope
+    vim.keymap.set("n", "<CR>", "<CR>", { noremap = false }) -- Toggle the mapping off (It fixes the Diagnostic window Enter press to jump to a diagnostic line)
+  end
+end
+
+-- Autocommand to check whenever you switch buffers
+vim.api.nvim_create_autocmd({'BufEnter', 'TermOpen'}, {
+  pattern = '*',
+  callback = toggle_on_buffer_writable,
+})
+
+
+
+-------------------------------------------------------------------------------------
+
 vim.cmd("colorscheme rose-pine-moon")
+-- vim.cmd("colorscheme rose-pine-main")
 
 
 
@@ -90,6 +136,29 @@ vim.cmd [[
 --vim.api.nvim_set_hl(0, 'Search', { fg = 'Yellow', bg = 'DarkRed' })
 --vim.api.nvim_set_hl(0, 'IncSearch', { fg = 'Black', bg = 'Yellow' })
 
+
+-- Make comments in c++ with //line , instead of /*line*/
+--[[
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "cpp",
+    callback = function()
+        -- Normal mode: Add '//' at the beginning of the current line
+        -- vim.api.nvim_buf_set_keymap(0, "n", "<leader>/", "I// <Esc>", { noremap = true, silent = true })
+
+    vim.api.nvim_buf_set_keymap(0, "n", "<leader>/",function() 
+           local line = vim.fn.getline(".")
+            if line:match("^//") then
+                vim.fn.setline(".", line:gsub("^// ?", ""))  -- Remove '//' if it exists
+            else
+                vim.fn.setline(".", "// " .. line)  -- Add '//' if it doesn't exist
+            end
+        end, { noremap = true, silent = true })
+
+    -- Visual mode: Add '//' at the beginning of all selected lines
+        vim.api.nvim_buf_set_keymap(0, "v", "<leader>/", ":s/^/\\/\\//<CR>gv", { noremap = true, silent = true })
+    end,
+})
+]]--
 
 -- By Default .cpp, .hpp, .cc, .cxx, .c++ files are usually detected as cpp.
 -- but sometimes it detects .h files as c language files

@@ -29,7 +29,7 @@ return {
   "nvim-treesitter/nvim-treesitter-context",
 
   lazy = true,
---  dependencies = { "nvim-treesitter/nvim-treesitter" }, -- Ensure treesitter is loaded as a dependency
+  dependencies = { "nvim-treesitter/nvim-treesitter" }, -- Ensure treesitter is loaded as a dependency
 
   config = function()
     require('treesitter-context').setup {

@@ -7,6 +7,12 @@
 --       For now, i just made it to pre_restore_cmds = {"wa"}
 -- https://www.reddit.com/r/neovim/comments/14yhn1f/autosession_removes_modified_buffers/
 
+local function get_session_shada_path()
+  -- Use the session name or other unique identifying feature to name the shada
+  local session_name = vim.fn.expand('%:p:h')  -- Or modify this to be a more suitable unique name
+  return vim.fn.stdpath("data") .. "/sessions/shada_" .. session_name .. ".shada"
+end
+
 return {
 
   {
@@ -80,6 +86,53 @@ return {
         --post_delete_cmds
         pre_restore_cmds = { "wa" },
 
+        -- Save and Restore Jumplist
+
+        --[[pre_save_cmds = {
+          --"let $SHADA='~/.config/nvim/sessions/session_'.v:sessionname.'.shada'",
+          'wshada',
+        },
+
+        post_restore_cmds = {
+          --"call clearmatches()",  -- Clears visual matches if any exist
+          --"execute 'clearjumps'", -- Clears the jumplist
+          --"let $SHADA='~/.config/nvim/sessions/session_'.v:sessionname.'.shada'",
+          "clearjumps",
+          "rshada"               -- Reloads the session-specific ShaDa
+        },]]--
+
+        --pre_save_cmds = { "let $SHADA=expand('~/.config/nvim/sessions/session_'..v:sessionname..'.shada')" },
+        post_restore_cmds = { "rshada" },
+
+        --[[pre_save_cmds = {
+          function()
+            -- Get the session-specific shada path
+            local session_shada_path = get_session_shada_path()
+
+            -- Set the session's SHADA variable
+            vim.cmd("let $SHADA='" .. session_shada_path .. "'")
+
+            -- Save jumplist (and other shada data) to the session-specific shada file
+            vim.cmd("wshada")
+          end,
+        },
+
+        post_restore_cmds = {
+          function()
+            -- Get the session-specific shada path
+            local session_shada_path = get_session_shada_path()
+
+            -- Load the session-specific shada file for jumplist restoration
+            vim.cmd("let $SHADA='" .. session_shada_path .. "'")
+
+            -- Restore jumplist from the session-specific shada file
+            vim.cmd("clearjumps")
+            vim.cmd("rshada")
+          end,
+        },]]--
+
+
+
         -- auto-session does not save properly some buffers that
         -- cannot be saved as terminals and others, and on load,
         -- it restores them as empty buffers, so we will do this
@@ -112,13 +165,20 @@ return {
           load_on_setup = true,
 --          previewer = true,
 
+
           theme_conf = {
             border = true,
+            --theme = "ivy",
           },
           mappings = {
             delete_session = { "i", "<C-D>" },
             alternate_session = { "i", "<C-S>" },
             copy_session = { "i", "<C-C>" },
+
+            -- Reverse the order for Tabs, because it is a dropdown window type
+            -- , unline the rest of the pickers
+            --next_session = { "<Tab>", "<Down>" },
+            --prev_session = { "<S-Tab>", "<Up>" },
           },
           session_control = {
             control_dir = vim.fn.stdpath "data" .. "/auto_session/",

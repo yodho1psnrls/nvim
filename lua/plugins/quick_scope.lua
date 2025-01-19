@@ -10,7 +10,6 @@ return {
   --dependencies = { 'themes',}, -- QuickScope will wait for themes to load
 
   config = function()
-
     --require('config.autocmds')
     --require('plugins.themes')
 
@@ -65,12 +64,14 @@ return {
           { fg = "#FF9933", underline = true, ctermfg = 81, cterm = { underline = true } })
       end,
     })
-    ]]--
+    ]] --
 
-  ------------------------------------------------------------------------
+    ------------------------------------------------------------------------
 
-    vim.keymap.set('n', '<leader>sc', '<cmd>QuickScopeToggle<CR>', {desc = 'Toggle Quick Scope'})
+    vim.keymap.set('n', '<leader>sc', '<cmd>QuickScopeToggle<CR>', { desc = 'Toggle Quick Scope' })
 
+    -- Moved to autocmds.lua
+    --[[
     -- Function to check if the current buffer is writable
     local function is_buffer_writable()
       --local bufnr = vim.api.nvim_get_current_buf()
@@ -100,8 +101,7 @@ return {
     vim.api.nvim_create_autocmd('BufEnter', {
       pattern = '*',
       callback = toggle_quick_scope,
-    })
-
+    })]]--
 
   end
 

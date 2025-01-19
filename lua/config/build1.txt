@@ -1,0 +1,442 @@
+-- F7 will Generate both Debug and Release Directories
+-- F5 will Build the Debug directory and launch dap
+-- F6 will Build the Release directory and launch the exe, without a debugger
+
+-- All those functions expect that the cwd is set on the root directory of the project !
+
+-- TODO: 
+-- Make the build, run, debug and generate independent of your
+--  current working directory. Make it dependant on the current
+--  buffer that your in. Such that from the buffer that you are in
+--  it traces the root directory of the project.
+-- You can use the same logic that the LSP uses or directly retreive
+--  it from the root directory that the LSP detected
+-- This will be a plus for example, if you are in some folder with
+--  multiple small projects, so you can easily switch between them
+--  just by opening a file from a certain project, without the need
+--  of always changing the directory and keeping track if you are in
+--  an actual root directory of a project, you can always stay in the
+--  upper one that stores all those projects.
+-- Or you can be in a big project, deep inside some library,
+--  and still be able to run the whole project, 
+--  without going to the root directory
+
+-- https://neovim.discourse.group/t/how-to-new-a-terminal-and-send-to-run-command-with-lua/4218
+-- https://stackoverflow.com/questions/7597249/vim-script-how-to-execute-a-command-in-a-vim-function
+-- https://neovim.discourse.group/t/how-to-new-a-terminal-and-send-to-run-command-with-lua/4218
+
+-- local dap = require('dap')
+
+-------------------------------------------------------------------------
+
+function GenerateCMake()
+  --vim.cmd('!rmdir /s /q "Debug"')
+  --vim.cmd('!rmdir /s /q "Release"')
+  vim.cmd('!rm -rf "Debug"')
+  vim.cmd('!rm -rf "Release"')
+
+  vim.cmd('!cmake -S . -B "Debug" -DCMAKE_BUILD_TYPE=Debug')
+  vim.cmd('!cmake -S . -B "Release" -DCMAKE_BUILD_TYPE=Release')
+  vim.cmd('!cmake -S . -B "Test" -DCMAKE_BUILD_TYPE=Test')
+
+  -- Create a symlink for compile_commands.json, so language server protocols
+  --  like clangd or ccls work properly
+  -- Creates a hardlink, so you dont need elevated permissions (no need to restart the terminal)
+  --https://www.howtogeek.com/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/
+  vim.cmd('!rm compile_commands.json')
+  --vim.cmd('!mklink "compile_commands.json" "Debug\\compile_commands.json"')
+  vim.cmd('!mklink /H "compile_commands.json" "Debug\\compile_commands.json"')
+end
+
+function BuildAndRunCpp()
+  --vim.cmd('!cmake --build Release --config Release')
+  --vim.cmd('term .\\Release\\bin\\proj.exe')
+
+  -- Run the build command and wait for it to finish
+  --  local result = vim.fn.system('cmake --build "Release" --config Release')
+  -- Check if the build was successful
+  --  if vim.v.shell_error == 0 then
+  -- If successful, run the executable in a terminal
+  --    vim.cmd('term .\\Release\\bin\\proj.exe')
+  --  else
+  -- Print the error message if the build failed
+  --    print("Build failed:\n" .. result)
+  --  end
+
+  -- Non-Blocking version of the above
+  --[[
+  vim.fn.jobstart('cmake --build Release --config Release', {
+    on_exit = function(_, exit_code)
+      if exit_code == 0 then
+        -- If successful, run the executable in a terminal
+        vim.cmd('term .\\Release\\bin\\proj.exe')
+      else
+       -- Print an error message if the build failed
+        print("Build failed with exit code: " .. exit_code)
+      end
+    end
+  })
+  ]]--
+  vim.fn.jobstart('cmake --build "Release" --config Release', {
+  stdout_buffered = true,
+  stderr_buffered = true,
+  on_stdout = function(_, data)
+    if data and #data > 0 then
+      -- Print standard output messages
+      print(table.concat(data, "\n"))
+    end
+  end,
+
+  on_stderr = function(_, data)
+    if data and #data > 0 then
+      -- Print error messages from stderr
+      print("Error during build:\n" .. table.concat(data, "\n"))
+    end
+  end,
+
+  on_exit = function(_, exit_code)
+    if exit_code ~= 0 then
+      -- If the build failed, print the exit code and show all messages
+      print("Build failed with exit code: " .. exit_code)
+      vim.cmd('messages')
+      --vim.defer_fn(function() vim.cmd('messages') end, 100) -- same as above, but with delay
+    else
+      -- If successful, run the executable in a terminal
+      --vim.cmd('term .\\Release\\bin\\proj.exe')
+       vim.cmd('10split | term .\\Release\\bin\\proj.exe')
+      --vim.cmd('term .\\Release\\bin\\proj.exe')
+    end
+  end,
+})
+end
+
+-- Some Trash very Buggy functions that ChatGayPT generated
+-- But i will keep them as an example of how to use jobstart and the nvim floating windows creation
+-- Using a Floating Window for Build Output
+--[[function BuildAndRunCpp()
+  local output = {}                                  -- Table to collect output lines
+  local bufnr = vim.api.nvim_create_buf(false, true) -- Create a new scratch buffer
+  local winid = vim.api.nvim_open_win(bufnr, true,
+    { relative = 'editor', width = 80, height = 20, row = 5, col = 5, border = 'single' })
+
+  -- Start the build job
+  vim.fn.jobstart('cmake --build Release --config Release', {
+    stdout_buffered = true,
+    on_stdout = function(_, line)
+      table.insert(output, line)                              -- Collect output lines
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, output) -- Update the buffer with new output
+      vim.api.nvim_win_set_cursor(winid, { #output, 0 })      -- Scroll to the last line
+    end,
+    on_exit = function(_, exit_code)
+      if exit_code == 0 then
+        -- If successful, run the executable in a terminal
+        vim.cmd('term .\\Release\\bin\\proj.exe')
+      else
+        -- Print an error message if the build failed
+        table.insert(output, "Build failed with exit code: " .. exit_code)
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, output) -- Update the buffer one last time
+      end
+      -- Optionally, close the floating window after the build completes
+      vim.api.nvim_win_close(winid, true)
+    end,
+  })
+end
+]] --
+
+-- Using a Split Terminal for Live Output
+--[[function BuildAndRunCpp()
+  -- Create a new terminal window for the build output
+  vim.cmd('new')                                         -- Open a new split window
+  vim.cmd('term cmake --build Release --config Release') -- Run the build command in the terminal
+  vim.cmd('resize 20')                                   -- Resize the terminal window for better visibility
+
+  -- Set up an autocmd to handle the terminal close event
+  local build_group = vim.api.nvim_create_augroup("BuildGroup", { clear = true }) -- Create a new autocmd group
+
+  vim.api.nvim_create_autocmd("TermClose", {
+    group = build_group,                  -- Assign the autocmd to the group
+    pattern = "*",                        -- Match any terminal
+    callback = function()
+      local exit_code = vim.v.shell_error -- Get the exit code of the last command
+      if exit_code == 0 then
+        -- If the build was successful, run the executable in a new terminal
+        vim.cmd('term .\\Release\\bin\\proj.exe')
+      else
+        -- Print an error message if the build failed
+        print("Build failed with exit code: " .. exit_code)
+      end
+
+      -- Optionally, remove the autocmd after it runs to prevent spamming
+      vim.api.nvim_del_augroup_by_id(build_group) -- Clean up the autocmd group
+    end,
+  })
+end
+]] --
+
+function BuildAndDebugCpp()
+  --vim.cmd('!cmake --build "Debug" --config Debug')
+  --dap.continue()
+
+  -- Run the build command and wait for it to finish
+  --[[local result = vim.fn.system('cmake --build "Debug" --config Debug')
+  -- Check if the build was successful
+  if vim.v.shell_error == 0 then
+    -- If successful, start the debugger
+    dap.continue()
+  else
+    -- Print the error message if the build failed
+    print("Build failed:\n" .. result)
+  end]] --
+
+  -- Non-Blocking version of the above
+  --[[
+  vim.fn.jobstart('cmake --build "Debug" --config Debug', {
+    on_exit = function(_, exit_code)
+      if exit_code == 0 then
+        -- If successful, debug the executable
+        --vim.cmd('term .\\Debug\\bin\\proj.exe')
+        dap.continue()
+
+        -- Automatically print backtrace on breakpoints
+        --dap.listeners.after.event_stopped["print_backtrace"] = function()
+        --  dap.repl.run('bt') -- Print the call stack in the REPL
+        --end
+
+        --vim.cmd('term .\\Debug\\bin\\proj.exe')
+      else
+        -- Print an error message if the build failed
+        print("Build failed with exit code: " .. exit_code)
+      end
+    end
+  })
+  ]]--
+  vim.fn.jobstart('cmake --build "Debug" --config Debug', {
+  stdout_buffered = true,
+  stderr_buffered = true,
+  on_stdout = function(_, data)
+    if data and #data > 0 then
+      -- Print standard output messages
+      print(table.concat(data, "\n"))
+    end
+  end,
+
+  on_stderr = function(_, data)
+    if data and #data > 0 then
+      -- Print error messages from stderr
+      print("Error during build:\n" .. table.concat(data, "\n"))
+    end
+  end,
+
+  on_exit = function(_, exit_code)
+    if exit_code ~= 0 then
+      -- If the build failed, print the exit code and show all messages
+      print("Build failed with exit code: " .. exit_code)
+      vim.cmd('messages')
+      --vim.defer_fn(function() vim.cmd('messages') end, 100) -- same as above, but with delay
+    else
+      -- If successful, run the executable with the debugger
+      --dap.continue()
+      require('dap').continue()
+      --vim.cmd('term .\\Debug\\bin\\proj.exe')
+    end
+  end,
+})
+end
+
+------------------------------------------------------------------------
+-- There is no Building for python, but i want to keep the names consistent
+
+function BuildAndRunPython()
+  --local file = vim.fn.expand('%') -- Get the current file name
+  --vim.cmd('!python ' .. file)
+   vim.cmd('10split | term python %')
+  --vim.cmd('term python %')
+end
+
+function BuildAndDebugPython()
+  --dap.continue()
+  require('dap').continue()
+end
+
+------------------------------------------------------------------------
+
+
+function BuildAndRun()
+  vim.cmd('messages clear')
+  vim.cmd('wa') -- Save all buffers
+
+  local filetype = vim.bo.filetype
+
+  if filetype == 'cpp' then
+    BuildAndRunCpp()
+  elseif filetype == 'python' then
+    BuildAndRunPython()
+  else
+    print("No Build and Run Configuration for File Type: " .. filetype)
+  end
+end
+
+function BuildAndDebug()
+  vim.cmd('messages clear')
+  vim.cmd('wa') -- Save all buffers
+
+  local filetype = vim.bo.filetype
+
+  if filetype == 'cpp' then
+    BuildAndDebugCpp()
+  elseif filetype == 'python' then
+    BuildAndDebugPython()
+  else
+    print("No Build and Debug Configuration for File Type: " .. filetype)
+  end
+end
+
+function BuildAndDebugTests()
+  vim.cmd('messages clear')
+  vim.cmd('wa') -- Save all buffers
+
+  local filetype = vim.bo.filetype
+
+  if filetype == 'cpp' then
+    BuildAndDebugCpp()
+  else
+    print("No Build and Debug Configuration for File Type: " .. filetype)
+  end
+end
+
+
+
+------------------------------------------------------------------------
+
+-- Better to be only in normal mode, so diagnostics are shown, before building
+vim.keymap.set('n', '<F5>', function() BuildAndRun() end)
+vim.keymap.set('n', '<F6>', function() BuildAndDebug() end)
+vim.keymap.set('n', '<F9>', function() GenerateCMake() end) -- Only for CPP
+
+--vim.keymap.set({'n', 'i'}, '<F8>', function() GenerateCMake() end) -- Only for CPP
+--vim.keymap.set({'n', 'i'}, '<F5>', function() BuildAndRun() end)
+--vim.keymap.set({'n', 'i'}, '<F6>', function() BuildAndDebug() end)
+
+
+---------------------------------- NOTE: -------------------------------------
+------------------------- Previously From KeyMaps -----------------------------
+-------------------------------------------------------------------------------
+
+-- Add key bindings for compiling and running C++
+
+-- For Unix Shell
+-- Compile and Run
+--map('n', '<F5>', ':!g++ -o %< % && if [ -x %< ]; then ./%<; fi<CR>', { noremap = true, silent = true })
+-- Compile Only
+--map('n', '<F6>', ':!g++ -o %< % && echo "Compiled successfully!" || echo "Compilation failed!"<CR>', { noremap = true, silent = true })
+-- Run Only
+--map('n', '<F7>', ':!./%<<CR>', { noremap = true, silent = true })
+
+-- For Windows Command Prompt
+-- Compile and Run
+--map('n', '<F5>', ':!g++ -o hello hello.cpp && hello.exe<CR>', { noremap = true, silent = true })
+-- Compile Only
+--map('n', '<F6>', ':!g++ -o hello hello.cpp && echo Compilation successful!<CR>', { noremap = true, silent = true })
+-- Run Only
+--map('n', '<F7>', ':!hello.exe<CR>', { noremap = true, silent = true })
+
+-- For Windows PowerShell
+-- Compile and Run
+-- map('n', '<F5>', ':!g++ -o hello hello.cpp if (Test-Path ./hello.exe) { ./hello }<CR>', { noremap = true, silent = true })
+-- Compile Only
+-- map('n', '<F6>', ':!g++ -o hello hello.cpp echo "Compilation successful!"<CR>', { noremap = true, silent = true })
+-- Run Only
+-- map('n', '<F7>', ':!./hello<CR>', { noremap = true, silent = true })
+
+
+--[[
+-- Function to compile and run the project
+local function build_and_run()
+    vim.cmd('!cmake --build build')
+    --vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
+	vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
+end
+
+-- Function to compile the project
+local function build_only()
+    vim.cmd('!cmake --build build')
+end
+
+-- Function to run the project
+local function run_only()
+    vim.cmd('!build\\myprogram.exe')  -- Adjust `myprogram.exe` to your executable's name
+end
+]] --
+
+-- Key mappings
+--vim.api.nvim_set_keymap('n', '<F5>', [[:lua build_and_run()<CR>]], { noremap = true, silent = true })
+--vim.api.nvim_set_keymap('n', '<F6>', [[:lua build_only()<CR>]], { noremap = true, silent = true })
+--vim.api.nvim_set_keymap('n', '<F7>', [[:lua run_only()<CR>]], { noremap = true, silent = true })
+
+
+--[[
+-- new terminals
+map("n", "<leader>h", function()
+  require("nvchad.term").new { pos = "sp" }
+end, { desc = "terminal new horizontal term" })
+
+map("n", "<leader>v", function()
+  require("nvchad.term").new { pos = "vsp" }
+end, { desc = "terminal new vertical window" })
+]]--
+
+-- toggleable
+-- map({ "n", "t" }, "<A-v>", function()
+-- require("nvchad.term").toggle { pos = "vsp", id = "vtoggleTerm" }
+-- end, { desc = "terminal toggleable vertical term" })
+
+-- map({ "n", "t" }, "<A-h>", function()
+-- require("nvchad.term").toggle { pos = "sp", id = "htoggleTerm" }
+-- end, { desc = "terminal new horizontal term" })
+
+
+-------------------------------------------------------------------------------------
+-- TODO: Make an equivalent of this for your build terminal in build.lua
+
+--[[
+-- function to check if a terminal buffer with a specific name is open
+local function is_terminal_open(name)
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_option(bufnr, "buftype") == "terminal" then
+      local term_name = vim.api.nvim_buf_get_name(bufnr)
+      if term_name:match(name) then
+        return bufnr
+      end
+    end
+  end
+  return nil
+end
+
+-- function to toggle terminal
+local function toggle_terminal(name, pos)
+  local bufnr = is_terminal_open(name)
+  if bufnr then
+    -- close the terminal
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+  else
+    -- open a new terminal
+    require("nvchad.term").toggle { pos = pos, name = name }
+  end
+end
+
+-- toggleable vertical terminal
+map({ "n", "t" }, "<a-v>", function()
+  toggle_terminal("vtoggleterm", "vsp")
+end, { desc = "toggle vertical terminal" })
+
+-- toggleable horizontal terminal
+map({ "n", "t" }, "<a-h>", function()
+  toggle_terminal("htoggleterm", "sp")
+end, { desc = "toggle horizontal terminal" })
+]] --
+
+--map({ "n", "t" }, "<a-i>", function()
+--  require("nvchad.term").toggle { pos = "float", id = "floatterm" }
+--end, { desc = "terminal toggle floating term" })
+
+

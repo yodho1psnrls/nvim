@@ -3,6 +3,10 @@
 -- quick-scope (if you dont set those, it is always visible)
 --vim.g.qs_highlight_on_keys = { 'f', 'F', 't', 'T' }
 
+-- https://vi.stackexchange.com/questions/14451/move-cursor-to-new-line-character
+-- see :help 've
+ -- vim.o.virtualedit = 'onemore'
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 vim.opt.wrap = false
@@ -133,6 +137,8 @@ o.softtabstop = 2
 o.autoindent = true
 
 opt.fillchars = { eob = " " }
+-- opt.fillchars:append("space:*")
+
 --[[
 opt.fillchars = {
   eob = " ",        -- Existing setting for end-of-buffer

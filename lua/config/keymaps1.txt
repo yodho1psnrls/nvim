@@ -1,0 +1,484 @@
+local map = vim.keymap.set
+local opts = { noremap = true, silent = true }
+
+--[[
+Normal	n
+Visual	v
+Visual Line	V
+Visual Block	 (Ctrl-V)
+Select	s
+Select Line	S
+Select Block	 (Ctrl-S)
+Insert	i
+Replace	R
+Virtual Replace	Rv
+Command-line	c
+Terminal	t
+Ex-Mode	!
+]]--
+
+-- print("KeyMaps are Loaded !") -- dubug message
+
+-- list of all modes: { 'n', 'i', 'v', 'x', 's', 'o', 'c' }
+
+--  See `:help vim.keymap.set()`
+
+map("n", "<leader>m", "<cmd>messages<CR>", { desc = "Messages" })
+
+-- To change the CWD(Current Working Directory)
+-- to the one containing the currently opened file
+map('n', '<leader>cd', '<cmd>cd %:p:h<CR>', opts)
+
+-- Diagnostic keymaps
+map('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+map('n', '<leader>q', '<cmd>q<CR>', { desc = 'Close Window', noremap = true, silent = true })
+map('n', '<leader>x', '<cmd>Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+
+map('n', '<Tab>', '<cmd>bnext<CR>', { noremap = true, silent = true, desc = "Go to next buffer" })
+map('n', '<S-Tab>', '<cmd>bprevious<CR>', { noremap = true, silent = true, desc = "Go to previous buffer" })
+
+map("n", "<Esc>", "<cmd>nohlsearch<CR>", { noremap = false, desc = "Clear search highlights" })
+map('t', '<Esc>', '<C-\\><C-n>', { noremap = false, desc = 'Exit terminal mode' })
+map("t", "<C-x>", "<C-\\><C-N>", { desc = "terminal escape terminal mode" })
+
+
+--==================================================================================--
+
+
+
+--map("n", "<leader>n", "<cmd>set nu!<CR>", { desc = "Toggle line number" })
+map("n", "<leader>ln", "<cmd>set nu!<CR>", { desc = "Toggle line number" })
+map("n", "<leader>rn", "<cmd>set rnu!<CR>", { desc = "Toggle relative number" })
+--map("n", "<leader>ch", "<cmd>NvCheatsheet<CR>", { desc = "Toggle nvcheatsheet" })
+
+
+-- Toggle comment on line/s
+map("n", "<leader>/", "gcc", { desc = "Toggle Comment", remap = true })
+map("v", "<leader>/", "gc", { desc = "Toggle comment", remap = true })
+
+-------------------------------------------------------------------------------------
+
+
+--[[ -- This works only for NvChad !
+-- blankline
+map("n", "<leader>cc", function()
+  local config = { scope = {} }
+  config.scope.exclude = { language = {}, node_type = {} }
+  config.scope.include = { node_type = {} }
+  local node = require("ibl.scope").get(vim.api.nvim_get_current_buf(), config)
+
+  if node then
+    local start_row, _, end_row, _ = node:range()
+    if start_row ~= end_row then
+      vim.api.nvim_win_set_cursor(vim.api.nvim_get_current_win(), { start_row + 1, 0 })
+      vim.api.nvim_feedkeys("_", "n", true)
+    end
+  end
+end, { desc = "blankline jump to current context" })
+]]--
+
+-----------------------------------------------------------------------------------
+--===============================================================================--
+
+-- Sideways Mouse Scroll
+-- https://stackoverflow.com/questions/43915661/how-to-move-screen-left-right-or-center-it-horizontally-without-moving-cursor-in
+-- https://neovim.io/doc/user/scroll.html#_6.-scrolling-with-a-mouse-wheel
+-- https://github.com/neovim/neovim/issues/6211
+
+map('n', '<A-ScrollWheelUp>', '10zh', opts)
+map('n', '<A-ScrollWheelDown>', '10zl', opts)
+
+map('i', '<A-ScrollWheelUp>', '<Esc>10zhi', opts)
+map('i', '<A-ScrollWheelDown>', '<Esc>10zli', opts)
+
+map('v', '<A-ScrollWheelUp>', '10zh', opts)
+map('v', '<A-ScrollWheelDown>', '10zl', opts)
+
+
+-- Create a custom command to replace 'wordA' with 'wordB' as whole words only
+vim.api.nvim_create_user_command(
+--'ReplaceWholeWords',
+  'Replace',
+  function(opts)
+    local wordA = opts.args:match("([^ ]+)")
+    local wordB = opts.args:match(" ([^ ]+)$")
+    vim.cmd('%s/\\<' .. wordA .. '\\>/' .. wordB .. '/g')
+  end,
+  { nargs = 1, desc = "Replace whole wordA with wordB in the current file" }
+)
+-- map('n', '<leader>rp', '<cmd>Replace ', opts)
+
+map("n", "<C-c>", "<cmd>%y+<CR>", { desc = "General Copy whole file" })
+map("n", "<C-s>", "<cmd>w<CR>", { desc = "General Save file" })
+
+map('v', '<C-c>', '"*y', opts)
+map('i', '<C-s>', '<Esc><cmd>w<CR>a', opts)
+
+-- select whole file in visual mode
+map('n', '<C-a>', 'ggVG', opts)
+map('i', '<C-a>', '<Esc>ggVG', opts)
+
+
+map('n', '<C-z>', 'u', opts) -- Undo
+-- map('n', '<C-S-z>', '<C-r>', opts) -- Redo (Ctrl + Shift is not supported)
+
+map('i', '<C-z>', '<Esc>ui', opts) -- Map Ctrl + Z to undo
+-- map('i', '<C-S-z>', '<C-r>', opts) -- Map Ctrl + Shift + Z to redo
+
+map('v', '<C-x>', 'd', opts) -- Cut
+
+-- Map Backspace to delete the selected text without yanking in visual mode
+map('v', '<BS>', '"_d', {noremap = false})
+map({'n', 'v'}, '<Del>', '"_x', {noremap = false});
+
+map('i', '<C-r>', '<Esc><C-r>i', opts) -- Redo
+
+map("n", "<CR>", "i<CR><Esc>", {noremap = false}) -- Enter in insert mode
+map("n", "<BS>", "i<BS><Right><Esc>",{noremap = false}) -- Backspace in insert mode
+
+--ctrl + v for normal, insert and visual modes
+map("n", "<C-v>", "P", opts)
+map("i", "<C-v>", "<Esc>Pi", opts)
+map("v", "p", "P", opts)
+map("v", "P", "p", opts)
+
+-- https://www.reddit.com/r/neovim/comments/v7s1ts/how_do_i_avoid_replacing_the_content_of_my/
+-- https://www.reddit.com/r/neovim/comments/1e1dmpw/what_are_the_keymaps_that_you_replaced_default/
+
+-- nnoremap x "_x    " Make 'x' not copy to clipboard
+-- nnoremap X "_X    " Make 'X' not copy to clipboard
+-- nnoremap <Del> "_x " Make <Del> (Delete key) behave like 'x'
+
+map({'n', 'v'}, 'x', '"_x', opts)
+map({'n', 'v'}, 'X', '"_X', opts)
+
+--map("v", "<C-v>", '"_dp', { noremap = true, desc = "Paste text" })
+--map("v", "<C-v>", 'P', { noremap = true, desc = "Paste text" })
+--map("v", "<C-v>", '"0p', { noremap = true})
+--map("v", "<C-p>", "P", {noremap = true})
+--map("v", "<C-v>", 'P', { noremap = false, desc = "Paste text" })
+ -- map("v", "<C-v>", 'p', { noremap = false, desc = "Paste text" })
+
+
+--==========================================================================--
+
+map({'n', 'v'}, "<C-d>", "<C-d>zz", opts)
+map({'n', 'v'}, "<C-u>", "<C-u>zz", opts)
+
+-- Custom whichwrap logic
+local ww = require('config.whichwrap')
+map({'n', 'v'}, 'b', ww.left_shift_whichwrap, opts)
+map({'n'}, 'w', ww.right_shift_whichwrap(-1), opts)
+map({'v'}, 'w', ww.right_shift_whichwrap(0), opts)
+map({'i'}, '<A-b>', ww.left_shift_whichwrap, opts)
+map({'i'}, '<A-w>', ww.right_shift_whichwrap(0), opts)
+map({'c', 't'}, "<A-b>", "<C-Left>", {noremap = false})
+map({'c', 't'}, "<A-w>", "<C-Right>", {noremap = false})
+
+
+-- Swap a and o (Why isnt it that way, from the beginning ???)
+map('n', 'a', 'o', opts)
+map('n', 'o', 'a', opts)
+map('n', 'A', 'O', opts)
+map('n', 'O', 'A', opts)
+
+
+-- TIP: Disable arrow keys
+--[[
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<left>', '<cmd>echo "Use h to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<right>', '<cmd>echo "Use l to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<up>', '<cmd>echo "Use k to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<down>', '<cmd>echo "Use j to move!!"<CR>')
+
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<S-left>', '<cmd>echo "Use h to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<S-right>', '<cmd>echo "Use l to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<S-up>', '<cmd>echo "Use k to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<S-down>', '<cmd>echo "Use j to move!!"<CR>')
+
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<C-left>', '<cmd>echo "Use h to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<C-right>', '<cmd>echo "Use l to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<C-up>', '<cmd>echo "Use k to move!!"<CR>')
+vim.keymap.set({'n', 'i', 't', 'v', 'c'}, '<C-down>', '<cmd>echo "Use j to move!!"<CR>')
+]]--
+
+-- (ARROWS) Scroll up and down half screen, while centered (Thanks Priemagean)
+map({'n', 'v'}, "<C-Down>", "<C-d>zz", opts)
+map({'n', 'v'}, "<C-Up>", "<C-u>zz", opts)
+map({'i'}, "<C-Down>", "<Esc><C-d>zzi", opts)
+map({'i'}, "<C-Up>", "<Esc><C-u>zzi", opts)
+
+-- (ARROWS) Window Navigation
+map('n', '<A-Left>', '<C-w><C-h>', opts)
+map('n', '<A-Right>', '<C-w><C-l>', opts)
+map('n', '<A-Down>', '<C-w><C-j>', opts)
+map('n', '<A-Up>', '<C-w><C-k>', opts)
+
+-- (ARROWS) Custom whichwrap logic
+map('n', '<C-Left>', ww.left_shift_whichwrap, opts)
+map('n', '<C-Right>', ww.right_shift_whichwrap(-1), opts)
+map({'i', 'v'}, '<C-Left>', ww.left_shift_whichwrap, opts)
+map({'i', 'v'}, '<C-Right>', ww.right_shift_whichwrap(0), opts)
+
+
+-----------------------------------------------------------------------------
+
+-- Map save, undo and redo to be used with Alt, not only with Ctrl
+map('n', '<A-s>', '<cmd>w<CR>', {noremap=true})
+map('i', '<A-s>', '<Esc><cmd>w<CR>a', {noremap=true})
+map('n', '<A-u>', 'u', {noremap=true})
+map('i', '<A-u>', '<Esc>ua', {noremap=true})
+map('n', '<A-y>', '<C-r>', {noremap=true})
+map('i', '<A-y>', '<Esc><C-r>a', {noremap=true})
+
+
+
+--=============================== MOVEMENT ========================================--
+---------------------------- Minimal hjkl setup -------------------------------------
+
+-- Window Switch
+--  See `:help wincmd` for a list of all window commands
+map("n", "<A-h>", "<C-w>h", opts)
+map("n", "<A-j>", "<C-w>j", opts)
+map("n", "<A-k>", "<C-w>k", opts)
+map("n", "<A-l>", "<C-w>l", opts)
+
+
+-- for some reason, if noremap is true, it doesnt work
+-- https://stackoverflow.com/questions/6920943/navigating-in-vims-command-mode
+-- https://neovim.io/doc/user/cmdline.html
+map('c', "<A-h>", "<Left>", {noremap = false})
+map('c', "<A-j>", "<Down>", {noremap = false})
+map('c', "<A-k>", "<Up>", {noremap = false})
+map('c', "<A-l>", "<Right>", {noremap = false})
+
+map({"i", 't'}, "<A-h>", "<Left>", opts)
+map({"i", 't'}, "<A-j>", "<Down>", opts)
+map({"i", 't'}, "<A-k>", "<Up>", opts)
+map({"i", 't'}, "<A-l>", "<Right>", opts)
+
+
+---------------- ctrl + f(Backspace) m(Enter) q(Esc) r(Del) ---------------------
+
+-- For some reason <A-e> in insert mode doesnt remap at all 
+map({'t', 'c'}, "<A-d>", "<BS>", {noremap=true})
+map('i', '<A-d>', '<BS>', {noremap=true})
+-- map('i', '<A-e>', '<Esc>Xi', {noremap=true})
+-- map('i', '<A-e>', '<Cmd>call feedkeys("\<BS>", "n")<CR>', {noremap=true})
+map({"i", 't', 'c'}, "<A-m>", "<CR>", {noremap=true})
+map({"i", 'c'}, "<A-q>", "<C-c>",     {noremap=true})
+map({'t'}, "<A-q>", "<C-\\><C-n>",    {noremap=true})
+-- map({"i", 't', 'c'}, "<A-f>", "<Del>",{noremap=true})
+map({"i", 't', 'c'}, "<A-f>", "<Del>",{noremap=true})
+
+
+map({'n'}, "<A-d>", "i<BS><Right><Esc>",   {noremap=true})
+map({'n'}, "<A-m>", "i<CR><Esc>",          {noremap=true})
+map({'n'}, "<A-q>", "<cmd>nohlsearch<CR>", {noremap=true})
+-- map({'n', 'v'}, '<A-f>', '"_x',            {noremap=true});
+map({'n', 'v'}, '<A-f>', '"_x',            {noremap=true});
+map({'v'}, "<A-d>", '"_d',                 {noremap=true})
+map({'v'}, "<A-q>", "<Esc>",               {noremap=true})
+
+
+
+---------------- ctrl + h(Backspace) j(Enter) k(Esc) l(Del) ---------------------
+--[[
+-- local dont_move_cursor_o = function() end
+
+map({"i", 't', 'v'}, "<C-h>", "<BS>", {noremap=false})
+map({"i", 't', 'v'}, "<C-j>", "<CR>", {noremap=false})
+-- map({"i", 't'}, "C-j>", "<Esc>o", opts) -- for some reason this doesnt work as expected
+-- map({"i", "t"}, "<C-j>", "<Esc><cmd>call feedkeys('o')<CR>", opts)
+-- map({"i", 't'}, "<C-k>", "<Esc>gJi", opts)
+-- map({"i", 't'}, "<C-k>", "<Esc>O", opts)
+map({"i", 't', 'v'}, "<C-k>", "<Esc>", {noremap=false})
+map({"i", 't', 'v'}, "<C-l>", "<Del>", {noremap = false})
+
+
+map({"i", 't', 'v'}, "<C-h>", "<BS>", {noremap=false})
+map({"i", 't', 'v'}, "<C-j>", "<CR>", {noremap=false})
+-- map({"i", 't'}, "C-j>", "<Esc>o", opts) -- for some reason this doesnt work as expected
+-- map({"i", "t"}, "<C-j>", "<Esc><cmd>call feedkeys('o')<CR>", opts)
+-- map({"i", 't'}, "<C-k>", "<Esc>gJi", opts)
+-- map({"i", 't'}, "<C-k>", "<Esc>O", opts)
+map({"i", 't', 'v'}, "<C-k>", "<Esc>", {noremap=false})
+map({"i", 't', 'v'}, "<C-l>", "<Del>", {noremap = false})
+]]--
+
+
+
+--=============================== MOVEMENT ========================================--
+---------------------------------- General ------------------------------------------
+
+--[[
+
+-- :help ins-special-keys.
+-- https://github.com/unblevable/quick-scope
+-- https://stackoverflow.com/questions/19204396/jump-to-the-next-word-in-insert-mode
+-- https://www.reddit.com/r/neovim/comments/13bzn8i/moving_around_efficiently_while_inserting_text/
+
+
+map({"i", "t"}, "<C-b>", "<ESC>^i", { desc = "move beginning of line" })
+map({"n", "v"}, "<C-b>", "^", { desc = "move beginning of line" })
+map({"i", "n"}, "<C-e>", "<End>", { desc = "move end of line" })
+--map({'n', 'v'}, "0", "^")
+
+-- Non-Normal Mode easy to reach keys for erasing a character
+--  noremap should be false, for this to work in console mode
+ -- map({'i', 't', 'c'}, '<C-x>', '<Del>', {noremap = false})
+ -- map({'i', 't', 'c'}, '<C-d>', '<BS>', {noremap = false})
+
+--map({'n', 'v'}, 'x', 'X', {noremap = true})
+--map({'n', 'v'}, 'X', 'x', {noremap = true})
+--map({'n', 'v'}, '<C-x>', '<BS>', {noremap = true})
+map({'i', 't'}, '<C-x>', '<BS>', {noremap = true})
+map({'i', 't'}, '<A-x>', '<Del>', {noremap = true})
+
+map('c', '<C-x>', '<BS>', {noremap = false})
+map('c', '<A-x>', '<Del>', {noremap = false})
+]]--
+
+
+--=============================== MOVEMENT ========================================--
+------------------------------ The "Sacret" HJKL ------------------------------------
+
+--[[
+--  See `:help wincmd` for a list of all window commands
+--map("n", "<C-h>", "<C-w>h", { desc = "switch window left" })
+map("n", "<A-h>", "<C-w>h", opts)
+map("n", "<A-l>", "<C-w>l", opts)
+map("n", "<A-j>", "<C-w>j", opts)
+map("n", "<A-k>", "<C-w>k", opts)
+
+map({"i", 't', 'v'}, "<A-h>", "<Left>", opts)
+map({"i", 't', 'v'}, "<A-l>", "<Right>", opts)
+map({"i", 't', 'v'}, "<A-j>", "<Down>", opts)
+map({"i", 't', 'v'}, "<A-k>", "<Up>", opts)
+
+-- for some reason, if noremap is true, it doesnt work
+-- https://stackoverflow.com/questions/6920943/navigating-in-vims-command-mode
+-- https://neovim.io/doc/user/cmdline.html
+map('c', "<A-h>", "<Left>", {noremap = false})
+map('c', "<A-j>", "<Down>", {noremap = false})
+map('c', "<A-k>", "<Up>", {noremap = false})
+map('c', "<A-l>", "<Right>", {noremap = false})
+
+
+-- Scroll up and down half screen, while centered (Thanks Priemagean)
+map({'n', 'v'}, "<C-j>", "<C-d>zz", opts)
+map({'n', 'v'}, "<C-k>", "<C-u>zz", opts)
+map({'i'}, "<C-j>", "<Esc><C-d>zzi", opts)
+map({'i'}, "<C-k>", "<Esc><C-u>zzi", opts)
+
+
+--map({"i", 'n', 't', 'v'}, "<C-h>", "<S-Left>", opts)
+--map({"i", 'n', 't', 'v'}, "<C-l>", "<S-Right>", opts)
+
+
+map('n', '<C-h>', ww.left_shift_whichwrap, opts)
+map('n', '<C-l>', ww.right_shift_whichwrap(-1), opts)
+map({'i', 'v'}, '<C-h>', ww.left_shift_whichwrap, opts)
+map({'i', 'v'}, '<C-l>', ww.right_shift_whichwrap(0), opts)
+
+map({'c', 't'}, "<C-h>", "<C-Left>", {noremap = false})
+map({'c', 't'}, "<C-l>", "<C-Right>", {noremap = false})
+]]--
+
+
+--=============================== MOVEMENT ========================================--
+--------------- (jkl;) My Preffered Way (Because my fingers rest there) -------------
+
+-- https://stackoverflow.com/questions/3101253/vim-mapping-ctrl
+-- There is no ASCII for ctrl + ; so vim cannot recognize it
+--  so to make ctrl + ; work, you need to configure your
+--  terminal to map ctrl + ; to some unused key like "<F13>"
+--  or actually, you can just map it as <C-;> (tried it, doesnt work)
+--  F13 and higher function keys are typically represented as escape sequences
+--  , so to set it to <F13>, the code is "\u001b[25~"
+
+-- I am using windows terminal, so you should open settings and
+--  click on the bottom left (OPEN JSON FILE)
+--[[
+{
+    "actions": [
+        {
+            "command": { "action": "sendInput", "input": "\u001b[25~" },
+            "keys": "ctrl+;"
+        },
+        ...
+    ]
+}
+]]--
+
+-- Optional: Alt + jkl; works, but only for the Left Alt
+--            the right Alt seems to not be the same
+
+--[[
+--  See `:help wincmd` for a list of all window commands
+--map("n", "<C-h>", "<C-w>h", { desc = "switch window left" })
+map('n', '<A-j>', '<C-w><C-h>', opts)
+map('n', '<A-;>', '<C-w><C-l>', opts)
+map('n', '<A-k>', '<C-w><C-j>', opts)
+map('n', '<A-l>', '<C-w><C-k>', opts)
+
+map({'n', 'v'}, 'j', 'h', {noremap = true})
+map({'n', 'v'}, 'k', 'j', {noremap = true})
+map({'n', 'v'}, 'l', 'k', {noremap = true})
+map({'n', 'v'}, ';', 'l', {noremap = true})
+map({'n', 'v'}, 'h', ';', {noremap = true})
+
+
+map({"i", 'n', 't', 'v'}, "<A-j>", "<Left>", {noremap=true})
+map({"i", 'n', 't', 'v'}, "<A-k>", "<Down>", {noremap=true})
+map({"i", 'n', 't', 'v'}, "<A-l>", "<Up>", {noremap=true})
+map({"i", 'n', 't', 'v'}, "<A-;>", "<Right>", {noremap=true})
+
+-- for some reason, if noremap is true, it doesnt work
+-- https://stackoverflow.com/questions/6920943/navigating-in-vims-command-mode
+-- https://neovim.io/doc/user/cmdline.html
+map('c', "<A-j>", "<Left>", {noremap = false})
+map('c', "<A-k>", "<Down>", {noremap = false})
+map('c', "<A-l>", "<Up>", {noremap = false})
+map('c', "<A-;>", "<Right>", {noremap = false})
+
+
+-- Scroll up and down half screen, while centered (Thanks Priemagean)
+map({'n', 'v'}, "<C-k>", "<C-d>zz", {noremap=true})
+map({'n', 'v'}, "<C-l>", "<C-u>zz", {noremap=true})
+map({'i'}, "<C-k>", "<Esc><C-d>zzi", {noremap=true})
+map({'i'}, "<C-l>", "<Esc><C-u>zzi", {noremap=true})
+
+
+map('n', '<C-j>', ww.left_shift_whichwrap, {noremap=true})
+--map('n', '<F13>', ww.right_shift_whichwrap, {noremap=false})
+map('n', '<F13>', ww.right_shift_whichwrap(-1), {noremap=false})
+map({'i', 'v'}, '<C-j>', ww.left_shift_whichwrap, {noremap=true})
+--map({'i', 'v'}, '<F13>', ww.right_shift_whichwrap, {noremap=false})
+map({'i', 'v'}, '<F13>', ww.right_shift_whichwrap(0), {noremap=false})
+
+
+map({'c', 't'}, "<C-j>", "<S-Left>", {noremap = false})
+-- map({'c', 't'}, "<C-;>", "<S-Right>", {noremap = false})
+map({'c', 't'}, "<F13>", "<S-Right>", {noremap = false})
+]]--
+
+
+--=============================== MOVEMENT ========================================--
+------- Another alternative is i for up and jkl for left, down right ------
+
+
+--yigiyg ioaejf oiaefj oiaejf
+  --ijioj
+    --ijijij
+
+--=============================== PLUGINS ========================================--
+
+--map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
+-- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
+vim.keymap.set("n", "<leader>n", function() require('nvim-tree.api').tree.toggle({ find_file = true, focus = true }) end,
+  { desc = "nvimtree toggle window" })
+--map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
+
+
+

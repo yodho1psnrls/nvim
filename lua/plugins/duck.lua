@@ -16,9 +16,9 @@ return {
   lazy = true,
 
   keys = { -- The key mappings that will trigger the loading
-    { '<leader>dd', desc = "Duck Hatch" },
+    { '<leader>dh', desc = "Duck Hatch" },
     { '<leader>dc', desc = "Duck Cook" },
-    { '<leader>da', desc = "Cook All Ducks" },
+    { '<leader>dd', desc = "Cook All Ducks" },
   },
   config = function()
     vim.keymap.set('n', '<leader>dd', function() require("duck").hatch() end, {desc = "Duck Hatch"})

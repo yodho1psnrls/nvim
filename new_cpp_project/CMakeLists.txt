@@ -17,7 +17,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Consider Precompiling the Headers in the future
 #target_precompile_headers(your_target PRIVATE <header_file>)
 
-project(proj)
+#project(proj)
+project(MyProject)
 
 
 # Link-Time Optimization (LTO) improves runtime performance,
@@ -57,6 +58,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG")
 #   set(CMAKE_CXX_FLAGS_RELEASE_O3 "-O3 -DNDEBUG")
 
 
+# Add configuration flags for Test
+# set(CMAKE_CXX_FLAGS_TEST "-O0 -g -DTESTING")
+
+
 # Set the output directories for all configurations
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -74,8 +79,16 @@ set(EXTERNAL_LIB_DIR "D:/libraries")
 include_directories(${EXTERNAL_LIB_DIR}/include)
 link_directories(${EXTERNAL_LIB_DIR}/lib)
 
-# Add the src directory (which contains the rest of the project structure)
+  
+#enable_testing()
+# Add test executable to CTest
+# The tests you add with add_test are what are executed using the command 'ctest' in the configuration folder
+#  else, you would need to manually call the executable Test\bin\test_target.exe
+#add_test(NAME MyUnitTests COMMAND test_proj)
+
 add_subdirectory(src)
+add_subdirectory(tests)
+
 
 # Add glad.c as an external source file to the existing `proj` target
 target_sources(proj PRIVATE ${EXTERNAL_LIB_DIR}/src/glad/glad.c)

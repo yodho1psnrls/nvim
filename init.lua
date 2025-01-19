@@ -22,6 +22,17 @@ require("config.lazy")
 require("lazy").setup("plugins")
 
 
+--opts.rocks.enabled = false
+
+--[[require("lazy").setup("plugins", {
+  rocks = {
+    enabled = false, -- Disable luarocks support
+  },
+})]]--
+
+
+
+
 -- Load additional configurations
  -- require "config.options"
 require "config.autocmds"
@@ -43,6 +54,7 @@ vim.schedule(function()
   require "config.keymaps"
   require "config.build"
   require "config.whichwrap"
+  --require "config.recent_buffers"
 end)
 
 

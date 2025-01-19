@@ -55,6 +55,10 @@ return {
     dependencies = {
       "nvim-tree/nvim-web-devicons", -- Icons support
       "archibate/lualine-time",      -- Clock extension
+
+      -- Not a dependeny, but to lazy load it
+      "nvim-lua/lsp-status.nvim",
+
     },
 
     lazy = true,

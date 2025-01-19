@@ -7,6 +7,11 @@
 --        is no longer visible
 --       Just like https://github.com/nvim-tree/nvim-tree.lua/discussions/2822
 
+-- d to delete a file (will be prompted for confirmation)
+-- r to rename a file
+-- r to move a file, by just giving it another directory
+-- a to add a new file in the directory that your cursor is in
+
 return {
 
   --  { "nvim-tree/nvim-web-devicons" }, -- it is a dependancy for other plugins
@@ -43,7 +48,34 @@ return {
 
         preserve_window_proportions = true, -- Option to keep nvim-tree open
         --  sync_root_with_cwd = true,
+
+        --[[mappings = {
+          list = {
+            {
+              key = '+', action = 'cd',
+              -- key = '-', action = 'dir_up',
+            },
+          },
+        },]]--
+
       },
+
+
+      -- Since by default - goes one directory up,
+      --  its logical to set + to go directory down (where the cursor points)
+      --[[on_attach = function(bufnr)
+        local api = require("nvim-tree.api")
+        local opts = function(desc)
+          return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+        end
+
+        -- Default key mappings
+        api.config.mappings.default_on_attach(bufnr)
+
+        -- Custom key mapping for `-`
+        vim.keymap.set("n", "-", api.tree.change_root_to_node, opts("CD"))
+      end,]]--
+
 
       sync_root_with_cwd = true,
 
@@ -220,6 +252,17 @@ return {
       end,
     })
     ]] --
+
+
+    -- TODO: NvimTree sticky header root folder name
+    -- (The top most line) , (can be implemented with Winbar)
+    --[[vim.api.nvim_create_autocmd("FileType", {
+      pattern = "NvimTree",
+      callback = function()
+        local root_name = require("nvim-tree.core").get_cwd()
+        vim.opt_local.winbar = vim.fn.fnamemodify(root_name, ":t") -- Use "" or another icon as a folder symbol
+      end,
+    })]]--
 
 
 -----------------------------------------------------------------------------

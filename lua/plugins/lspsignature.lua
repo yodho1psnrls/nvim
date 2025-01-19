@@ -4,6 +4,13 @@
 -- See completion.lua line 160, if you want it to integrate with nvim-cmp
 
 -- https://github.com/ray-x/lsp_signature.nvim
+
+-- Alternative plugin
+-- https://github.com/Issafalcon/lsp-overloads.nvim
+--  It is build on top of the neovim build-in lsp signature helper handler
+--   and adds additional functionality
+
+
 return {
 
   --https://github.com/Issafalcon/lsp-overloads.nvim

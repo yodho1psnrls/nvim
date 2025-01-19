@@ -1,2 +1,0 @@
--- https://www.reddit.com/r/neovim/comments/13iy0p0/why_some_people_use_buffers_for_tabs_and_not_vim/
--- https://joshldavis.com/2014/04/05/vim-tab-madness-buffers-vs-tabs/
