@@ -26,6 +26,7 @@
 --  so you can debug or just build and run the project just by one keybind
 -- And also add some icons for the breakpoints to look prettier
 
+local util = require("utilities")
 
 return {
 
@@ -50,13 +51,20 @@ return {
       "lucaSartore/nvim-dap-exception-breakpoints",
       "mfussenegger/nvim-dap-python", -- plugin that configures nvim-dap with pylsp
 
-      -- Optional, but i dont think i need it currently
-      --[[{"nvim-telescope/telescope-dap.nvim",
+      {
+        "nvim-telescope/telescope-dap.nvim",
+        lazy = true,
         dependencies = {
+          -- "mfussenegger/nvim-dap",
           "nvim-telescope/telescope.nvim",
-          "nvim-treesitter/nvim-treesitter",
         },
-      },]]--
+        config = function()
+          require('telescope').load_extension('dap')
+          vim.keymap.set('n', '<leader>lb', function()
+            require('telescope').extensions.dap.list_breakpoints{}
+          end, { desc = "List Breakpoints" })
+        end,
+      },
     },
 
     config = function()
@@ -76,7 +84,9 @@ return {
       vim.keymap.set('n', '<F2>', function() dap.step_over() end)
       vim.keymap.set('n', '<F1>', function() dap.step_into() end)
       vim.keymap.set('n', '<F3>', function() dap.step_out() end)
-      vim.keymap.set('n', '<F4>', function() dap.step_back() end)
+
+      -- NOTE: Most debugggers do NOT support that
+      -- vim.keymap.set('n', '<F4>', function() dap.step_back() end)
 
       vim.keymap.set('n', '<leader>dq', function() dap.terminate() end, { desc = 'Quit Debugger' })
       vim.keymap.set('n', '<leader>rb', function() dap.clear_breakpoints() end,
@@ -194,9 +204,12 @@ return {
           --end,
 
           --program = vim.fn.getcwd() .. '\\Debug\\bin\\proj.exe',
-          program = '\\Debug\\bin\\proj.exe',
-          cwd = vim.fn.getcwd(),
+          -- cwd = vim.fn.getcwd(),
           -- cwd = '${workspaceFolder}',
+
+          -- program = util.get_lsp_root() .. '\\Debug\\bin\\proj.exe',
+          program = '\\Debug\\bin\\proj.exe',
+          cwd = util.get_lsp_root(),
 
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
 
@@ -272,7 +285,7 @@ return {
           request = "launch",
 
           program = '\\Debug\\bin\\proj_test.exe',
-          cwd = vim.fn.getcwd(),
+          cwd = util.get_lsp_root(),
 
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
 
@@ -299,6 +312,26 @@ return {
       dap.configurations.c = dap.configurations.cpp
 
 
+      --[[dap.adapters.python = {
+        type = 'executable',
+        command = 'D:/Program Files/MSYS2/mingw64/bin/python.exe', -- Replace with the path to your Python interpreter
+        args = { '-m', 'debugpy.adapter' },
+      }
+
+      dap.configurations.python = {
+        {
+          type = 'python',
+          request = 'launch',
+          name = 'Launch file',
+          program = '${file}', -- The current file to debug
+          pythonPath = function()
+            return 'D:/Program Files/MSYS2/mingw64/bin/python.exe' -- Same interpreter path as above
+          end,
+        },
+      }]]--
+
+
+
       ------------------------------------------------------------
     end,
   },
@@ -320,23 +353,6 @@ return {
 
   -- dependancy for nvim-dap-ui
 --  { "nvim-neotest/nvim-nio", },
-
-  -- This plugin and its configuration is good and works,
-  --  but i just dont need it
---[[
-  {
-    -- integration with telescope, so you can browse
-    -- breakpoints and other debug related stuff
-    "nvim-telescope/telescope-dap.nvim",
-    dependencies = {
-      "mfussenegger/nvim-dap",
-      "nvim-telescope/telescope.nvim",
-    },
-    config = function()
-      require('telescope').load_extension('dap')
-    end,
-  },
-]]--
 
 
   -- https://github.com/mfussenegger/nvim-dap/discussions/576

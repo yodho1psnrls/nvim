@@ -1,5 +1,10 @@
 -- https://www.reddit.com/r/neovim/comments/17pzdxs/how_do_you_customize_the_dashboard_in_lazyvim/
 
+-- TODO:
+-- (*) Make the footer (recent files) to update on clear cache shada
+-- (*) Make the clock on the dashboard to update every second
+--     , so it displays the current time, not the time of opening
+
 -- Function to close all windows except the current one
 local function close_all_splits()
   local current_win = vim.api.nvim_get_current_win()
@@ -103,6 +108,9 @@ function ClearCache()
           DeleteFilesInFolder(selection.value)
           -- Optional:
           -- vim.cmd('Telescope close')
+          -- Update/Redraw/Refresh the dashboard
+          -- vim.cmd('DashboardUpdateFooter')
+          -- require("dashboard").refresh()
         end
       end)
       return true
@@ -130,6 +138,10 @@ return {
     opts = {
 
       theme = 'hyper',
+
+      disable_move = true, -- Make this true, when using hyper theme
+      shortcut_type = 'letter', -- letter | number
+      change_to_vcs_root = true,  -- default is false, for open file in hyper mru, it will change to the root of vcs
 
       config = {
 

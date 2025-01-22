@@ -100,7 +100,7 @@ return {
           --silent = true,
 
           winhighlight = 'Normal:Folded',
-          winblend = 0,
+          winblend = 0, -- transparency from 0 to 100
         },
         mappings = {
           scrollU = '<C-u>',
@@ -112,7 +112,9 @@ return {
       provider_selector = function(bufnr, filetype, buftype)
         -- if you prefer treesitter provider rather than lsp,
         -- return ftMap[filetype] or {'treesitter', 'indent'}
-        return ftMap[filetype]
+        -- return ftMap[filetype]
+        -- return { 'lsp', 'treesitter' }
+        return { 'lsp', 'indent' }
 
         -- refer to ./doc/example.lua for detail
       end

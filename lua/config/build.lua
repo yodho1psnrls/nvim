@@ -27,9 +27,21 @@
 
 -- local dap = require('dap')
 
+
+-- TODO: Get the cpp path to executables from the root CMakeLists.txt file 
+-- This way they could be with different names and paths and it would be
+-- more generalized for projects other than mine
+
+
 -------------------------------------------------------------------------
 
+local util = require"utilities"
+
+
 function GenerateCMake()
+  local last_cwd = vim.fn.getcwd()
+  vim.cmd('cd ' .. util.get_lsp_root())
+
   vim.cmd('!rm -rf "Debug"')
   vim.cmd('!rm -rf "Release"')
   --vim.cmd('!rm -rf "Test"')
@@ -45,10 +57,17 @@ function GenerateCMake()
   vim.cmd('!rm compile_commands.json')
   --vim.cmd('!mklink "compile_commands.json" "Debug\\compile_commands.json"')
   vim.cmd('!mklink /H "compile_commands.json" "Debug\\compile_commands.json"')
+
+  vim.cmd('cd ' .. last_cwd)
 end
 
 
+-- TODO: WHY I CANT MAKE THIS TO OPEN MESSAGES AFTER ERROR
 function BuildCmakeConfig(config_name, on_success_callback)
+-- function BuildCmakeConfig(config_name, on_exit_callback)
+  local last_cwd = vim.fn.getcwd()
+  vim.cmd('cd ' .. util.get_lsp_root())
+
   vim.fn.jobstart('cmake --build "' .. config_name .. '" --config ' .. config_name, {
   stdout_buffered = true,
   stderr_buffered = true,
@@ -56,13 +75,15 @@ function BuildCmakeConfig(config_name, on_success_callback)
     if data and #data > 0 then
       -- Print standard output messages
       print(table.concat(data, "\n"))
+      -- vim.cmd("messages")
     end
   end,
 
   on_stderr = function(_, data)
-    if data and #data > 0 then
+    if data and #data > 1 then
       -- Print error messages from stderr
       print("Error during build:\n" .. table.concat(data, "\n"))
+      -- vim.cmd("messages")
     end
   end,
 
@@ -77,19 +98,22 @@ function BuildCmakeConfig(config_name, on_success_callback)
         on_success_callback()
       end
     end
+    -- on_exit_callback(exit_code)
+
+    vim.cmd('cd ' .. last_cwd)
   end,
   })
 end
 
-function LaunchDapConfig(config_name)
+function LaunchDapConfig(filetype, config_name)
   local dap = require('dap')
-  for _, config in ipairs(dap.configurations.cpp) do
+  for _, config in ipairs(dap.configurations[filetype]) do
     if config.name == config_name then
       dap.run(config)
       return
     end
   end
-  print("Configuration not found: " .. config_name)
+  print ("No " .. config_name .. "configuration for " .. filetype)
 end
 
 
@@ -97,24 +121,31 @@ end
 
 
 function BuildAndRunCpp()
+-- function BuildAndRunCpp(exit_code)
+  -- if exit_code ~= 0 then return end
   print("[" .. os.date("%H:%M:%S") .. "] Building and Running Cpp ...")
-  BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
+  -- BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
+  BuildCmakeConfig('Release', function() vim.cmd('12split | term ' .. util.get_lsp_root() .. '\\Release\\bin\\proj.exe') end)
 end
 
 function BuildAndDebugCpp()
+-- function BuildAndDebugCpp(_)
   print("[" .. os.date("%H:%M:%S") .. "] Building and Debugging Cpp ...")
-  BuildCmakeConfig('Debug', function() LaunchDapConfig('Launch Project') end)
+  BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Project') end)
 end
 
 
 function BuildAndRunCppTest()
+-- function BuildAndRunCppTest(exit_code)
+  -- if exit_code ~= 0 then return end
   print("[" .. os.date("%H:%M:%S") .. "] Building and Running Cpp Tests ...")
-  BuildCmakeConfig('Release', function() vim.cmd('16split | term .\\Release\\bin\\proj_test.exe') end)
+  BuildCmakeConfig('Release', function() vim.cmd('16split | term ' .. util.get_lsp_root() .. '\\Release\\bin\\proj_test.exe') end)
 end
 
 function BuildAndDebugCppTest()
+-- function BuildAndDebugCppTest(_)
   print("[" .. os.date("%H:%M:%S") .. "] Building and Debugging Cpp Tests ...")
-  BuildCmakeConfig('Debug', function() LaunchDapConfig('Launch Test') end)
+  BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Test') end)
 end
 
 --[[
@@ -136,22 +167,219 @@ end
 ------------------------------------------------------------------------
 -- There is no Building for python, but i want to keep the names consistent
 
+--[[local function RunFile(command, on_exit)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+  -- Function to capture the last line of terminal output
+  vim.api.nvim_buf_attach(bufnr, false, {
+    on_lines = function(_, _, _, _, _, _, _)
+      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+      local last_line = lines[#lines]
+
+      -- Check if the last line contains the exit code
+      if last_line:match("^%d+$") then
+        return last_line
+      end
+    end,
+  })
+end]]--
+
+
 function BuildAndRunPython()
   print("[" .. os.date("%H:%M:%S") .. "] Running Python ...")
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
    vim.cmd('10split | term python %')
   --vim.cmd('term python %')
+
+  -- print("Exit Code is: " .. get_exit_code())
 end
 
 function BuildAndDebugPython()
   print("[" .. os.date("%H:%M:%S") .. "] Debugging Python ...")
-  require('dap').continue()
+  -- require('dap').continue()
+  LaunchDapConfig('python', 'file')
 end
 
-------------------------------------------------------------------------
+
+--=======================================================================--
 
 
+
+local function are_there_any_breakpoints_in_same_filetype_buffers(filter_by_id)
+
+  local curr_type = vim.bo.filetype
+  if not curr_type or curr_type == "" then
+    return false
+  end
+
+  local dap_status_ok, db = pcall(require, "dap.breakpoints")
+  if not dap_status_ok then
+    return false
+  end
+
+  -- https://www.reddit.com/r/neovim/comments/15cpsy0/comment/jtysfd4/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+  -- print(vim.inspect(db.get()))
+  local buffers_with_breakpoints = db.get()
+
+  for id, breakpoints in pairs(buffers_with_breakpoints) do
+    -- if vim.bo[id] and vim.bo[id].filetype == curr_type and #breakpoints > 0 then
+
+    if vim.bo[id].filetype == curr_type then
+      if filter_by_id and filter_by_id(id) then
+        return true
+      end
+    end
+
+  end
+
+  return false
+end
+
+
+local function are_there_any_breakpoints()
+  local dap_status_ok, dap = pcall(require, "dap")
+  -- local current_file = vim.api.nvim_buf_get_name(0) -- Current buffer's file
+  -- local breakpoints = dap.list_breakpoints(current_file) -- Breakpoints for this file only
+  local breakpoints = dap.list_breakpoints() -- All breakpoints
+
+  if not dap_status_ok then
+    return false
+  end
+
+  return breakpoints and #breakpoints > 0
+end
+
+
+-- local function search_folder_names_above_file(folder_names, file_abs_path)
+--   file_abs_path = file_abs_path or vim.api.nvim_buf_get_name(0) -- Get the current buffer's file path
+local function search_folder_names_above_file(folder_names, buf_id)
+  buf_id = buf_id or 0
+  local file_abs_path = vim.api.nvim_buf_get_name(buf_id) -- Get the current buffer's file path
+
+  if file_abs_path == "" then
+    print("No file is currently loaded in the buffer.")
+    return
+  end
+
+  local curr_folder_path = vim.fn.fnamemodify(file_abs_path, ":h") -- Get the directory of the file
+
+  while true do
+    local curr_folder_name = vim.fn.fnamemodify(curr_folder_path, ":t")
+
+    if curr_folder_name == "" then
+      -- print("===========================")
+      return
+    end
+
+    for _, folder_name in ipairs(folder_names) do
+      if curr_folder_name:find(folder_name) then
+        return folder_name
+      end
+    end
+
+    -- print(curr_folder_path)
+
+    -- Go up to the parent directory
+    curr_folder_path = vim.fn.fnamemodify(curr_folder_path, ":h")
+  end
+end
+
+
+
+local filetype_to_run_table = {
+  cpp = {
+    src = {
+      run = BuildAndRunCpp,
+      debug = BuildAndDebugCpp,
+    },
+    test = {
+      run = BuildAndRunCppTest,
+      debug = BuildAndDebugCppTest,
+    }
+  },
+  python = {
+    src = {
+      run = BuildAndRunPython,
+      debug = BuildAndDebugPython,
+    },
+  },
+}
+
+
+-- local last_run_filetype = ''
+
+-- vim.keymap.set('n', '<leader>oo', function() print(search_folder_names_above_file({"src", "test"})) end)
+
+
+-- TODO: When i have a breakpoint in tests\main.cpp
+-- and i Start src\main.cpp it run the src without debugging as expected,
+-- And when i have a breakpoint in src\main.cpp and
+-- i Start tests\main.cpp it should run without debugging 
+-- (because the breakpoint is in src\main.cpp)
+-- But it runs the debugger
+-- This makes no sense
+
+local function Start(type, what, mode)
+  -- local type = vim.bo[0].filetype
+  type = type or vim.bo.filetype
+
+  -- Why it defaults to test when i use it on a terminal ?
+  what = what or search_folder_names_above_file({"src", "test"}) or "src"
+
+  print(search_folder_names_above_file({what}))
+
+  if not mode then
+    -- https://vi.stackexchange.com/questions/10167/is-there-a-way-that-i-can-identify-which-window-is-a-terminal-after-calling-the
+    -- if type == "" then -- It may be a terminal window
+    --   mode = 'debug'
+    --   type = last_run_filetype
+    --
+    --   -- Exit the Terminal Wondow
+    --   vim.api.nvim_input("i")
+    --   vim.api.nvim_input("<CR>")
+    --
+    -- else
+    -- NOTE: Only checks for breakpoints in same type buffers and
+    --        same what(src or test)
+      if are_there_any_breakpoints_in_same_filetype_buffers(
+        function (id)
+          return search_folder_names_above_file({what}, id)
+        end
+      ) then
+        mode = 'debug'
+      else
+        mode = 'run'
+      end
+    -- end
+  end
+
+  -- last_run_filetype = type
+  local conf = filetype_to_run_table
+
+  vim.cmd('messages clear')
+  -- vim.cmd('echo string(repeat("=", winwidth(0)))')
+  if vim.bo.modified then vim.cmd('w') end
+
+  if not conf[type] or not conf[type][what] or not conf[type][what][mode] then
+    print("No ".. mode .. " " .. what  .. " configuration for file type " .. type)
+    return
+  end
+
+  conf[type][what][mode]()
+end
+
+
+-- vim.keymap.set('n', '<F4>', function() Start("test") end )
+-- vim.keymap.set('n', '<F5>', function() Start("src") end )
+vim.keymap.set('n', '<F5>', function() Start() end )
+vim.keymap.set('n', '<F6>', function() Start(nil, nil, 'debug') end )
+vim.keymap.set('n', '<F7>', function() GenerateCMake() end)     -- Only for CPP
+
+
+
+
+--[[
 function BuildAndRun()
   vim.cmd('messages clear')
   -- vim.cmd('echo string(repeat("=", winwidth(0)))')
@@ -232,4 +460,7 @@ vim.keymap.set('n', '<F6>', function() BuildAndRunTest() end)
 vim.keymap.set('n', '<F7>', function() BuildAndDebug() end)
 vim.keymap.set('n', '<F8>', function() BuildAndDebugTest() end)
 vim.keymap.set('n', '<F9>', function() GenerateCMake() end)     -- Only for CPP
+]]--
+
+
 

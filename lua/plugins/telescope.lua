@@ -346,8 +346,10 @@ return {
       vim.keymap.set("n", "<leader>fj", '<cmd>Telescope jumplist<CR>',
         { desc = "telescope [J]umplist" })
 
-      vim.keymap.set("n", "<leader>fc", '<cmd>Telescope colorscheme<CR>',
-        { desc = "telescope [C]olorschemes" })
+      vim.keymap.set("n", "<leader>cs", '<cmd>Telescope colorscheme<CR>',
+        { desc = "telescope colorschemes" })
+      -- vim.keymap.set("n", "<leader>fc", '<cmd>Telescope colorscheme<CR>',
+      --   { desc = "telescope [C]olorschemes" })
       -- vim.keymap.set("n", "<leader>ft", '<cmd>Telescope colorscheme<CR>',
       --   { desc = "telescope [T]hemes" })
 

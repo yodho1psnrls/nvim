@@ -35,6 +35,26 @@ function M.close_empty_buffers()
 end
 
 
+function M.get_lsp_root()
+  -- Get all LSP clients for the current buffer
+  local clients = vim.lsp.buf_get_clients()
+
+  -- Check if there is an LSP client active for the current buffer
+  if next(clients) == nil then
+    print("No LSP client is attached to the buffer")
+    return nil
+  end
+
+  -- For the first LSP client found, get the root directory
+  for _, client in pairs(clients) do
+    -- client.config.root_dir gives you the root directory
+    return client.config.root_dir
+  end
+
+  return nil
+end
+
+
 -- Create a user command to call the function
 -- vim.api.nvim_create_user_command('CloseEmptyBuffers', function() M.close_empty_buffers end, { desc = 'Close all empty buffers' })
 
