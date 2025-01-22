@@ -344,7 +344,12 @@ return {
         { desc = "telescope session lens" })
 
       vim.keymap.set("n", "<leader>fj", '<cmd>Telescope jumplist<CR>',
-        { desc = "telescope jumplist" })
+        { desc = "telescope [J]umplist" })
+
+      vim.keymap.set("n", "<leader>fc", '<cmd>Telescope colorscheme<CR>',
+        { desc = "telescope [C]olorschemes" })
+      -- vim.keymap.set("n", "<leader>ft", '<cmd>Telescope colorscheme<CR>',
+      --   { desc = "telescope [T]hemes" })
 
 
       -- https://www.reddit.com/r/neovim/comments/ypaq3e/lsp_find_reference_results_in_telescope/

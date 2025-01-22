@@ -96,20 +96,24 @@ end
 ---------------------------------------------------------------------
 
 
-function BuildAndRunCpp() --                      10
+function BuildAndRunCpp()
+  print("[" .. os.date("%H:%M:%S") .. "] Building and Running Cpp ...")
   BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
 end
 
 function BuildAndDebugCpp()
+  print("[" .. os.date("%H:%M:%S") .. "] Building and Debugging Cpp ...")
   BuildCmakeConfig('Debug', function() LaunchDapConfig('Launch Project') end)
 end
 
 
 function BuildAndRunCppTest()
+  print("[" .. os.date("%H:%M:%S") .. "] Building and Running Cpp Tests ...")
   BuildCmakeConfig('Release', function() vim.cmd('16split | term .\\Release\\bin\\proj_test.exe') end)
 end
 
 function BuildAndDebugCppTest()
+  print("[" .. os.date("%H:%M:%S") .. "] Building and Debugging Cpp Tests ...")
   BuildCmakeConfig('Debug', function() LaunchDapConfig('Launch Test') end)
 end
 
@@ -133,6 +137,7 @@ end
 -- There is no Building for python, but i want to keep the names consistent
 
 function BuildAndRunPython()
+  print("[" .. os.date("%H:%M:%S") .. "] Running Python ...")
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
    vim.cmd('10split | term python %')
@@ -140,6 +145,7 @@ function BuildAndRunPython()
 end
 
 function BuildAndDebugPython()
+  print("[" .. os.date("%H:%M:%S") .. "] Debugging Python ...")
   require('dap').continue()
 end
 
@@ -150,7 +156,8 @@ function BuildAndRun()
   vim.cmd('messages clear')
   -- vim.cmd('echo string(repeat("=", winwidth(0)))')
   -- vim.cmd('wa') -- Save all buffers
-  vim.cmd('w') -- Save only current buffers
+  --vim.cmd('w') -- Save only current buffers
+  if vim.bo.modified then vim.cmd('w') end
 
   local filetype = vim.bo.filetype
 
@@ -168,7 +175,8 @@ function BuildAndDebug()
   vim.cmd('messages clear')
   -- vim.cmd('echo string(repeat("=", winwidth(0)))')
   -- vim.cmd('wa') -- Save all buffers
-  vim.cmd('w') -- Save only current buffers
+  --vim.cmd('w') -- Save only current buffers
+  if vim.bo.modified then vim.cmd('w') end
 
   local filetype = vim.bo.filetype
 
@@ -186,7 +194,8 @@ function BuildAndRunTest()
   vim.cmd('messages clear')
   -- vim.cmd('echo string(repeat("=", winwidth(0)))')
   -- vim.cmd('wa') -- Save all buffers
-  vim.cmd('w') -- Save only current buffers
+  --vim.cmd('w') -- Save only current buffers
+  if vim.bo.modified then vim.cmd('w') end
 
   local filetype = vim.bo.filetype
 
@@ -202,7 +211,8 @@ function BuildAndDebugTest()
   vim.cmd('messages clear')
   -- vim.cmd('echo string(repeat("=", winwidth(0)))')
   -- vim.cmd('wa') -- Save all buffers
-  vim.cmd('w') -- Save only current buffers
+  --vim.cmd('w') -- Save only current buffers
+  if vim.bo.modified then vim.cmd('w') end
 
   local filetype = vim.bo.filetype
 

@@ -29,7 +29,6 @@ require("lazy").setup({
   -- colorscheme that will be used when installing plugins.
   install = { colorscheme = { "habamax" } },
   -- automatically check for plugin updates
-  checker = { enabled = true },
 
   --------------- border around lazy window -----------------
   -- https://www.reddit.com/r/neovim/comments/18o51zv/how_to_add_border_around_lazypackage_manager/

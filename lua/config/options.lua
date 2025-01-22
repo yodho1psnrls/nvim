@@ -1,5 +1,34 @@
 ----------------------------- KICKSTARTER -----------------------------------------
 
+
+
+-- Folding options
+-- zc folds by method, h or l on the folded line, unfolds it
+
+vim.o.foldcolumn = '0' -- '0' is not bad, '1' is default | "auto" | "auto:number"
+-- vim.o.foldcolumn = 'auto' -- '0' is not bad, '1' is default
+vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevelstart = 99 -- Starts with all folds open
+-- vim.o.foldlevelstart = 0 -- Starts with all folds closed
+vim.o.foldenable = true -- Automatic folding when entering a buffer
+
+--vim.o.foldmethod = 'indent' -- With treesitter
+vim.o.foldmethod = 'expr'     -- With LSP
+-- vim.o.foldmethod = 'manual'-- If you want only manual folding (fold them yourself only)
+vim.o.foldexpr = 'v:lua.vim.lsp._get_fold_level()'
+
+-- vim.o.signcolumn = 'no' -- Hide the sign column
+-- vim.o.signcolumn = 'auto'
+vim.o.signcolumn = 'auto' -- Hide the sign column
+-- vim.o.signcolumn = 'number' -- Draw Signs in the number column
+
+--vim.o.fillchars = 'fold: '
+-- vim.o.statuscolumn = ''
+-- vim.o.fillchars = 'eob: ' -- Clear unused end-of-buffer space
+
+
+
+
 -- quick-scope (if you dont set those, it is always visible)
 --vim.g.qs_highlight_on_keys = { 'f', 'F', 't', 'T' }
 
@@ -56,7 +85,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
 -- Keep signcolumn on by default
-vim.opt.signcolumn = 'yes'
+-- vim.opt.signcolumn = 'yes'
 
 -- Decrease update time
 vim.opt.updatetime = 250
@@ -163,7 +192,7 @@ o.ruler = false   -- Show the cursor position all the time
 -- disable nvim intro
 opt.shortmess:append "sI"
 
-o.signcolumn = "yes"
+-- o.signcolumn = "yes"
 o.splitbelow = true
 o.splitright = true
 o.timeoutlen = 400
@@ -194,3 +223,6 @@ g.loaded_ruby_provider = 0
 
 --vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 --vim.o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,localoptions"
+
+
+

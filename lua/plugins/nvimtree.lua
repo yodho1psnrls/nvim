@@ -28,6 +28,13 @@ return {
 
     dependencies = {
       "nvim-tree/nvim-web-devicons",
+
+      -- Load this as dependancy, because we lazy load it,
+      -- but we need it, when we you nvim-tree, because 
+      -- we use the bufferline to display the root folder
+      -- name over the nvim-tree window
+      "akinsho/bufferline.nvim",
+
     },
 
     opts = {
@@ -37,7 +44,8 @@ return {
       },
 
       view = {
-        width = 24,
+        --width = 24,
+        width = 32,
         side = "left",
         signcolumn = "no",
 
@@ -87,18 +95,26 @@ return {
         group_empty = true,
 
         -- Show only the root folder name
-        root_folder_label = function()
+       --[[ root_folder_label = function()
           return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-        end,
+        end, ]]--
 
-        --        root_folder_label = false,  -- Disable the default one, because of out custom one
+        -- Disable the default one, because the tabline implements that
+        root_folder_label = false,
+
+        highlight_opened_files = "name", -- name, icon, both, none
 
       },
+
+     -- highlight_opened_files_group = 'NvimTreeOpenedFiles',
+
 
       filters = {
         dotfiles = true,
         custom = { "compile_commands.json" },
       },
+
+     -- disable_netrw = true,
 
       -- Custom function to handle a sticky root folder
       --[[on_attach = function(bufnr)
@@ -116,6 +132,8 @@ return {
 
 
   config = function(_, opts)
+
+    vim.cmd("highlight! NvimTreeOpenedFiles guibg=#2a273f guifg=#e0def4")
 
     require'nvim-tree'.setup(opts)
 

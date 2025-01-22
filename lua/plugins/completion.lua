@@ -18,7 +18,7 @@ return {
   -- "saadparwaiz1/cmp_luasnip",
   { "hrsh7th/cmp-nvim-lsp", lazy = true, event = 'LspAttach' },
   { "hrsh7th/cmp-nvim-lua", lazy = true, event = 'LspAttach' },
-  { "hrsh7th/cmp-buffer",   lazy = true, event = 'LspAttach' },
+  { "hrsh7th/cmp-buffer",   lazy = true, event = 'InsertCharPre' }, -- InsertEnter
   { "hrsh7th/cmp-path",     lazy = true, event = 'CmdlineEnter' },
   { "hrsh7th/cmp-cmdline",  lazy = true, event = 'CmdlineEnter' },
 

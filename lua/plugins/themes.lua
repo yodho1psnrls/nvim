@@ -7,6 +7,11 @@
 -- See nvim/lua/config/autocmds for some hardcoded highlight groups
 --  if you see weird non-consistent with the theme colors !!!
 
+-- NOTE:
+-- All colorsheme plugins can be lazy=true, with no event or key trigger to load it,
+-- but it should be loaded when you use the :colorscheme theme-name
+
+
 return {
 
   -- the colorscheme should be available when starting Neovim
@@ -90,6 +95,7 @@ return {
 
   { -- https://github.com/rose-pine/neovim
     "rose-pine/neovim",
+    lazy = true,
     name = "rose-pine",
     opts = {
 

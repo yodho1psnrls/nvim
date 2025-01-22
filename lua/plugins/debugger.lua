@@ -26,12 +26,6 @@
 --  so you can debug or just build and run the project just by one keybind
 -- And also add some icons for the breakpoints to look prettier
 
--- TODO:
--- Make nvim-dap and all its related plugins to lazy load,
---  so if you do a coding session where you dont use the debugger
---  it and all its other plugins are not loaded at all !!!
--- Make it load on F6(When you run it) and <leader>b (When you set a breakpoint)
-
 
 return {
 
@@ -124,7 +118,7 @@ return {
       vim.keymap.set('n', '<Leader>lp',
         function() dap.set_breakpoint(nil, nil, vim.fn.input('Log point message: ')) end, { desc = 'Log point message' })
       vim.keymap.set('n', '<Leader>dr', function() dap.repl.open() end, { desc = 'Open dap repl' })
-      vim.keymap.set('n', '<Leader>dl', function() dap.run_last() end)
+      vim.keymap.set('n', '<Leader>dl', function() dap.run_last() end, { desc = 'Run last dap session' })
 
       -- NOTE: Those may come in handy, but currenly i am not sure what to use them for
       --[[
@@ -344,17 +338,84 @@ return {
   },
 ]]--
 
+
+  -- https://github.com/mfussenegger/nvim-dap/discussions/576
+  {
+    "lucaSartore/nvim-dap-exception-breakpoints",
+--    dependencies = { "mfussenegger/nvim-dap" },
+    lazy = true,
+    config = function()
+      local set_exception_breakpoints = require("nvim-dap-exception-breakpoints")
+
+      --[[
+      vim.api.nvim_set_keymap(
+        "n",
+        "<leader>dc",
+        "",
+        { desc = "[D]ebug [C]ondition breakpoints", callback = set_exception_breakpoints }
+      )
+      ]] --
+
+      --require('dap').defaults.fallback.exception_breakpoints = {'raised'}
+      --require('dap').defaults.cpp.assertions = { 'raised' } -- I dont think this is valid
+    end
+  },
+
+
+  -- TODO: Fix this to use the configuration below,
+  -- because currently it uses the default one
   {
     "rcarriga/nvim-dap-ui",
     lazy = true,
+
     dependencies = {
- --     "mfussenegger/nvim-dap",
+      --"mfussenegger/nvim-dap",
       "nvim-neotest/nvim-nio"
     },
-    config = function()
-      local dap, dapui = require("dap"), require("dapui")
 
-      dapui.setup()
+    opts = {
+      --layout = "flex",  -- You can change the layout: "vertical", "horizontal", or "flex"
+
+      layout = { {
+        -- These can be turned off if you don't want to show specific windows
+        elements = { {
+          { id = "scopes", size = 0.75 },
+          { id = "stack", size = 0.25 },
+        } },
+        position = "left",
+        size = 40
+      }, {
+        elements = { {
+          id = "repl",
+          size = 0.25
+        }, {
+          id = "console",
+          size = 0.25
+        } },
+        position = "bottom",
+        size = 10
+      } },
+    },
+
+    -- init = function(_, opts)
+    --   require("dapui").setup(opts)
+    -- end,
+
+    config = function(_, opts)
+
+      -- TODO:
+      -- This still seems to load nvim-tree if not load it.
+      -- Make it such that if nvim-tree is not loaded, then
+      -- it doesnt uses that toggle logic at all
+      local tree_status_ok, nvim_tree = pcall(require, 'nvim-tree.api')
+      local was_tree_opened = false
+
+
+      local dap, dapui = require("dap"), require("dapui")
+      --dapui.setup()
+
+      dapui.setup(opts)
+
 
       --[[
       dapui.setup {
@@ -443,14 +504,14 @@ return {
       end
       dap.listeners.before.event_exited.dapui_config = function()
         dapui.close()
+        if tree_status_ok and was_tree_opened then
+          -- nvim_tree.tree.open()
+          nvim_tree.tree.toggle({ find_file = true, focus = false })
+        end
       end
 
 
       -----------------------------------------------------
-
-      -- Toggle nvim-tree when dap-ui toggles
---      local nvim_tree = require('nvim-tree.api')
-      --local was_tree_opened = false
 
       dap.listeners.after.event_initialized["dapui_config"] = function()
         --[[
@@ -465,13 +526,17 @@ return {
         end
         ]] --
 
---        nvim_tree.tree.close()
+  --      nvim_tree.tree.close()
 
-          -- Check if nvim-tree is loaded
-        local status_ok, nvim_tree = pcall(require, 'nvim-tree.api')
-        if status_ok then
+        -- Closes nvim tree on dap-ui launch
+        -- TODO: Make it relaunch nvim-tree after dap ends
+        -- (if nvim-tree was open, before runing the debugger)
+        if tree_status_ok then     -- Check if nvim-tree is loaded
+          -- was_tree_opened = require'nvim-tree.view'.is_visible()
+          was_tree_opened = nvim_tree.tree.is_visible()
           nvim_tree.tree.close()
         end
+
       end
 
       --[[
@@ -490,30 +555,9 @@ return {
       dap.listeners.after.event_exited["dapui_config"] = reopen_nvim_tree_if_opened
       ]] --
 
-      -----------------------------------------------------
-    end,
-  },
+        -----------------------------------------------------
+      end,
 
-  -- https://github.com/mfussenegger/nvim-dap/discussions/576
-  {
-    "lucaSartore/nvim-dap-exception-breakpoints",
---    dependencies = { "mfussenegger/nvim-dap" },
-    lazy = true,
-    config = function()
-      local set_exception_breakpoints = require("nvim-dap-exception-breakpoints")
-
-      --[[
-      vim.api.nvim_set_keymap(
-        "n",
-        "<leader>dc",
-        "",
-        { desc = "[D]ebug [C]ondition breakpoints", callback = set_exception_breakpoints }
-      )
-      ]] --
-
-      --require('dap').defaults.fallback.exception_breakpoints = {'raised'}
-      --require('dap').defaults.cpp.assertions = { 'raised' } -- I dont think this is valid
-    end
   },
 
   {

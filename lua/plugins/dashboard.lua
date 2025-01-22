@@ -302,11 +302,12 @@ return {
 
     },
 
-	config = function(_, opts)
+    config = function(_, opts)
       require('dashboard').setup(opts) -- Pass the opts properly
-      vim.keymap.set('n', '<leader>db', open_dashboard, { noremap = true, silent = true })
+      vim.keymap.set('n', '<leader>db', open_dashboard,
+        { noremap = true, silent = true, desc = "Open Dashboard" })
     end
-	
+
     --[[config = function ()
 	  require('dashboard').setup(opts)
       --require('dashboard').setup(opts)

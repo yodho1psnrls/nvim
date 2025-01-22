@@ -109,6 +109,11 @@ map("v", "P", "p", opts)
 map({'n', 'v'}, 'x', '"_x', opts)
 map({'n', 'v'}, 'X', '"_X', opts)
 
+map("n", "s", '"_s', opts)
+map("n", "S", '"_S', opts)
+map("n", "c", '"_c', opts)
+map("n", "C", '"_C', opts)
+
 
 --==========================================================================--
 
@@ -147,8 +152,11 @@ map('i', '<C-s>', '<Esc><cmd>w<CR>a', { noremap = true, silent = true, desc = "C
 
 --map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
 -- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
-vim.keymap.set("n", "<leader>n", function() require('nvim-tree.api').tree.toggle({ find_file = true, focus = true }) end,
-  { desc = "nvimtree toggle window" })
+vim.keymap.set("n", "<leader>n", function()
+    require('nvim-tree.api').tree.toggle({ find_file = true, focus = true })
+    --require('nvim-tree.api').tree.toggle({ find_file = true, focus = false })
+  end,
+{ desc = "nvimtree toggle window" })
 --map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
 
 

@@ -2,6 +2,9 @@
 
 -- TODO: Fix the Code Action Feature
 --		and some others that dont work properly or have their keymaps overriten like Go To Implementation
+--    Most importantly: Generate definition out of declaration
+
+-- TODO: Disable the Unused Include Directories Warning 
 
 -- NOTE:
 -- ClangD loads std library from MSVC, but Clang loads it from MSYS2 MinGW's libstdc++
@@ -16,37 +19,39 @@ return {
     config = function()
 
       -- Available Options: off, error, warn, info, debug, trace
-      vim.lsp.set_log_level("OFF") -- Only Enable, it if you debbug some LSP related problems
-      -- vim.lsp.set_log_level("trace") -- Verbose (For debugging)
+      vim.lsp.set_log_level("ERROR") -- OFF | ERROR | WARN | INFO | DEBUG
+      -- vim.lsp.set_log_level("trace") -- Verbose (For debugging code-lldb)
 
-      local warnings_enabled = true
+
+      vim.diagnostic.config({
+        virtual_text = {
+          severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
+        },
+        signs = true,
+        update_in_insert = false,
+        underline = true,
+      })
+
+
       local function ToggleWarnings()
-        if warnings_enabled then
-          vim.diagnostic.config({
-            virtual_text = {
-              severity = { min = vim.diagnostic.severity.ERROR }, -- Hide warnings
-            },
-            signs = true,
-            update_in_insert = false,
-            underline = true,
-          })
+        local config = vim.diagnostic.config() -- Get the current config
+
+        if config.virtual_text.severity.min == vim.diagnostic.severity.INFO then
+          config.virtual_text.severity.min = vim.diagnostic.severity.ERROR
           print("LSP Warnings Disabled")
-        else
-          vim.diagnostic.config({
-            virtual_text = {
-              severity = { min = vim.diagnostic.severity.INFO }, -- Show warnings
-            },
-            signs = true,
-            update_in_insert = false,
-            underline = true,
-          })
+        elseif config.virtual_text.severity.min == vim.diagnostic.severity.ERROR then
+          config.virtual_text.severity.min = vim.diagnostic.severity.INFO
           print("LSP Warnings Enabled")
+        else
+          print("LSP Warnings NOT Toggled, because severity.min is other than ERROR or INFO")
         end
-        warnings_enabled = not warnings_enabled
+
+        vim.diagnostic.config(config) -- Apply the modified config !!! (because the config value is immutable)
       end
 
       vim.keymap.set('n', '<leader>wt', function() ToggleWarnings() end,
         { noremap = true, silent = true, desc = 'Warnings Toggle' })
+
 
       -- BUILT IN NEOVIM DIAGNOSTICS WINDOW ------------------------------------------------------------
       -- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
@@ -54,8 +59,8 @@ return {
       -- https://neovim.io/doc/user/quickfix.html#quickfix
 
       vim.keymap.set('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open diagno[S]tic list' })
-      vim.keymap.set('n', '<leader>dq', vim.diagnostic.setqflist, { desc = 'Open diagnostic [Q]uickfix list' })
-      -- vim.keymap.set('n', '<leader>da', vim.diagnostic.setqflist, { desc = 'Open [A]ll diagnostic lists' })
+      --vim.keymap.set('n', '<leader>dq', vim.diagnostic.setqflist, { desc = 'Open diagnostic [Q]uickfix list' })
+      vim.keymap.set('n', '<leader>da', vim.diagnostic.setqflist, { desc = 'Open [A]ll diagnostic lists' })
 
       --vim.keymap.set('n', '<S-CR>', vim.diagnostic.open_float, { desc = 'Go to diagnostic'})
       vim.keymap.set('n', '<leader>dg', vim.lsp.util.jump_to_location, { desc = '[G]o to diagnostic'})
@@ -219,6 +224,15 @@ return {
           --"--checks=performance-*",     
           -- Or you can enable performance related checks one by one
           --'--checks="*,clang-analyzer-optin.performance.GCDAntipattern,clang-analyzer-optin.performance.Padding"',
+
+          --"--log=verbose", -- For Debugging
+          "--header-insertion=never", -- (iwyu: default | never) automatically inserting #include directives for missing headers when completing symbols
+          "--completion-style=detailed", -- (detailed: default(displays function signatures) | bundled(less detailed, only displays function, variable, etc))
+
+          --"-Wunused-include-directive", -- Dont show unused headed warnings
+          --"--disable=clang-diagnostic-unused-include-directive", -- Dont show unused headed warnings
+          --"--disable-tidy-checks=llvm-header-guard",
+
         },
 
 --        cmd = { "clangd", "--background-index", "--log=verbose" }, -- For Debugging
@@ -239,6 +253,9 @@ return {
         --  return util.root_pattern('compile_commands.json', '.git')(fname)
         --end,
 
+        --flags = {
+        --  debounce_text_changes = 150, -- 0 by default (in ms) -- How often the lsp triggers
+        --},
 
       }
 

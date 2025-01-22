@@ -1,5 +1,9 @@
 
 
+-- Stop centering on buffer cyclying (even with :bnext and :bprevious)
+-- vim.cmd([[autocmd BufWinEnter * normal! zz]])
+-- vim.cmd([[autocmd BufWinEnter * set nocursorline nocursorcolumn]])
+
 
 -----------------------------------------------------------------------------
 
@@ -182,13 +186,42 @@ vim.api.nvim_create_autocmd({'VimEnter', 'DirChanged'}, {
   end,
 })
 
+
+
+local function is_popup_open()
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    local config = vim.api.nvim_win_get_config(winid)
+    if config.relative ~= "" then
+      return true -- A popup (floating window) is open
+    end
+  end
+  return false
+end
+
 -- trigger the hover documentation (which often shows type,
 -- function signatures, or other useful info) when hovering over a symbol.
 --map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
 
 --hover documentation to appear automatically after hovering
 --the cursor over a variable or function for a brief time
-vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+-- vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+vim.api.nvim_create_autocmd("CursorHold", {
+  pattern = "*",
+  callback = function()
+
+    -- Because of ufo popup we want to not reopen the popup (if already open)
+    -- , because if we are scrolling in it, it will always reset to top
+    if is_popup_open() then
+      return
+    end
+
+    local winid = require('ufo').peekFoldedLinesUnderCursor()
+    if not winid then
+      vim.lsp.buf.hover()
+    end
+  end,
+})
+
 
 -- Diagnostics hover window
 --vim.diagnostic.config({ virtual_text = false, })
