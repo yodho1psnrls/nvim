@@ -35,12 +35,59 @@
 
 -------------------------------------------------------------------------
 
+local function print_with_time(mes)
+  print("[" .. os.date("%H:%M:%S") .. "] " .. mes)
+end
+
 local util = require"utilities"
+
+
+-- Install a Lua JSON parser like dkjson or lunajson.
+local function get_cmake_executables()
+  local json = require("dkjson") -- Use a JSON library like `dkjson` (install if not available)
+  local executables = {}
+
+  -- Locate `compile_commands.json` file (assuming it's in the build directory)
+  local build_dir = vim.fn.input("Enter CMake build directory: ", vim.loop.cwd() .. "/", "file")
+  local compile_commands_path = build_dir .. "/compile_commands.json"
+
+  -- Check if the file exists
+  if vim.fn.filereadable(compile_commands_path) == 0 then
+    vim.notify("Could not find compile_commands.json in: " .. compile_commands_path, vim.log.levels.ERROR)
+    return {}
+  end
+
+  -- Read the JSON file
+  local file = io.open(compile_commands_path, "r")
+  local content = file:read("*a")
+  file:close()
+
+  -- Parse JSON
+  local parsed_commands, _, err = json.decode(content)
+  if err then
+    vim.notify("Error parsing compile_commands.json: " .. err, vim.log.levels.ERROR)
+    return {}
+  end
+
+  -- Extract executables
+  for _, command in ipairs(parsed_commands) do
+    local output = command.output
+    if output and output:match("%.exe$") then
+      table.insert(executables, output)
+    end
+  end
+
+  -- Display or return the list of executables
+  vim.notify("Found executables:\n" .. table.concat(executables, "\n"), vim.log.levels.INFO)
+  return executables
+end
+
 
 
 function GenerateCMake()
   local last_cwd = vim.fn.getcwd()
-  vim.cmd('cd ' .. util.get_lsp_root())
+  local root = util.get_project_root()
+  if last_cwd ~= root then vim.cmd('cd ' .. root) end
 
   vim.cmd('!rm -rf "Debug"')
   vim.cmd('!rm -rf "Release"')
@@ -58,7 +105,7 @@ function GenerateCMake()
   --vim.cmd('!mklink "compile_commands.json" "Debug\\compile_commands.json"')
   vim.cmd('!mklink /H "compile_commands.json" "Debug\\compile_commands.json"')
 
-  vim.cmd('cd ' .. last_cwd)
+  if last_cwd ~= root then vim.cmd('cd ' .. last_cwd) end
 end
 
 
@@ -66,7 +113,8 @@ end
 function BuildCmakeConfig(config_name, on_success_callback)
 -- function BuildCmakeConfig(config_name, on_exit_callback)
   local last_cwd = vim.fn.getcwd()
-  vim.cmd('cd ' .. util.get_lsp_root())
+  local root = util.get_project_root()
+  if last_cwd ~= root then vim.cmd('cd ' .. root) end
 
   vim.fn.jobstart('cmake --build "' .. config_name .. '" --config ' .. config_name, {
   stdout_buffered = true,
@@ -81,26 +129,28 @@ function BuildCmakeConfig(config_name, on_success_callback)
 
   on_stderr = function(_, data)
     if data and #data > 1 then
-      -- Print error messages from stderr
       print("Error during build:\n" .. table.concat(data, "\n"))
-      -- vim.cmd("messages")
+      vim.cmd("messages")
     end
   end,
 
   on_exit = function(_, exit_code)
     if exit_code ~= 0 then
-      -- If the build failed, print the exit code and show all messages
-      print("Build failed with exit code: " .. exit_code)
-      vim.cmd('messages')
-      --vim.defer_fn(function() vim.cmd('messages') end, 100) -- same as above, but with delay
+      print_with_time("Build failed with exit code: " .. exit_code)
+      -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ???
+      util.open_messages_in_buffer()
     else
       if on_success_callback then
+        print_with_time("Build exited with code: " .. exit_code)
         on_success_callback()
       end
     end
     -- on_exit_callback(exit_code)
 
-    vim.cmd('cd ' .. last_cwd)
+    if last_cwd ~= root then vim.cmd('cd ' .. last_cwd) end
+    -- vim.defer_fn(function() vim.cmd('messages') end, 5000) -- same as above, but with delay
+    -- vim.cmd(echo execute('messages'))
+
   end,
   })
 end
@@ -123,14 +173,19 @@ end
 function BuildAndRunCpp()
 -- function BuildAndRunCpp(exit_code)
   -- if exit_code ~= 0 then return end
-  print("[" .. os.date("%H:%M:%S") .. "] Building and Running Cpp ...")
+  print_with_time("Building and Running Cpp ...")
   -- BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
-  BuildCmakeConfig('Release', function() vim.cmd('12split | term ' .. util.get_lsp_root() .. '\\Release\\bin\\proj.exe') end)
+  BuildCmakeConfig('Release', function()
+    vim.cmd('12split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')
+    if vim.api.nvim_get_mode().mode ~= 't' then
+      vim.api.nvim_input('i')
+    end
+  end)
 end
 
 function BuildAndDebugCpp()
 -- function BuildAndDebugCpp(_)
-  print("[" .. os.date("%H:%M:%S") .. "] Building and Debugging Cpp ...")
+  print_with_time("Building and Debugging Cpp ...")
   BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Project') end)
 end
 
@@ -138,13 +193,18 @@ end
 function BuildAndRunCppTest()
 -- function BuildAndRunCppTest(exit_code)
   -- if exit_code ~= 0 then return end
-  print("[" .. os.date("%H:%M:%S") .. "] Building and Running Cpp Tests ...")
-  BuildCmakeConfig('Release', function() vim.cmd('16split | term ' .. util.get_lsp_root() .. '\\Release\\bin\\proj_test.exe') end)
+  print_with_time("Building and Running Cpp Tests ...")
+  BuildCmakeConfig('Release', function()
+    vim.cmd('16split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj_test.exe')
+    -- if vim.api.nvim_get_mode().mode ~= 't' then
+    --   vim.api.nvim_input('i')
+    -- end
+  end)
 end
 
 function BuildAndDebugCppTest()
 -- function BuildAndDebugCppTest(_)
-  print("[" .. os.date("%H:%M:%S") .. "] Building and Debugging Cpp Tests ...")
+  print_with_time("Building and Debugging Cpp Tests ...")
   BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Test') end)
 end
 
@@ -186,17 +246,21 @@ end]]--
 
 
 function BuildAndRunPython()
-  print("[" .. os.date("%H:%M:%S") .. "] Running Python ...")
+  print_with_time("Running Python ...")
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
-   vim.cmd('10split | term python %')
+  vim.cmd('12split | term python %')
   --vim.cmd('term python %')
+
+  if vim.api.nvim_get_mode().mode ~= 't' then
+    vim.api.nvim_input('i')
+  end
 
   -- print("Exit Code is: " .. get_exit_code())
 end
 
 function BuildAndDebugPython()
-  print("[" .. os.date("%H:%M:%S") .. "] Debugging Python ...")
+  print_with_time("Debugging Python ...")
   -- require('dap').continue()
   LaunchDapConfig('python', 'file')
 end
@@ -213,42 +277,26 @@ local function are_there_any_breakpoints_in_same_filetype_buffers(filter_by_id)
     return false
   end
 
-  local dap_status_ok, db = pcall(require, "dap.breakpoints")
-  if not dap_status_ok then
+  local db = util.safe_require("dap.breakpoints")
+  if not db then
     return false
   end
 
   -- https://www.reddit.com/r/neovim/comments/15cpsy0/comment/jtysfd4/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
   -- print(vim.inspect(db.get()))
   local buffers_with_breakpoints = db.get()
-
   for id, breakpoints in pairs(buffers_with_breakpoints) do
     -- if vim.bo[id] and vim.bo[id].filetype == curr_type and #breakpoints > 0 then
-
     if vim.bo[id].filetype == curr_type then
       if filter_by_id and filter_by_id(id) then
         return true
       end
     end
-
   end
 
   return false
 end
 
-
-local function are_there_any_breakpoints()
-  local dap_status_ok, dap = pcall(require, "dap")
-  -- local current_file = vim.api.nvim_buf_get_name(0) -- Current buffer's file
-  -- local breakpoints = dap.list_breakpoints(current_file) -- Breakpoints for this file only
-  local breakpoints = dap.list_breakpoints() -- All breakpoints
-
-  if not dap_status_ok then
-    return false
-  end
-
-  return breakpoints and #breakpoints > 0
-end
 
 
 -- local function search_folder_names_above_file(folder_names, file_abs_path)
@@ -372,9 +420,9 @@ end
 
 -- vim.keymap.set('n', '<F4>', function() Start("test") end )
 -- vim.keymap.set('n', '<F5>', function() Start("src") end )
-vim.keymap.set('n', '<F5>', function() Start() end )
-vim.keymap.set('n', '<F6>', function() Start(nil, nil, 'debug') end )
-vim.keymap.set('n', '<F7>', function() GenerateCMake() end)     -- Only for CPP
+vim.keymap.set('n', '<F4>', function() Start(nil, nil, 'run') end )
+vim.keymap.set('n', '<F5>', function() Start(nil, nil, 'debug') end ) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
+vim.keymap.set('n', '<F6>', function() GenerateCMake() end)     -- Only for CPP
 
 
 

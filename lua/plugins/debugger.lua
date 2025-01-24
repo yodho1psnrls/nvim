@@ -37,7 +37,8 @@ return {
 
     keys = { -- The key mappings that will trigger the loading
       { '<leader>b', desc = "Set Breakpoint" },
---      { '<F6>', desc = "Run Debugger" },
+      { "<leader>lb", desc = "List [B]reakpoints" },
+      -- { '<F5>', desc = "Run Debugger" },
     },
 
     -- It would also be lazy loaded on '<F6>'
@@ -46,14 +47,15 @@ return {
     -- None of those are dependancies for nvim-dap
     -- Actually, nvim-dap is dependancy for all of them
     dependencies = {
-      "rcarriga/nvim-dap-ui",
-      "theHamsta/nvim-dap-virtual-text",
+      -- "rcarriga/nvim-dap-ui",
+      -- "theHamsta/nvim-dap-virtual-text",
       "lucaSartore/nvim-dap-exception-breakpoints",
       "mfussenegger/nvim-dap-python", -- plugin that configures nvim-dap with pylsp
 
       {
         "nvim-telescope/telescope-dap.nvim",
         lazy = true,
+        -- keys = { "<leader>lb", desc = "List [B]reakpoints" },
         dependencies = {
           -- "mfussenegger/nvim-dap",
           "nvim-telescope/telescope.nvim",
@@ -62,7 +64,7 @@ return {
           require('telescope').load_extension('dap')
           vim.keymap.set('n', '<leader>lb', function()
             require('telescope').extensions.dap.list_breakpoints{}
-          end, { desc = "List Breakpoints" })
+          end, { desc = "List [B]reakpoints" })
         end,
       },
     },
@@ -120,7 +122,7 @@ return {
         { desc = 'Move cursor to current dap line', noremap = true, silent = true })
 
 
-      vim.keymap.set('n', '<Leader>b', function() dap.toggle_breakpoint() end, { desc = 'Toggle breakpoint' })
+      vim.keymap.set('n', '<Leader>b', function() dap.toggle_breakpoint() end, { desc = 'Toggle [B]reakpoint' })
       --vim.keymap.set('n', '<Leader>B', function() dap.set_breakpoint() end)
       vim.keymap.set('n', '<Leader>B',
         function() dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ') end,
@@ -207,9 +209,9 @@ return {
           -- cwd = vim.fn.getcwd(),
           -- cwd = '${workspaceFolder}',
 
-          -- program = util.get_lsp_root() .. '\\Debug\\bin\\proj.exe',
+          -- program = util.get_project_root() .. '\\Debug\\bin\\proj.exe',
           program = '\\Debug\\bin\\proj.exe',
-          cwd = util.get_lsp_root(),
+          cwd = util.get_project_root(),
 
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
 
@@ -285,7 +287,7 @@ return {
           request = "launch",
 
           program = '\\Debug\\bin\\proj_test.exe',
-          cwd = util.get_lsp_root(),
+          cwd = util.get_project_root(),
 
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
 
@@ -330,6 +332,39 @@ return {
         },
       }]]--
 
+      --===========================================================--
+
+      local nvim_tree = util.safe_require('nvim-tree.api')
+      local was_tree_opened = false
+
+      dap.listeners.before.attach.dapui_config = function()
+        require("dapui").open()
+      end
+      dap.listeners.before.launch.dapui_config = function()
+        require("dapui").open()
+      end
+
+      dap.listeners.before.event_terminated.dapui_config = function()
+        require("dapui").close()
+      end
+      dap.listeners.before.event_exited.dapui_config = function()
+        require("dapui").close()
+        if nvim_tree and was_tree_opened then
+          -- nvim_tree.tree.open()
+          nvim_tree.tree.toggle({ find_file = true, focus = false })
+        end
+      end
+
+
+      -----------------------------------------------------
+
+      dap.listeners.after.event_initialized.dapui_config = function()
+        if nvim_tree then     -- Check if nvim-tree is loaded
+          -- was_tree_opened = require'nvim-tree.view'.is_visible()
+          was_tree_opened = nvim_tree.tree.is_visible()
+          nvim_tree.tree.close()
+        end
+      end
 
 
       ------------------------------------------------------------
@@ -386,7 +421,8 @@ return {
 
     dependencies = {
       --"mfussenegger/nvim-dap",
-      "nvim-neotest/nvim-nio"
+      "nvim-neotest/nvim-nio",
+      "theHamsta/nvim-dap-virtual-text",
     },
 
     opts = {
@@ -418,23 +454,9 @@ return {
     -- end,
 
     config = function(_, opts)
+      require("dapui").setup(opts)
 
-      -- TODO:
-      -- This still seems to load nvim-tree if not load it.
-      -- Make it such that if nvim-tree is not loaded, then
-      -- it doesnt uses that toggle logic at all
-      local tree_status_ok, nvim_tree = pcall(require, 'nvim-tree.api')
-      local was_tree_opened = false
-
-
-      local dap, dapui = require("dap"), require("dapui")
-      --dapui.setup()
-
-      dapui.setup(opts)
-
-
-      --[[
-      dapui.setup {
+      --[[dapui.setup {
         -- Set icons to characters that are more likely to work in every terminal.
         icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
 
@@ -505,75 +527,9 @@ return {
           indent = 1,            -- How deep indenting should be for hierarchical structures
           max_type_length = nil, -- Limit length of type displayed
         },
-      }
-      ]] --
+      }]] --
 
-      dap.listeners.before.attach.dapui_config = function()
-        dapui.open()
-      end
-      dap.listeners.before.launch.dapui_config = function()
-        dapui.open()
-      end
-
-      dap.listeners.before.event_terminated.dapui_config = function()
-        dapui.close()
-      end
-      dap.listeners.before.event_exited.dapui_config = function()
-        dapui.close()
-        if tree_status_ok and was_tree_opened then
-          -- nvim_tree.tree.open()
-          nvim_tree.tree.toggle({ find_file = true, focus = false })
-        end
-      end
-
-
-      -----------------------------------------------------
-
-      dap.listeners.after.event_initialized["dapui_config"] = function()
-        --[[
-        was_tree_opened = nvim_tree.tree.is_open()
-        nvim_tree.tree.close()
-        ]] --
-        --[[
-        if nvim_tree.tree.close() then
-          was_tree_opened = true
-        else
-          was_tree_opened = false
-        end
-        ]] --
-
-  --      nvim_tree.tree.close()
-
-        -- Closes nvim tree on dap-ui launch
-        -- TODO: Make it relaunch nvim-tree after dap ends
-        -- (if nvim-tree was open, before runing the debugger)
-        if tree_status_ok then     -- Check if nvim-tree is loaded
-          -- was_tree_opened = require'nvim-tree.view'.is_visible()
-          was_tree_opened = nvim_tree.tree.is_visible()
-          nvim_tree.tree.close()
-        end
-
-      end
-
-      --[[
-      local function reopen_nvim_tree_if_opened()
-        if was_tree_opened then
-          -- I dont want my cursor to go to the tree at reopening
-          local view = vim.fn.winsaveview() -- Save the current view
-
-          nvim_tree.tree.open()
-
-          vim.fn.winrestview(view) -- Restore the saved view
-        end
-      end
-
-      dap.listeners.after.event_terminated["dapui_config"] = reopen_nvim_tree_if_opened
-      dap.listeners.after.event_exited["dapui_config"] = reopen_nvim_tree_if_opened
-      ]] --
-
-        -----------------------------------------------------
-      end,
-
+    end,
   },
 
   {

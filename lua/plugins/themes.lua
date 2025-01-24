@@ -16,23 +16,10 @@ return {
 
   -- the colorscheme should be available when starting Neovim
 
-  --[[{
-    "folke/tokyonight.nvim",
-    lazy = false,    -- make sure we load this during startup if it is your main colorscheme
-    priority = 1000, -- make sure to load this before all the other start plugins
-    --    opts = { style = "moon" },
-    config = function()
-      -- load the colorscheme here
-      vim.cmd([[colorscheme tokyonight]]--[[)
-    end,
-  },]]--
-
-  --[[
-  {
-    "catppuccin/nvim",
-    lazy = false,
+  --[[{ "catppuccin/nvim",
+    lazy = true,
     name = "catppuccin",
-    priority = 1000,
+    -- priority = 1000,
     opts = {
       integrations = {
         aerial = true,
@@ -71,7 +58,6 @@ return {
         which_key = true,
       },
     },
-    --[[
     specs = {
       {
         "akinsho/bufferline.nvim",
@@ -83,15 +69,13 @@ return {
         end,
       },
     },
-    ]]--
-    --[[
     -- Load the colorscheme
     config = function(_, opts)
       require'catppuccin'.setup(opts)
-      vim.cmd("colorscheme catppuccin")
+      -- vim.cmd("colorscheme catppuccin")
     end,
-  },
-  ]]--
+  },]]--
+
 
   { -- https://github.com/rose-pine/neovim
     "rose-pine/neovim",
@@ -178,33 +162,29 @@ return {
 
     config = function(_, opts)
       require('rose-pine').setup(opts)
-      --vim.cmd("colorscheme rose-pine")
-      --vim.cmd("colorscheme rose-pine-main")
-     --  vim.cmd("colorscheme rose-pine-moon")
-      --vim.cmd("colorscheme rose-pine-dawn")
     end,
   },
 
 
-  --[[
-{ -- You can easily change to a different colorscheme.
+  --[[{ -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+    lazy = true,
+    -- priority = 1000, -- Make sure to load this before all the other start plugins.
+    -- opts = { style = "moon" }, -- moon | day | storm
     init = function()
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      -- vim.cmd.colorscheme 'tokyonight-night'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
-},
-]] --
+  },]]--
 
 
 }

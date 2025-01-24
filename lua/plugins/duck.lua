@@ -21,9 +21,9 @@ return {
     { '<leader>dd', desc = "Cook All Ducks" },
   },
   config = function()
-    vim.keymap.set('n', '<leader>dd', function() require("duck").hatch() end, {desc = "Duck Hatch"})
+    vim.keymap.set('n', '<leader>dh', function() require("duck").hatch() end, {desc = "Duck Hatch"})
     vim.keymap.set('n', '<leader>dc', function() require("duck").cook() end, {desc = "Duck Cook"})
-    vim.keymap.set('n', '<leader>da', function() require("duck").cook_all() end, {desc = "Cook All Ducks"})
+    vim.keymap.set('n', '<leader>dd', function() require("duck").cook_all() end, {desc = "Cook All Ducks"})
   end,
 }
 

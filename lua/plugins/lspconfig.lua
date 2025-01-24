@@ -28,25 +28,36 @@ return {
           severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
         },
         signs = true,
-        update_in_insert = false,
+        update_in_insert = true,
         underline = true,
       })
 
+      -- vim.fn.sign_define("DiagnosticSignWarn", { text = "⚠️", texthl = "DiagnosticWarn" })  -- Warning icon
+      -- vim.fn.sign_define("DiagnosticSignError", { text = "❌", texthl = "DiagnosticError" })  -- Error icon
+      -- vim.fn.sign_define("DiagnosticSignHint", { text = "💡", texthl = "DiagnosticHint" })   -- Hint icon
+      -- vim.fn.sign_define("DiagnosticSignInfo", { text = "ℹ️", texthl = "DiagnosticInfo" })  -- Info icon
+      vim.fn.sign_define("DiagnosticSignWarn", { text = "W", texthl = "DiagnosticWarn" })  -- Warning icon
+      vim.fn.sign_define("DiagnosticSignError", { text = "E", texthl = "DiagnosticError" })  -- Error icon
+      vim.fn.sign_define("DiagnosticSignHint", { text = "H", texthl = "DiagnosticHint" })   -- Hint icon
+      vim.fn.sign_define("DiagnosticSignInfo", { text = "I", texthl = "DiagnosticInfo" })  -- Info icon
+
 
       local function ToggleWarnings()
-        local config = vim.diagnostic.config() -- Get the current config
+        local diag_conf = vim.diagnostic.config() -- Get the current config
 
-        if config.virtual_text.severity.min == vim.diagnostic.severity.INFO then
-          config.virtual_text.severity.min = vim.diagnostic.severity.ERROR
+        if diag_conf.virtual_text.severity.min == vim.diagnostic.severity.INFO then
+          diag_conf.virtual_text.severity.min = vim.diagnostic.severity.ERROR
+          vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticWarn" })  -- Warning icon
           print("LSP Warnings Disabled")
-        elseif config.virtual_text.severity.min == vim.diagnostic.severity.ERROR then
-          config.virtual_text.severity.min = vim.diagnostic.severity.INFO
+        elseif diag_conf.virtual_text.severity.min == vim.diagnostic.severity.ERROR then
+          diag_conf.virtual_text.severity.min = vim.diagnostic.severity.INFO
+          vim.fn.sign_define("DiagnosticSignWarn", { text = "W", texthl = "DiagnosticWarn" })  -- Warning icon
           print("LSP Warnings Enabled")
         else
           print("LSP Warnings NOT Toggled, because severity.min is other than ERROR or INFO")
         end
 
-        vim.diagnostic.config(config) -- Apply the modified config !!! (because the config value is immutable)
+        vim.diagnostic.config(diag_conf) -- Apply the modified config !!! (because the config value is immutable)
       end
 
       vim.keymap.set('n', '<leader>wt', function() ToggleWarnings() end,
@@ -158,6 +169,12 @@ return {
         },
       }
 
+      -- Because of ufo.nvim, we define some folding options here
+      M.capabilities.textDocument.foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true
+      }
+
       ----------------------------------------------------------------------
 
       -- Setup the language servers
@@ -218,6 +235,8 @@ return {
           "clangd",
           "--background-index", -- cache
           '--query-driver=**/clang++.exe', -- glob pattern for the compiler, so it loads its own std library implementation
+          -- '--query-driver=D:\\Program Files\\MSYS2\\mingw64\\bin\\clang++.exe',
+
 
           "--clang-tidy",
           -- Enable all performance-related checks for clang-tidy
@@ -226,8 +245,8 @@ return {
           --'--checks="*,clang-analyzer-optin.performance.GCDAntipattern,clang-analyzer-optin.performance.Padding"',
 
           --"--log=verbose", -- For Debugging
-          "--header-insertion=never", -- (iwyu: default | never) automatically inserting #include directives for missing headers when completing symbols
-          "--completion-style=detailed", -- (detailed: default(displays function signatures) | bundled(less detailed, only displays function, variable, etc))
+          -- "--header-insertion=never", -- (iwyu: default | never) automatically inserting #include directives for missing headers when completing symbols
+          -- "--completion-style=detailed", -- (detailed: default(displays function signatures) | bundled(less detailed, only displays function, variable, etc))
 
           --"-Wunused-include-directive", -- Dont show unused headed warnings
           --"--disable=clang-diagnostic-unused-include-directive", -- Dont show unused headed warnings

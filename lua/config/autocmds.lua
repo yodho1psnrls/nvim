@@ -1,3 +1,13 @@
+local util = require("utilities")
+
+
+--[[vim.api.nvim_create_autocmd("BufEnter", {
+  callback = function()
+    if vim.bo.buftype == "terminal" then
+      vim.cmd("setlocal bufhidden=wipe")
+    end
+  end,
+})]]--
 
 
 -- Stop centering on buffer cyclying (even with :bnext and :bprevious)
@@ -180,7 +190,8 @@ vim.api.nvim_create_autocmd({'VimEnter', 'DirChanged'}, {
   pattern = '*',
   callback = function()
     -- Check if the directory contains a .git folder and trigger lazy load
-    if vim.fn.isdirectory(vim.fn.expand('.git')) == 1 then
+    -- if vim.fn.isdirectory(vim.fn.expand('.git')) == 1 then
+    if vim.fn.isdirectory(util.get_project_root() .. '/.git') == 1 then
       require('lazy').load({ plugins = { 'gitsigns.nvim' } })
     end
   end,
@@ -202,6 +213,8 @@ end
 -- function signatures, or other useful info) when hovering over a symbol.
 --map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
 
+local is_ufo_popup_open = false
+
 --hover documentation to appear automatically after hovering
 --the cursor over a variable or function for a brief time
 -- vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
@@ -211,14 +224,21 @@ vim.api.nvim_create_autocmd("CursorHold", {
 
     -- Because of ufo popup we want to not reopen the popup (if already open)
     -- , because if we are scrolling in it, it will always reset to top
-    if is_popup_open() then
-      return
-    end
+    if is_popup_open() then return end
 
     local winid = require('ufo').peekFoldedLinesUnderCursor()
-    if not winid then
-      vim.lsp.buf.hover()
-    end
+    if not winid then vim.lsp.buf.hover() end
+
+    -- if not is_ufo_popup_open then
+    --   is_ufo_popup_open = require('ufo').peekFoldedLinesUnderCursor()
+    -- else
+    --   is_ufo_popup_open = false
+    -- end
+    --
+    -- if not is_ufo_popup_open then
+    --   vim.lsp.buf.hover()
+    -- end
+
   end,
 })
 

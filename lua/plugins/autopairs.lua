@@ -4,7 +4,7 @@
 -- NOTE: Alternative
 -- https://www.reddit.com/r/neovim/comments/167xgag/ultimateautopairnvim_nextgen_autopairing_plugin/
 -- https://github.com/altermo/ultimate-autopair.nvim
-  
+
 -- https://github.com/windwp/nvim-autopairs
 return {
   'windwp/nvim-autopairs',

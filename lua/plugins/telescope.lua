@@ -78,7 +78,7 @@ return {
           previewer = require("telescope.config").values.file_previewer(f_opts),
         }):find()
       end
-      vim.keymap.set('n', '<leader>fu', UnsavedBuffers, { desc = 'Find Unsaved Buffers' })
+      vim.keymap.set('n', '<leader>fu', UnsavedBuffers, { desc = 'telescope [U]nsaved buffers' })
       vim.api.nvim_create_user_command('UnsavedBuffers', UnsavedBuffers, { nargs = 0 })
 
 
@@ -308,14 +308,15 @@ return {
 
 
       -- telescope
-      vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", { desc = "telescope Live Grep" })
-      vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "telescope find buffers" })
-      vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "telescope help page" })
+      vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", { desc = "telescope [G]rep" })
+      vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "telescope [B]uffers" })
+      vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "telescope [H]elp page" })
       --vim.keymap.set("n", "<leader>ma", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
-      vim.keymap.set("n", "<leader>fm", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
-      vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "telescope find oldfiles" })
+      vim.keymap.set("n", "<leader>fm", "<cmd>Telescope marks<CR>", { desc = "telescope [M]arks" })
+      vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "telescope [O]ldfiles" })
       vim.keymap.set("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>",
-        { desc = "telescope find in current buffer" })
+        { desc = "telescope fu[Z]zy find" })
+        -- { desc = "telescope find in current buffer" })
 
       vim.keymap.set("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
       vim.keymap.set("n", "<leader>gs", "<cmd>Telescope git_status<CR>", { desc = "telescope git status" })
@@ -328,12 +329,12 @@ return {
       -- This is NvChad Specific
       --vim.keymap.set("n", "<leader>th", "<cmd>Telescope themes<CR>", { desc = "telescope nvchad themes" })
 
-      vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "telescope find files" })
+      vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "telescope [F]iles" })
       vim.keymap.set(
         "n",
         "<leader>fa",
         "<cmd>Telescope find_files follow=true no_ignore=true hidden=true<CR>",
-        { desc = "telescope find all files" }
+        { desc = "telescope [A]ll files" }
       )
       --[[vim.keymap.set("n", "<leader>fm", function()
         require("conform").format { lsp_fallback = true }
@@ -341,13 +342,13 @@ return {
 
       -- This doesnt save any buffers, nor tell you for unsaved buffers between switching sessions !
       vim.keymap.set("n", "<leader>fs", '<cmd>Telescope session-lens search_session<CR>',
-        { desc = "telescope session lens" })
+        { desc = "telescope [S]essions" })
 
       vim.keymap.set("n", "<leader>fj", '<cmd>Telescope jumplist<CR>',
         { desc = "telescope [J]umplist" })
 
       vim.keymap.set("n", "<leader>cs", '<cmd>Telescope colorscheme<CR>',
-        { desc = "telescope colorschemes" })
+        { desc = "color[S]chemes" })
       -- vim.keymap.set("n", "<leader>fc", '<cmd>Telescope colorscheme<CR>',
       --   { desc = "telescope [C]olorschemes" })
       -- vim.keymap.set("n", "<leader>ft", '<cmd>Telescope colorscheme<CR>',
@@ -357,11 +358,11 @@ return {
       -- https://www.reddit.com/r/neovim/comments/ypaq3e/lsp_find_reference_results_in_telescope/
       -- https://github.com/Slotos/telescope-lsp-handlers.nvim
       vim.keymap.set('n', '<leader>fr', function() require('telescope.builtin').lsp_references() end,
-        { noremap = true, silent = true, desc = "LSP Find References" })
+        { noremap = true, silent = true, desc = "LSP find [R]eferences" })
 
       -- https://github.com/parmardiwakar150/neovim-config/blob/main/lua/core/plugin_config/telescope.lua#L37
       vim.keymap.set('n', '<leader>ch', function() require('telescope.builtin').command_history() end,
-        { noremap = true, silent = true, desc = "Command History" })
+        { noremap = true, silent = true, desc = "Command [H]istory" })
     end,
   }
 

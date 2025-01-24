@@ -1,7 +1,36 @@
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
+local util = require("utilities")
 
---[[
+
+-- map('n', '<leader>oo', util.outline_cpp_inline_methods,
+map('n', '<leader>oo', util.move_current_fold_contents_after,
+  { desc = "[O]utline cpp inline methods", noremap = true, silent = true })
+
+map('n', '<leader>on', function ()
+  vim.cmd("edit " .. util.get_project_root() .. "/notes.txt")
+end, { desc = "Open [N]otes", noremap = true, silent = true })
+
+
+map("n", "<leader>fe", function()
+    local path = vim.fn.expand("%:p:h") -- Get the current file's directory
+    if path == "" then
+        path = vim.fn.getcwd() -- Fall back to the working directory
+    end
+    local cmd
+    if vim.loop.os_uname().sysname == "Windows_NT" then
+        cmd = "start explorer " .. vim.fn.shellescape(path) -- Windows
+    elseif vim.fn.has("mac") == 1 then
+        cmd = "open " .. vim.fn.shellescape(path) -- macOS
+    else
+        cmd = "xdg-open " .. vim.fn.shellescape(path) -- Linux | ensure xdg-open is installed
+    end
+    vim.fn.system(cmd)
+end, { noremap = true, silent = true, desc = "File [E]xplorer" })
+
+
+
+--[[-- Keymap Modes:
 Normal	n
 Visual	v
 Visual Line	V
@@ -24,11 +53,26 @@ Ex-Mode	!
 --  See `:help vim.keymap.set()`
 
 
-map('n', '<leader>q', '<cmd>q<CR>', { desc = 'Close Window', noremap = true, silent = true })
-map('n', '<leader>x', '<cmd>Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+map('n', '<leader>q', '<cmd>q<CR>', { desc = '[Q]uit Window', noremap = true, silent = true })
+-- map('n', '<leader>x', '<cmd>Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+map('n', '<leader>x', function ()
+  if vim.bo.buftype == 'terminal' then
+    require("bufdelete").bufdelete(0, true) -- Force close of terminal buffers
+  else
+    require("bufdelete").bufdelete(0, false)
+  end
+end, { noremap = true, silent = true, desc = "Buffer delete" })
 
 map('n', '<leader>cd', '<cmd>cd %:p:h<CR>', {desc = "Set cwd to current file", noremap = true })
-map("n", "<leader>m", "<cmd>messages<CR>", { desc = "Messages", noremap = true })
+
+-- map("n", "<leader>m", "<cmd>messages<CR>", { desc = "Messages", noremap = true })
+
+map("n", "<leader>m", function () -- <leader>wm
+  util.open_messages_in_buffer()
+  vim.keymap.set('n', '<leader>m' , function()
+    vim.cmd('Bdelete')
+    end, { buffer = 0, noremap = true, silent = true })
+end, { desc = "[M]essages in buffer", noremap = true, silent = true })
 
 
 --map('n', '<Tab>', '<C-o>', { noremap = true, silent = true, desc = "Go to next jump" })
@@ -109,10 +153,10 @@ map("v", "P", "p", opts)
 map({'n', 'v'}, 'x', '"_x', opts)
 map({'n', 'v'}, 'X', '"_X', opts)
 
-map("n", "s", '"_s', opts)
-map("n", "S", '"_S', opts)
-map("n", "c", '"_c', opts)
-map("n", "C", '"_C', opts)
+map({"n", "v"}, "s", '"_s', opts)
+map({"n", "v"}, "S", '"_S', opts)
+map({"n", "v"}, "c", '"_c', opts)
+map({"n", "v"}, "C", '"_C', opts)
 
 
 --==========================================================================--
@@ -156,7 +200,7 @@ vim.keymap.set("n", "<leader>n", function()
     require('nvim-tree.api').tree.toggle({ find_file = true, focus = true })
     --require('nvim-tree.api').tree.toggle({ find_file = true, focus = false })
   end,
-{ desc = "nvimtree toggle window" })
+{ desc = "[N]vimtree toggle window" })
 --map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus window" })
 
 

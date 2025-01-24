@@ -7,15 +7,15 @@ return {
     dependencies = "nvim-lua/plenary.nvim",
     --config = true,
     keys = { -- load the plugin only when using it's keybinding:
-      { "<leader>u", "<cmd>lua require('undotree').toggle()<cr>" },
+      -- { "<leader>u", "<cmd>lua require('undotree').toggle()<cr>" },
+      {"<leader>u", desc = "[U]ndo tree"}
     },
 
     config = function()
       local undotree = require('undotree')
 
-
       vim.keymap.set('n', '<leader>u', require('undotree').toggle,
-        { noremap = true, silent = true, desc = 'UndoTree Toggle' })
+        { noremap = true, silent = true, desc = '[U]ndo tree' })
 
 
       undotree.setup({
