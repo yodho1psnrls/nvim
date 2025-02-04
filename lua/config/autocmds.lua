@@ -67,13 +67,10 @@ vim.api.nvim_create_autocmd({'BufEnter', 'TermOpen'}, {
 
 vim.cmd("colorscheme rose-pine-moon")
 -- vim.cmd("colorscheme rose-pine-main")
+-- vim.cmd [[colorscheme tokyodark]]
+-- vim.cmd("colorscheme tokyonight-night") -- tokyonight-(storm/night) 
 
 
-
-vim.api.nvim_create_user_command("PrintBuffers", function()
-  local bufs = vim.fn.getbufinfo({ bufloaded = 1 })
-  vim.notify(vim.inspect(bufs), vim.log.levels.INFO)
-end, {})
 
 -- TODO: Make it such that when you open a new buffer
 --  if previously the only open buffer was empty buffer

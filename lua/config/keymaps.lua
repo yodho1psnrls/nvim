@@ -2,6 +2,14 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+map('n', '<leader>ss', function()
+  vim.cmd("Lazy load auto-session")
+  vim.cmd("SessionSave")
+end, { desc = "SessionSave", noremap = true, silent = true })
+
+map('n', '<leader>rt', function ()
+  print("Project Root: " .. util.get_project_root())
+end, { desc = "Project roo[T]", noremap = true, silent = true })
 
 -- map('n', '<leader>oo', util.outline_cpp_inline_methods,
 map('n', '<leader>oo', util.move_current_fold_contents_after,

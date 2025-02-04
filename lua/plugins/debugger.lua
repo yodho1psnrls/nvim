@@ -36,7 +36,7 @@ return {
     lazy = true,
 
     keys = { -- The key mappings that will trigger the loading
-      { '<leader>b', desc = "Set Breakpoint" },
+      { '<leader>b', desc = "Set [B]reakpoint" },
       { "<leader>lb", desc = "List [B]reakpoints" },
       -- { '<F5>', desc = "Run Debugger" },
     },

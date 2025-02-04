@@ -39,7 +39,7 @@ return {
       multiwindow = true,
 
       --max_lines = 0,          -- No limit on lines spanned
-      max_lines = 1,
+      max_lines = 1,  -- 3
 
       min_window_height = 0,  -- No limit on minimum window height
       line_numbers = true,

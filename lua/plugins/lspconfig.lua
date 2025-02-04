@@ -16,21 +16,55 @@ return {
   {
     "neovim/nvim-lspconfig",
 
+    dependencies = {
+      "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+      -- "maan2003/lsp_lines.nvim",
+    },
+
     config = function()
 
       -- Available Options: off, error, warn, info, debug, trace
       vim.lsp.set_log_level("ERROR") -- OFF | ERROR | WARN | INFO | DEBUG
       -- vim.lsp.set_log_level("trace") -- Verbose (For debugging code-lldb)
 
-
       vim.diagnostic.config({
-        virtual_text = {
-          severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
+        --virtual_text = {
+        --  severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
+        --},
+
+        virtual_text = false,
+        -- virtual_lines = true,
+        virtual_lines = {
+          only_current_line = false,    -- true
+          highlight_whole_line = false, -- false
+          --mode = "n",
+
+          --[[format = function (diagnostic)
+            -- return string.format("[%s] %s", vim.diagnostic.severity[diagnostic.severity], diagnostic.message)
+            return "Slqlqlq " .. diagnostic.message
+          end,]]--
         },
-        signs = true,
+
+        signs = true, -- true
         update_in_insert = true,
         underline = true,
+        severity_sort = true,
+
+        severity = {
+          -- min = vim.diagnostic.severity.ERROR, -- HINT | INFO | WARN | ERROR
+          min = nil,
+        },
+
+        -- format = function (_) return vim.diagnostic.message end,
+
+        --[[format = function(diagnostic)
+          if type(diagnostic) ~= "table" or type(diagnostic.message) ~= "string" then
+            return "" 
+          end
+          return diagnostic.message:gsub("^%w+: ", "") -- Remove diagnostic.code
+        end,]]--
       })
+
 
       -- vim.fn.sign_define("DiagnosticSignWarn", { text = "⚠️", texthl = "DiagnosticWarn" })  -- Warning icon
       -- vim.fn.sign_define("DiagnosticSignError", { text = "❌", texthl = "DiagnosticError" })  -- Error icon
@@ -44,17 +78,21 @@ return {
 
       local function ToggleWarnings()
         local diag_conf = vim.diagnostic.config() -- Get the current config
+        if diag_conf == nil then return end
 
-        if diag_conf.virtual_text.severity.min == vim.diagnostic.severity.INFO then
-          diag_conf.virtual_text.severity.min = vim.diagnostic.severity.ERROR
-          vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticWarn" })  -- Warning icon
+        -- if diag_conf.virtual_text.severity.min == nil then
+        if diag_conf.severity.min == nil then
+          -- diag_conf.virtual_text.severity.min = vim.diagnostic.severity.ERROR
+          diag_conf.severity.min = vim.diagnostic.severity.ERROR
+          -- vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticWarn" })  -- Warning icon
           print("LSP Warnings Disabled")
-        elseif diag_conf.virtual_text.severity.min == vim.diagnostic.severity.ERROR then
-          diag_conf.virtual_text.severity.min = vim.diagnostic.severity.INFO
-          vim.fn.sign_define("DiagnosticSignWarn", { text = "W", texthl = "DiagnosticWarn" })  -- Warning icon
-          print("LSP Warnings Enabled")
+        -- elseif diag_conf.virtual_text.severity.min == vim.diagnostic.severity.ERROR then
         else
-          print("LSP Warnings NOT Toggled, because severity.min is other than ERROR or INFO")
+          -- diag_conf.virtual_text.severity.min = vim.diagnostic.severity.INFO
+          -- diag_conf.virtual_text.severity.min = nil
+          diag_conf.severity.min = nil
+          -- vim.fn.sign_define("DiagnosticSignWarn", { text = "W", texthl = "DiagnosticWarn" })  -- Warning icon
+          print("LSP Warnings Enabled")
         end
 
         vim.diagnostic.config(diag_conf) -- Apply the modified config !!! (because the config value is immutable)

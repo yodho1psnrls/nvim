@@ -227,23 +227,23 @@ return {
 
         pre_save_cmds = {
           -- save_nvim_tree_state,
-          save_severity_min,
+          -- save_severity_min,
 
-          function()
+          --[[function()
             for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
               if not vim.bo[bufnr].buflisted then
               -- if vim.bo.bufhidden or not vim.bo.buflisted then
                 vim.cmd("bdelete " .. bufnr)
               end
             end
-          end,
+          end,]]--
 
         },
 
         post_restore_cmds = {
           "rshada",
           -- load_nvim_tree_state,
-          load_severity_min,
+          -- load_severity_min,
         },
 
 

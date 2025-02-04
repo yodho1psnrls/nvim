@@ -152,7 +152,8 @@ return {
         shortcut = {
 
           {
-            desc = '⏫ Update', --'󰊳 Update' 🔄 🔃 🔗 ⬆️ ⏫ 🔼 📈
+            -- desc = '⏫ Update', --'󰊳 Update' 🔄 🔃 🔗 ⬆️ ⏫ 🔼 📈
+            desc = 'Update',
             group = '@property',
             action = 'Lazy update',
             key = 'u'
@@ -160,8 +161,10 @@ return {
 
           -- Add your custom shortcut to open the Neovim config folder
           {
-            desc = '⚙️  Config', -- Description of the shortcut 🔧
+            -- desc = '⚙️  Config', -- Description of the shortcut 🔧
+            desc = 'Config',
             group = '@property', -- Highlight group for the text
+            -- group = 'DiagnosticHint',
             action = 'cd ~/AppData/Local/nvim | edit .', -- Action to open the config folder
             key = 'c', -- Shortcut key (in this case, 'c')
           },
@@ -169,7 +172,8 @@ return {
           --NEW PROJECT Shortcut
           {
             --desc = 'New Project',               -- Description for the new project option
-            desc = '➕ New',
+            -- desc = '➕ New',
+            desc = "New",
             group = 'DashboardPureWhite',       -- Highlight group
             action = ':lua CreateNewProject()', -- Lua function to handle project creation
             key = 'n',                          -- Shortcut key for the action
@@ -203,7 +207,8 @@ return {
 ]] --
 
           {
-            desc = '💾 Sessions',
+            -- desc = '💾 Sessions',
+            desc = 'Sessions',
             --group = 'Label',
             group = 'DashboardSessions',
             -- Open Telescope session-lens to search sessions
@@ -226,7 +231,8 @@ return {
           },
           ]] --
           {
-            desc = '🧹 Free',
+            -- desc = '🧹 Free',
+            desc = 'Free',
             group = 'DiagnosticHint',
             action = function()
               ClearCache()

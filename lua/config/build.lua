@@ -35,8 +35,8 @@
 
 -------------------------------------------------------------------------
 
-local function print_with_time(mes)
-  print("[" .. os.date("%H:%M:%S") .. "] " .. mes)
+local function prepend_time(mes)
+  return "[" .. os.date("%H:%M:%S") .. "] " .. mes
 end
 
 local util = require"utilities"
@@ -123,29 +123,29 @@ function BuildCmakeConfig(config_name, on_success_callback)
     if data and #data > 0 then
       -- Print standard output messages
       print(table.concat(data, "\n"))
-      -- vim.cmd("messages")
     end
   end,
 
   on_stderr = function(_, data)
     if data and #data > 1 then
       print("Error during build:\n" .. table.concat(data, "\n"))
-      vim.cmd("messages")
     end
   end,
 
   on_exit = function(_, exit_code)
+    local msg = ""
     if exit_code ~= 0 then
-      print_with_time("Build failed with exit code: " .. exit_code)
-      -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ???
+      msg = "Build failed with exit code: " .. exit_code
+      -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ??? (IT IS BECAUSE THE KEYMAP THAT CALLS THIS FUNCTION IS SILENT !!!)
       util.open_messages_in_buffer()
     else
       if on_success_callback then
-        print_with_time("Build exited with code: " .. exit_code)
+        msg = "Build exited with code: " .. exit_code
         on_success_callback()
       end
     end
     -- on_exit_callback(exit_code)
+    print(prepend_time(msg));
 
     if last_cwd ~= root then vim.cmd('cd ' .. last_cwd) end
     -- vim.defer_fn(function() vim.cmd('messages') end, 5000) -- same as above, but with delay
@@ -163,7 +163,7 @@ function LaunchDapConfig(filetype, config_name)
       return
     end
   end
-  print ("No " .. config_name .. "configuration for " .. filetype)
+  print("No " .. config_name .. "configuration for " .. filetype)
 end
 
 
@@ -173,7 +173,7 @@ end
 function BuildAndRunCpp()
 -- function BuildAndRunCpp(exit_code)
   -- if exit_code ~= 0 then return end
-  print_with_time("Building and Running Cpp ...")
+  print(prepend_time("Building and Running Cpp ..."))
   -- BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
   BuildCmakeConfig('Release', function()
     vim.cmd('12split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')
@@ -185,7 +185,7 @@ end
 
 function BuildAndDebugCpp()
 -- function BuildAndDebugCpp(_)
-  print_with_time("Building and Debugging Cpp ...")
+  print(prepend_time("Building and Debugging Cpp ..."))
   BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Project') end)
 end
 
@@ -193,9 +193,10 @@ end
 function BuildAndRunCppTest()
 -- function BuildAndRunCppTest(exit_code)
   -- if exit_code ~= 0 then return end
-  print_with_time("Building and Running Cpp Tests ...")
+  print(prepend_time("Building and Running Cpp Tests ..."))
   BuildCmakeConfig('Release', function()
     vim.cmd('16split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj_test.exe')
+    vim.cmd("normal! G")
     -- if vim.api.nvim_get_mode().mode ~= 't' then
     --   vim.api.nvim_input('i')
     -- end
@@ -204,7 +205,7 @@ end
 
 function BuildAndDebugCppTest()
 -- function BuildAndDebugCppTest(_)
-  print_with_time("Building and Debugging Cpp Tests ...")
+  print(prepend_time("Building and Debugging Cpp Tests ..."))
   BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Test') end)
 end
 
@@ -246,7 +247,7 @@ end]]--
 
 
 function BuildAndRunPython()
-  print_with_time("Running Python ...")
+  print(prepend_time("Running Python ..."))
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
   vim.cmd('12split | term python %')
@@ -260,7 +261,7 @@ function BuildAndRunPython()
 end
 
 function BuildAndDebugPython()
-  print_with_time("Debugging Python ...")
+  print(prepend_time("Debugging Python ..."))
   -- require('dap').continue()
   LaunchDapConfig('python', 'file')
 end
@@ -375,7 +376,7 @@ local function Start(type, what, mode)
   -- Why it defaults to test when i use it on a terminal ?
   what = what or search_folder_names_above_file({"src", "test"}) or "src"
 
-  print(search_folder_names_above_file({what}))
+  -- print(search_folder_names_above_file({what}))
 
   if not mode then
     -- https://vi.stackexchange.com/questions/10167/is-there-a-way-that-i-can-identify-which-window-is-a-terminal-after-calling-the
@@ -418,12 +419,27 @@ local function Start(type, what, mode)
 end
 
 
+-- NOTE:
+-- The keymaps may be silent by default
+-- and thats why the on_error vim.cmd("messages")
+-- doesnt open the messages
+
+
 -- vim.keymap.set('n', '<F4>', function() Start("test") end )
 -- vim.keymap.set('n', '<F5>', function() Start("src") end )
-vim.keymap.set('n', '<F4>', function() Start(nil, nil, 'run') end )
-vim.keymap.set('n', '<F5>', function() Start(nil, nil, 'debug') end ) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
-vim.keymap.set('n', '<F6>', function() GenerateCMake() end)     -- Only for CPP
+vim.keymap.set('n', '<F4>', function() Start(nil, nil, 'run') end, {silent = false})
+vim.keymap.set('n', '<F5>', function() Start(nil, nil, 'debug') end, {silent = false}) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
+vim.keymap.set('n', '<F6>', function() GenerateCMake() end, {silent = false})     -- Only for CPP
 
+
+vim.api.nvim_create_user_command("Run", function() Start(nil, 'src', 'run') end, {})
+vim.api.nvim_create_user_command("Test", function() Start(nil, 'test', 'run') end, {})
+vim.api.nvim_create_user_command("Debug", function() Start(nil, nil, 'debug') end, {})
+vim.api.nvim_create_user_command("DebugSrc", function() Start(nil, 'src', 'debug') end, {})
+vim.api.nvim_create_user_command("DebugTest", function() Start(nil, 'test', 'debug') end, {})
+
+vim.api.nvim_create_user_command("Gen", function() GenerateCMake() end, {})
+vim.api.nvim_create_user_command("Generate", function() GenerateCMake() end, {})
 
 
 

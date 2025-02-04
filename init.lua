@@ -36,6 +36,7 @@ require("lazy").setup("plugins")
 -- Load additional configurations
  -- require "config.options"
 require "config.autocmds"
+require "config.commands"
 --require "config.mappings"
 require "config.border"
 

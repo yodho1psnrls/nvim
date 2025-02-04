@@ -18,8 +18,8 @@ vim.o.foldmethod = 'expr'     -- With LSP
 vim.o.foldexpr = 'v:lua.vim.lsp._get_fold_level()'
 
 -- vim.o.signcolumn = 'no' -- Hide the sign column
--- vim.o.signcolumn = 'auto'
-vim.o.signcolumn = 'auto' -- Hide the sign column
+vim.o.signcolumn = 'auto' -- Hide the sign column, when not needed
+-- vim.o.signcolumn = 'yes'
 -- vim.o.signcolumn = 'number' -- Draw Signs in the number column
 
 --vim.o.fillchars = 'fold: '
