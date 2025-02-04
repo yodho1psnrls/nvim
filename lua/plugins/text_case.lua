@@ -15,8 +15,9 @@ return {
 
     dependencies = { "nvim-telescope/telescope.nvim" },
     keys = {
-      "ga", -- Default invocation prefix
-      { "ga.", "<cmd>TextCaseOpenTelescope<CR>", mode = { "n", "x" }, desc = "Telescope" },
+      -- {"ga", desc = "Text Case Open Telescope ..."}, -- Default invocation prefix
+      { "ga" },
+      { "ga.", "<cmd>TextCaseOpenTelescope<CR>", mode = { "n", "x" }, desc = "TextCase Open Telescope" },
     },
     cmd = {
       -- NOTE: The Subs command name can be customized via the option "substitude_command_name"

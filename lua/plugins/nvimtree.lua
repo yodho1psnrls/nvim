@@ -12,6 +12,8 @@
 -- r to move a file, by just giving it another directory
 -- a to add a new file in the directory that your cursor is in
 
+-- local util = require("utilities")
+
 return {
 
   --  { "nvim-tree/nvim-web-devicons" }, -- it is a dependancy for other plugins
@@ -25,6 +27,16 @@ return {
 
     -- It will be lazy loaded on '<leader>n'
     -- See lua/config/keymaps.lua
+
+    keys = {
+      {"<leader>n", desc = "[N]vimtree toggle"},
+    },
+    cmd = {
+      "NvimTreeOpen",
+      "NvimTreeToggle",
+      "NvimTreeFocus",
+      "NvimTreeFindFile",
+    },
 
     dependencies = {
       "nvim-tree/nvim-web-devicons",
@@ -44,7 +56,7 @@ return {
       },
 
       view = {
-        width = 24,
+        width = 26, -- 24
         -- width = 32,
         side = "left",
         signcolumn = "no",
@@ -134,6 +146,66 @@ return {
   config = function(_, opts)
 
     vim.cmd("highlight! NvimTreeOpenedFiles guibg=#2a273f guifg=#e0def4")
+
+    --======================================================================--
+
+    --map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
+    -- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
+    vim.keymap.set("n", "<leader>n", function()
+        require('nvim-tree.api').tree.toggle({ find_file = true, focus = true })
+        --require('nvim-tree.api').tree.toggle({ find_file = true, focus = false })
+        -- if util.is_loaded("symbols-outline") then
+        --   vim.cmd("SymbolsOutlineClose")
+        -- end
+      end,
+    { desc = "[N]vimtree toggle" })
+    --map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "nvimtree focus" })
+
+
+    -- Keymap to jump to the folder containing the current file under cursor
+    --[[vim.keymap.set("n", "<leader>ft", function()
+      local api = require("nvim-tree.api")
+      local node = api.tree.get_node_under_cursor()
+      if node and node.type == "file" and node.parent then
+        api.tree.toggle(node.parent) -- Toggle the parent folder open
+        api.tree.focus(node.parent) -- Move the cursor to the parent folder
+      end
+    end, { desc = "Jump to the folder containing current file", silent = true })]]--
+
+
+    -- Keymap to collapse the folder containing the current file
+    vim.keymap.set("n", "<leader>fd", function()
+      local api = require("nvim-tree.api")
+      local node = api.tree.get_node_under_cursor()
+      if node and node.parent and not node.nodes then
+        api.node.navigate.parent_close()
+      end
+    end, { desc = "Collapse folder containing current file", silent = true })
+
+    -- Toggle-able Keymap to toggle the folder containing the current file
+    --[[vim.keymap.set("n", "<leader>tf", function()
+      local api = require("nvim-tree.api")
+      local node = api.tree.get_node_under_cursor()
+      if not node then return end
+
+      -- Check if the cursor is over a folder and toggle its state
+      if node.type == "directory" then
+        if node.open then
+          api.node.navigate.parent_close()
+        else
+          api.node.open.edit()
+        end
+      elseif node.parent then
+        -- For a file, toggle its parent folder
+        if node.parent.open then
+          api.node.navigate.parent_close()
+        else
+          api.node.open.edit()
+        end
+      end
+    end, { desc = "Toggle folder containing current file", silent = true })]]--
+
+    --======================================================================--
 
     require'nvim-tree'.setup(opts)
 

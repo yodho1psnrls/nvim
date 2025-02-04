@@ -16,6 +16,7 @@ return {
   {
     "neovim/nvim-lspconfig",
 
+    -- These are not dependencies, but we want them to be lazy loaded with lspconfig
     dependencies = {
       "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
       -- "maan2003/lsp_lines.nvim",

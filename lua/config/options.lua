@@ -1,5 +1,9 @@
 ----------------------------- KICKSTARTER -----------------------------------------
 
+-- If you never want Neovim's Python settings
+-- This disables all built-in filetype settings, not just Python
+-- vim.g.did_load_filetypes = 1
+-- vim.g.did_load_ftplugin = 1
 
 
 -- Folding options

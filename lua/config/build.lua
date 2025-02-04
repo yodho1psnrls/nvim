@@ -177,6 +177,7 @@ function BuildAndRunCpp()
   -- BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
   BuildCmakeConfig('Release', function()
     vim.cmd('12split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')
+    vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
     if vim.api.nvim_get_mode().mode ~= 't' then
       vim.api.nvim_input('i')
     end
@@ -251,6 +252,7 @@ function BuildAndRunPython()
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
   vim.cmd('12split | term python %')
+  vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
   --vim.cmd('term python %')
 
   if vim.api.nvim_get_mode().mode ~= 't' then

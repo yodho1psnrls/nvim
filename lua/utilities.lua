@@ -65,6 +65,17 @@ function M.safe_require(module_name)
 end
 
 
+function M.is_loaded(plugin_name)
+  local lazy = require("lazy")
+  for _, plugin in pairs(lazy.plugins()) do
+    if plugin.name == plugin_name then
+      return plugin._.loaded == true
+    end
+  end
+  return false
+end
+
+
 -- https://www.rapidtables.com/web/color/RGB_Color.html
 vim.api.nvim_set_hl(0, "CustomMessagesHighlight", {
   fg = "#CDB29B",

@@ -13,6 +13,31 @@
 -- I want it to stay the same scroll position as it was in the last
 -- opened valid buffer that i was in
 
+local util = require("utilities")
+
+
+local function get_current_buffer_name()
+  local bufname = vim.api.nvim_buf_get_name(0)  -- Get full file path
+  if bufname == "" then
+    return "[No Name]"  -- Handle empty buffers
+  end
+  return vim.fn.fnamemodify(bufname, ":t")  -- Get only the file name
+end
+
+
+local function get_symbols_outline_shown_buffer()
+  local so = util.safe_require("symbols-outline")
+  if not so then return end
+  -- This gives the symbols-outline buffer, not the buffer that it shows the symbols of
+  local buf = so.view.bufnr
+  if buf then
+    return vim.api.nvim_buf_get_name(buf)
+  else
+    return "[No Buffer Shown]"
+  end
+end
+
+
 return {
   {
     'akinsho/bufferline.nvim',
@@ -97,6 +122,10 @@ return {
           return time_a > time_b -- Sort descending by last written time
         end,
 
+        -- TODO: Fix the border separator to show up on the tabline,
+        --        so the whole border is seamless
+
+        -- Use ":set filetype?" to see the filetype
         offsets = {
           {
             filetype = "NvimTree",
@@ -108,14 +137,42 @@ return {
             highlight = "Directory",
             text_align = "left",  -- left, center, right
 
-            -- TODO: Fix the border separator to show up on the tabline,
-            --        so the whole border is seamless
-
-            padding = 1, -- bufferline offset beyond the window width
+            padding = 0, -- bufferline offset beyond the window width
             offset_separator = true, -- a highlight for vertical split (a string or a boolean(which is default if set to true))
             --offset_separator = '|', -- This doesnt seem to work
             --separator == true,
-          }
+          },
+          {
+            filetype = "Outline",
+
+            text = "Symbols Outline",
+            -- text = function() return "└" .. get_current_buffer_name() end,
+            -- text = function() return " " .. get_current_buffer_name() end,
+            -- text = function() return " " .. get_symbols_outline_shown_buffer() end,
+
+            -- highlight = "CustomMessagesHighlight",
+            -- highlight = "WarningMsg",
+            highlight = "Comment", -- FocusedSymbol | Pmenu | SymbolsOutlineConnector | Comment
+            -- highlight = { gui = 'underline', link = 'WarningMsg' },
+
+            text_align = "center",  -- left, center, right
+
+            padding = 0, -- bufferline offset beyond the window width
+            offset_separator = true, -- a highlight for vertical split (a string or a boolean(which is default if set to true))
+            --offset_separator = '|', -- This doesnt seem to work
+            --separator == true,
+          },
+          {
+            filetype = "undotree",
+            text = "UndoTree",
+            highlight = "Comment",
+            text_align = "center",  -- left, center, right
+
+            padding = 0, -- bufferline offset beyond the window width
+            offset_separator = true, -- a highlight for vertical split (a string or a boolean(which is default if set to true))
+            --offset_separator = '|', -- This doesnt seem to work
+            --separator == true,
+          },
         },
 
         --[[style_preset = {
