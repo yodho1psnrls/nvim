@@ -35,6 +35,17 @@ return {
           ['<cr>'] = "action_enter",
           ['p'] = "enter_diffbuf",
           ['q'] = "quit",
+
+          -- Forbid left and right movement
+          --[[
+          ['h'] = "noop",
+          ['l'] = "noop",
+          ['<Left>'] = "noop",
+          ['<Right>'] = "noop",
+          ['w'] = "noop",
+          ['e'] = "noop",
+          ['b'] = "noop",
+          ]]--
         },
       })
     end,

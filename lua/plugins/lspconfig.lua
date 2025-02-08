@@ -34,17 +34,19 @@ return {
         --},
 
         virtual_text = false,
+        virtual_lines = true,
+
         -- virtual_lines = true,
-        virtual_lines = {
+        --[[virtual_lines = {
           only_current_line = false,    -- true
           highlight_whole_line = false, -- false
           --mode = "n",
 
-          --[[format = function (diagnostic)
-            -- return string.format("[%s] %s", vim.diagnostic.severity[diagnostic.severity], diagnostic.message)
-            return "Slqlqlq " .. diagnostic.message
-          end,]]--
-        },
+          -- format = function (diagnostic)
+          --   -- return string.format("[%s] %s", vim.diagnostic.severity[diagnostic.severity], diagnostic.message)
+          --   return "Slqlqlq " .. diagnostic.message
+          -- end,
+        },]]--
 
         signs = true, -- true
         update_in_insert = true,
@@ -82,16 +84,14 @@ return {
         if diag_conf == nil then return end
 
         -- if diag_conf.virtual_text.severity.min == nil then
-        if diag_conf.severity.min == nil then
+        if diag_conf.virtual_text.severity.min == vim.diagnostic.severity.WARN then
           -- diag_conf.virtual_text.severity.min = vim.diagnostic.severity.ERROR
-          diag_conf.severity.min = vim.diagnostic.severity.ERROR
+          diag_conf.virtual_text.severity.min = vim.diagnostic.severity.ERROR
           -- vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticWarn" })  -- Warning icon
           print("LSP Warnings Disabled")
         -- elseif diag_conf.virtual_text.severity.min == vim.diagnostic.severity.ERROR then
-        else
-          -- diag_conf.virtual_text.severity.min = vim.diagnostic.severity.INFO
-          -- diag_conf.virtual_text.severity.min = nil
-          diag_conf.severity.min = nil
+        elseif diag_conf.virtual_text.severity.min == vim.diagnostic.severity.ERROR then
+          diag_conf.virtual_text.severity.min = vim.diagnostic.severity.WARN
           -- vim.fn.sign_define("DiagnosticSignWarn", { text = "W", texthl = "DiagnosticWarn" })  -- Warning icon
           print("LSP Warnings Enabled")
         end
@@ -101,6 +101,26 @@ return {
 
       vim.keymap.set('n', '<leader>wt', function() ToggleWarnings() end,
         { noremap = true, silent = true, desc = 'Warnings Toggle' })
+
+
+      local function ToggleSigns()
+        -- LSP Diagnostic Signs Only
+        --[[local diag_conf = vim.diagnostic.config()
+        if not diag_conf then return end
+        diag_conf.signs = not diag_conf.signs
+        vim.diagnostic.config(diag_conf)
+        print("Signs Toggled")]]--
+        if vim.o.signcolumn == "auto" then
+          vim.o.signcolumn = "no"
+          print ("Sign column hidden")
+        elseif vim.o.signcolumn == "no" then
+          vim.o.signcolumn = "auto"
+          print ("Sign column visible")
+        end
+      end
+
+      vim.keymap.set('n', '<leader>sg', function() ToggleSigns() end,
+        { noremap = true, silent = true, desc = 'Signs Toggle' })
 
 
       -- BUILT IN NEOVIM DIAGNOSTICS WINDOW ------------------------------------------------------------

@@ -60,7 +60,12 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
     lazy = true,
-    keys = { '<leader>rr', },
+    keys = {
+      {'<leader>rr', desc = "Refactor" },
+    },
+    cmd = {
+      'Refactor',
+    },
     config = function()
 
       -- No matter which configuration option you use,
@@ -100,7 +105,8 @@ return {
       vim.keymap.set(
         { "n", "x" },
         "<leader>rr",
-        function() require('telescope').extensions.refactoring.refactors() end
+        function() require('telescope').extensions.refactoring.refactors() end,
+        {desc = "Refactor", silent = true, noremap = true}
       )
 
     end,

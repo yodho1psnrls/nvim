@@ -2,6 +2,15 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+map("n", "<leader>lz", "<cmd>Lazy<CR>",
+  {desc = "Open Lazy", noremap = true, silent = true})
+
+map({"n", "v"}, "<S-h>", "20zh", { noremap = true, silent = true })
+map({"n", "v"}, "<S-l>", "20zl", { noremap = true, silent = true })
+map({"n", "v"}, "<S-j>", "<S-Down>", { noremap = true, silent = true })
+map({"n", "v"}, "<S-k>", "<S-Up>", { noremap = true, silent = true })
+
+
 map('n', '<leader>ss', function()
   vim.cmd("Lazy load auto-session")
   vim.cmd("SessionSave")

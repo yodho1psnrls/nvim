@@ -176,7 +176,7 @@ function BuildAndRunCpp()
   print(prepend_time("Building and Running Cpp ..."))
   -- BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
   BuildCmakeConfig('Release', function()
-    vim.cmd('12split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')
+    vim.cmd('10split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')--12split
     vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
     if vim.api.nvim_get_mode().mode ~= 't' then
       vim.api.nvim_input('i')
@@ -196,7 +196,7 @@ function BuildAndRunCppTest()
   -- if exit_code ~= 0 then return end
   print(prepend_time("Building and Running Cpp Tests ..."))
   BuildCmakeConfig('Release', function()
-    vim.cmd('16split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj_test.exe')
+    vim.cmd('14split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj_test.exe')
     vim.cmd("normal! G")
     -- if vim.api.nvim_get_mode().mode ~= 't' then
     --   vim.api.nvim_input('i')
@@ -251,7 +251,7 @@ function BuildAndRunPython()
   print(prepend_time("Running Python ..."))
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
-  vim.cmd('12split | term python %')
+  vim.cmd('10split | term python %') -- 12split
   vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
   --vim.cmd('term python %')
 

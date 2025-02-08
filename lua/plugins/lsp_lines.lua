@@ -32,10 +32,10 @@ return {
       local lsp_lines = require("lsp_lines")
       lsp_lines.setup()
 
-      local is_enabled = true
+      -- local is_enabled = true
       vim.keymap.set("n", "<leader>ll", function()
         lsp_lines.toggle()
-        is_enabled = not is_enabled
+        -- is_enabled = not is_enabled
       end, { desc = "Toggle lsp_lines" })
 
       -- local last_virtual_lines = vim.diagnostic.virtual_lines
