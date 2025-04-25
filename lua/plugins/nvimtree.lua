@@ -56,7 +56,7 @@ return {
       },
 
       view = {
-        width = 26, -- 24
+        width = 24, -- 24
         -- width = 32,
         side = "left",
         signcolumn = "no",

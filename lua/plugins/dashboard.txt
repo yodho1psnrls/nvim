@@ -179,7 +179,7 @@ return {
             key = 'n',                          -- Shortcut key for the action
           },
 
-          --[[
+    --[[
 		{
         --desc = 'Last Session',
         desc = 'Restore',
@@ -193,10 +193,10 @@ return {
 		--key = '<Esc>',  -- Use the Esc key
         key = 'r',
 		},
-	]] --
+		]] --
 
-          --[[
-          {
+        --[[
+        {
           icon = ' ',
           icon_hl = '@variable',
           desc = 'Files',
@@ -204,7 +204,7 @@ return {
           action = 'Telescope find_files',
           key = 'f',
         },
-]] --
+				]] --
 
           {
             -- desc = '💾 Sessions',
@@ -309,11 +309,10 @@ return {
           action = 'Telescope find_files cwd=', -- Action when selecting a recent file
         },
 
-
-        footer = {
+        --[[footer = {
           --	'Your custom footer message here.',
           --	'Another line for footer if needed.'
-        },
+        },]]--
 
       },
 

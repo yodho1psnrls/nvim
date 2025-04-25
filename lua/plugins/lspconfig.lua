@@ -28,19 +28,23 @@ return {
       vim.lsp.set_log_level("ERROR") -- OFF | ERROR | WARN | INFO | DEBUG
       -- vim.lsp.set_log_level("trace") -- Verbose (For debugging code-lldb)
 
+      -- TODO: Make the virtual_lines to show only ERRORs
+      -- and the virtual_text, signs and rest make them to show
+      -- to other stuff
+
       vim.diagnostic.config({
+
+        virtual_text = false,
         --virtual_text = {
         --  severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
         --},
 
-        virtual_text = false,
         virtual_lines = true,
-
-        -- virtual_lines = true,
         --[[virtual_lines = {
           only_current_line = false,    -- true
           highlight_whole_line = false, -- false
           --mode = "n",
+          -- severity = { min = vim.diagnostic.severity.ERROR }
 
           -- format = function (diagnostic)
           --   -- return string.format("[%s] %s", vim.diagnostic.severity[diagnostic.severity], diagnostic.message)
@@ -49,14 +53,14 @@ return {
         },]]--
 
         signs = true, -- true
-        update_in_insert = true,
         underline = true,
+        update_in_insert = true,
         severity_sort = true,
 
-        severity = {
-          -- min = vim.diagnostic.severity.ERROR, -- HINT | INFO | WARN | ERROR
-          min = nil,
-        },
+        -- severity = {
+          -- min = vim.diagnostic.severity.WARN, -- HINT | INFO | WARN | ERROR
+          -- min = nil,
+        -- },
 
         -- format = function (_) return vim.diagnostic.message end,
 
@@ -271,9 +275,25 @@ return {
               useLibraryCodeForTypes = true,
             },
           },
+          -- Installed pylsp_inlay_hints extension
+          -- Also installed pylsp-rope
+          -- pylsp = {
+          --   plugins = {
+          --     pylsp_inlay_hints = {
+          --       enabled = true,
+          --     },
+          --   },
+          -- },
         },
       })
 
+      -- NOTE: inlay-hints support for clangd
+      -- require("lspconfig").clangd.setup({
+      --   cmd = { "clangd", "--inlay-hints", "--header-insertion=never" },
+      --   on_attach = function(client, bufnr)
+      --     require("lsp-inlayhints").on_attach(client, bufnr)
+      --   end,
+      -- })
 
       -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#clangd
       --lspconfig.clangd.setup{}
@@ -303,6 +323,8 @@ return {
           -- Or you can enable performance related checks one by one
           --'--checks="*,clang-analyzer-optin.performance.GCDAntipattern,clang-analyzer-optin.performance.Padding"',
 
+          "--completion-style=detailed", -- To support Inlay Hints
+
           --"--log=verbose", -- For Debugging
           -- "--header-insertion=never", -- (iwyu: default | never) automatically inserting #include directives for missing headers when completing symbols
           -- "--completion-style=detailed", -- (detailed: default(displays function signatures) | bundled(less detailed, only displays function, variable, etc))
@@ -324,8 +346,9 @@ return {
         -- $env:CLANGD_INDEX_STORAGE_PATH = "C:\path\to\custom\cache" (powershell)
 
         root_dir = function(fname)
-          return util.find_git_ancestor(fname) or vim.fn.getcwd()
-        end,
+          return util.find_git_ancestor(fname) or vim.fn.getcwd() -- Deprecated
+          -- return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
+				end,
 
         --root_dir = function(fname)
         --  return util.root_pattern('compile_commands.json', '.git')(fname)
@@ -336,6 +359,14 @@ return {
         --},
 
       }
+
+
+			-- JavaScript/TypeScript
+			-- lspconfig.tsserver.setup {}
+			lspconfig.ts_ls.setup {}
+
+			-- CSS
+			lspconfig.cssls.setup {}
 
 
       --[[

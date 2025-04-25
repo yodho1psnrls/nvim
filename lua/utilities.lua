@@ -106,6 +106,12 @@ local function get_window_state()
   return state
 end
 
+function M.close_messages_buffer()
+  vim.cmd('nohlsearch')
+  -- vim.cmd('match none')
+  vim.cmd('call clearmatches()')
+  vim.cmd('Bdelete')
+end
 
 function M.open_messages_in_buffer()
   -- vim.cmd("enew")
@@ -148,14 +154,35 @@ function M.open_messages_in_buffer()
   vim.cmd("setlocal scrolloff=" .. half_height)
 
   -- vim.keymap.set('n', '<Space>' , "<cmd>Bdelete<CR>", { buffer = 0, noremap = true, silent = true })
-  vim.keymap.set('n', '<CR>' , "<cmd>Bdelete<CR>", { buffer = 0, noremap = true, silent = true })
-  vim.keymap.set('n', '<Esc>' , "<cmd>Bdelete<CR>", { buffer = 0, noremap = true, silent = true })
-  vim.keymap.set('n', '<Tab>' , "<cmd>Bdelete<CR>", { buffer = 0, noremap = true, silent = true })
-  vim.keymap.set('n', '<S-Tab>' , "<cmd>Bdelete<CR>", { buffer = 0, noremap = true, silent = true })
+  vim.keymap.set('n', '<CR>' , M.close_messages_buffer, { buffer = 0, noremap = true, silent = true })
+  vim.keymap.set('n', '<Esc>' , M.close_messages_buffer, { buffer = 0, noremap = true, silent = true })
+  vim.keymap.set('n', '<Tab>' , M.close_messages_buffer, { buffer = 0, noremap = true, silent = true })
+  vim.keymap.set('n', '<S-Tab>' , M.close_messages_buffer, { buffer = 0, noremap = true, silent = true })
+
+  vim.keymap.set('n', '<leader>x' , M.close_messages_buffer, { buffer = 0, noremap = true, silent = true })
 
   vim.cmd("setlocal winhighlight=Normal:CustomMessagesHighlight")
   -- vim.cmd("setlocal winhighlight=Normal:Label")
   -- vim.cmd("setlocal winhighlight=Normal:WarningMsg")
+
+  -- vim.cmd("match Search /error:/") -- highlight errors
+
+  -- " Highlight 'warning:' using the same highlight as WARN: in todo-comments
+  vim.cmd("call matchadd('TodoFgWARN', 'warning:')")
+  vim.cmd("call matchadd('TodoBgWARN', 'warning:')")
+
+  -- " Highlight 'note:' using the same highlight as NOTE: in todo-comments
+  vim.cmd("call matchadd('TodoFgNOTE', 'note:')")
+  vim.cmd("call matchadd('TodoBgNOTE', 'note:')")
+
+  -- " Highlight 'error:' in red (uses 'ErrorMsg' group)
+  -- vim.cmd("call matchadd('ErrorMsg', 'error:')")
+  -- " Highlight 'error:' using the same highlight as BUG: in todo-comments
+  vim.cmd("call matchadd('TodoFgFIX', 'error:')")
+  vim.cmd("call matchadd('TodoBgFIX', 'error:')")
+
+  -- vim.cmd('normal /error:')
+
 end
 
 

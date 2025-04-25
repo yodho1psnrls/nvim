@@ -186,7 +186,9 @@ return {
               show_autosnippets = true,   -- Default: false
             }
           },
-          {
+
+					-- NOTE: Bloats the suggestion list
+          --[[{
             name = "buffer",
             keyword_length = 3, -- Only suggest buffer words with 3 or more characters
             option = {
@@ -195,7 +197,7 @@ return {
                 return vim.api.nvim_list_bufs()
               end
             }
-          },
+          },]]--
 
           { name = "nvim_lua" },
           { name = "path" },
@@ -205,6 +207,15 @@ return {
           -- { name = "nvim_lsp_signature_help" }, -- Correct source name here
           -- {name = "lsp-signature"}
         },
+				cmdline = {
+					-- Only activate cmdline completion in the command-line mode
+					enabled = function()
+						return vim.fn.mode() == 'c'  -- Only for command-line mode
+					end,
+					sources = {
+						{ name = 'cmdline' },
+					},
+				},
       }
 
       -- Configure completion window borders
@@ -213,8 +224,9 @@ return {
       -- Setup nvim-cmp with the options
       cmp.setup(options)
 
-      ----------------------------------------------------
+    ----------------------------------------------------------
 
+			--[[
       -- Use buffer source for `/` and `?` (if you enabled
       --  `native_menu`, this won't work anymore).
       cmp.setup.cmdline({ '/', '?' }, {
@@ -223,7 +235,6 @@ return {
           { name = 'buffer' }
         }
       })
-
 
       -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
       cmp.setup.cmdline(':', {
@@ -240,11 +251,29 @@ return {
           }
         }),
         matching = { disallow_symbol_nonprefix_matching = false }
-      })
+      })]]--
 
-      ------------------------------------------------
+			cmp.setup.cmdline(':', {
+				sources = {
+					{ name = 'cmdline' },  -- Enable cmdline completion only for command-line mode
+				},
+			})
 
-      --[[
+			cmp.setup.cmdline('/', {
+				sources = {
+					{ name = 'buffer' },   -- Enable buffer completion for `/` search mode
+				},
+			})
+
+			cmp.setup.cmdline('?', {
+				sources = {
+					{ name = 'buffer' },   -- Enable buffer completion for `?` search mode
+				},
+			})
+
+    ----------------------------------------------------------
+
+    --[[
     -- Set up lspconfig.
     local capabilities = require('cmp_nvim_lsp').default_capabilities()
     -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
@@ -259,6 +288,7 @@ return {
       capabilities = capabilities
     }
     ]] --
-    end
+
+		end
   }
 }

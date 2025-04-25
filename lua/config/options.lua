@@ -8,29 +8,54 @@
 
 -- Folding options
 -- zc folds by method, h or l on the folded line, unfolds it
+-- https://www.reddit.com/r/neovim/comments/1jmqd7t/sorry_ufo_these_7_lines_replaced_you/?rdt=46694
 
 vim.o.foldcolumn = '0' -- '0' is not bad, '1' is default | "auto" | "auto:number"
--- vim.o.foldcolumn = 'auto' -- '0' is not bad, '1' is default
 vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
 vim.o.foldlevelstart = 99 -- Starts with all folds open
 -- vim.o.foldlevelstart = 0 -- Starts with all folds closed
 vim.o.foldenable = true -- Automatic folding when entering a buffer
 
---vim.o.foldmethod = 'indent' -- With treesitter
-vim.o.foldmethod = 'expr'     -- With LSP
--- vim.o.foldmethod = 'manual'-- If you want only manual folding (fold them yourself only)
-vim.o.foldexpr = 'v:lua.vim.lsp._get_fold_level()'
+vim.o.foldmethod = 'expr' -- indent(treesitter) | expr(LSP) | syntax | manual(fold yourself only)
+-- vim.o.foldexpr = 'v:lua.vim.lsp._get_fold_level()'
+-- vim.o.foldexpr = 'v:lua.vim.lsp.foldexpr()'
+vim.o.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+
+-- Prefer LSP foldexpr, if supported
+-- vim.api.nvim_create_autocmd('LspAttach', {
+-- 	callback = function(args)
+-- 		local client = vim.lsp.get_client_by_id(args.data.client_id)
+-- 		if client and client.supports_method('textDocument/foldingRange') then
+-- 			local win = vim.api.nvim_get_current_win()
+-- 			vim.wo[win][0].foldmethod = 'expr'
+-- 			vim.wo[win][0].foldexpr = 'v:lua.vim.lsp.foldexpr()'
+-- 		end
+-- 	end,
+-- })
+-- vim.api.nvim_create_autocmd('LspDetach', { command = 'setl foldexpr<' })
+
+
+-- function _G.custom_fold_text()
+--   local line = vim.fn.getline(vim.v.foldstart)
+--   local line_count = vim.v.foldend - vim.v.foldstart + 1
+--   return " ⚡ " .. line .. ": " .. line_count .. " lines"
+-- end
+
+-- vim.o.foldtext = 'v:lua.custom_fold_text()'
+-- vim.o.foldtext = "getline(v:foldstart) .. '...'"
+vim.o.foldtext = ""
+
+--vim.o.fillchars = 'fold: '
+-- vim.o.statuscolumn = ''
+-- vim.o.fillchars = 'eob: ' -- Clear unused end-of-buffer space
+vim.opt.fillchars:append({fold = " "})
+
+---------------------------------------------------------------------
 
 -- vim.o.signcolumn = 'no' -- Hide the sign column
 vim.o.signcolumn = 'auto' -- Hide the sign column, when not needed
 -- vim.o.signcolumn = 'yes'
 -- vim.o.signcolumn = 'number' -- Draw Signs in the number column
-
---vim.o.fillchars = 'fold: '
--- vim.o.statuscolumn = ''
--- vim.o.fillchars = 'eob: ' -- Clear unused end-of-buffer space
-
-
 
 
 -- quick-scope (if you dont set those, it is always visible)
@@ -160,7 +185,7 @@ o.cursorline = true
 o.cursorlineopt = "number"
 
 -- Indenting
-o.expandtab = true    -- Convert tabs to spaces
+o.expandtab = false    -- (true) Convert tabs to spaces
 o.shiftwidth = 2      -- Number of spaces for each step of (auto)indent
 vim.o.softtabstop = 2 -- Number of spaces a <Tab> counts for while editing
 o.tabstop = 2         -- Number of spaces a <Tab> in the file counts for
@@ -175,7 +200,7 @@ o.autoindent = true
 --o.indentexpr = false -- This should be a string
 
 
-opt.fillchars = { eob = " " }
+opt.fillchars:append({eob = " "})
 -- opt.fillchars:append("space:*")
 
 --[[

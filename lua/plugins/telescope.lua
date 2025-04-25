@@ -243,11 +243,11 @@ return {
           buffers = {
             -- Set sorting strategy for buffers to prioritize recent ones (MRU)
             sort_lastused = true, -- similar to how :ls t shows sorted buffers
-           -- ignore_current_buffer = true, -- Optionally ignore the current buffer (you can toggle this)
+           ignore_current_buffer = true, -- Optionally ignore the current buffer (you can toggle this)
             --theme = "dropdown"  -- Adjust for a more compact look
 
             --initial_mode = "normal",  -- Pick buffers in normal mode
-            --default_selection = "current_buffer",  -- This ensures that the current buffer is selected by default.
+            -- default_selection = "current_buffer",  -- This ensures that the current buffer is selected by default.
           },
 
         },
@@ -275,7 +275,7 @@ return {
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-      vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
+      -- vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       --      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
@@ -283,6 +283,7 @@ return {
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
+      -- Symbols Outline Telescope Picker
       vim.keymap.set("n", "<leader>so", require("telescope.builtin").lsp_document_symbols,
         { desc = "LSP Symbols", noremap = true, silent = true })
 
@@ -324,7 +325,7 @@ return {
       vim.keymap.set("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
       vim.keymap.set("n", "<leader>gs", "<cmd>Telescope git_status<CR>", { desc = "telescope git status" })
       vim.keymap.set("n", "<leader>gg", "<cmd>Gitsigns<CR>", { desc = "telescope git signs" })
-      vim.keymap.set("n", "<leader>gf", require('telescope.builtin').git_files, { desc = "telescope git signs" })
+      vim.keymap.set("n", "<leader>gf", require('telescope.builtin').git_files, { desc = "telescope git files" })
       vim.keymap.set("n", "<leader>gd", "<cmd>Gitsigns diffthis<CR>", { desc = "gitsigns diff current buffer" })
 
       -- vim.keymap.set("n", "<leader>pt", "<cmd>Telescope terms<CR>", { desc = "telescope pick hidden term" })

@@ -47,7 +47,8 @@ return {
     },
 
     lazy = true,
-    event = { "BufReadPre", "BufNewFile" }, -- Only triggers for actual file-related events
+    -- event = { "BufReadPre", "BufNewFile" }, -- Only triggers for actual file-related events
+    event = { "VimEnter", },
 
     opts = {
       options = {

@@ -2,18 +2,36 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+-- NOTE: ALT == ESC
+map({'i', 't', 'c'}, '<A-*>', '<Esc>', { noremap = true });
+
 map("n", "<leader>lz", "<cmd>Lazy<CR>",
   {desc = "Open Lazy", noremap = true, silent = true})
 
-map({"n", "v"}, "<S-h>", "20zh", { noremap = true, silent = true })
-map({"n", "v"}, "<S-l>", "20zl", { noremap = true, silent = true })
+-- map({"n", "v"}, "<S-h>", "20zh", { noremap = true, silent = true })
+-- map({"n", "v"}, "<S-l>", "20zl", { noremap = true, silent = true })
+map({"n", "v"}, "<S-h>", "zH", { noremap = true, silent = true })
+map({"n", "v"}, "<S-l>", "zL", { noremap = true, silent = true })
 map({"n", "v"}, "<S-j>", "<S-Down>", { noremap = true, silent = true })
 map({"n", "v"}, "<S-k>", "<S-Up>", { noremap = true, silent = true })
 
 
 map('n', '<leader>ss', function()
+	-- TODO:
+	-- -- local nvim_tree = util.safe_require("nvim-tree.view")
+	-- local nvim_tree = util.safe_require("nvim-tree")
+	-- local is_nvim_tree_open = false
+	-- if nvim_tree then
+	-- 	-- is_nvim_tree_open = nvim_tree.is_visible()
+	-- 	is_nvim_tree_open = nvim_tree.view.is_visible()
+	-- end
+	--
+	-- if is_nvim_tree_open then nvim_tree.toggle() end
+
   vim.cmd("Lazy load auto-session")
   vim.cmd("SessionSave")
+
+	-- if is_nvim_tree_open then nvim_tree.toggle() end
 end, { desc = "SessionSave", noremap = true, silent = true })
 
 map('n', '<leader>rt', function ()
@@ -86,9 +104,8 @@ map('n', '<leader>cd', '<cmd>cd %:p:h<CR>', {desc = "Set cwd to current file", n
 
 map("n", "<leader>m", function () -- <leader>wm
   util.open_messages_in_buffer()
-  vim.keymap.set('n', '<leader>m' , function()
-    vim.cmd('Bdelete')
-    end, { buffer = 0, noremap = true, silent = true })
+  vim.keymap.set('n', '<leader>m', util.close_messages_buffer
+    , { buffer = 0, noremap = true, silent = true })
 end, { desc = "[M]essages in buffer", noremap = true, silent = true })
 
 
@@ -137,14 +154,14 @@ map("v", "<leader>/", "gc", { desc = "Toggle comment", remap = true })
 -- https://neovim.io/doc/user/scroll.html#_6.-scrolling-with-a-mouse-wheel
 -- https://github.com/neovim/neovim/issues/6211
 
-map('n', '<A-ScrollWheelUp>', '10zh', opts)
-map('n', '<A-ScrollWheelDown>', '10zl', opts)
+map('n', '<C-ScrollWheelUp>', '10zh', opts)
+map('n', '<C-ScrollWheelDown>', '10zl', opts)
 
-map('i', '<A-ScrollWheelUp>', '<Esc>10zhi', opts)
-map('i', '<A-ScrollWheelDown>', '<Esc>10zli', opts)
+map('i', '<C-ScrollWheelUp>', '<Esc>10zhi', opts)
+map('i', '<C-ScrollWheelDown>', '<Esc>10zli', opts)
 
-map('v', '<A-ScrollWheelUp>', '10zh', opts)
-map('v', '<A-ScrollWheelDown>', '10zl', opts)
+map('v', '<C-ScrollWheelUp>', '10zh', opts)
+map('v', '<C-ScrollWheelDown>', '10zl', opts)
 
 
 -- Create a custom command to replace 'wordA' with 'wordB' as whole words only
@@ -155,6 +172,7 @@ vim.api.nvim_create_user_command(
     local wordA = opts.args:match("([^ ]+)")
     local wordB = opts.args:match(" ([^ ]+)$")
     vim.cmd('%s/\\<' .. wordA .. '\\>/' .. wordB .. '/g')
+    vim.cmd('nohlsearch')
   end,
   { nargs = 1, desc = "Replace whole wordA with wordB in the current file" }
 )
@@ -194,7 +212,6 @@ map("n", "<C-h>", "<C-w>h", opts)
 map("n", "<C-j>", "<C-w>j", opts)
 map("n", "<C-k>", "<C-w>k", opts)
 map("n", "<C-l>", "<C-w>l", opts)
-
 
 
 --================================================================================--

@@ -1,0 +1,23 @@
+-- https://github.com/ray-x/telescope-ast-grep.nvim
+-- alternative: https://github.com/Marskey/telescope-sg
+
+-- BUG: Doesnt work, for some reason it always just opens 
+-- nvim-cache sessions the current session file, no matter what we search for
+
+return {
+	{
+		'ray-x/telescope-ast-grep.nvim',
+
+		dependencies = {
+			{'nvim-lua/plenary.nvim'},
+			{'nvim-telescope/telescope.nvim'},
+		},
+
+		config = function ()
+			vim.keymap.set('n', '<leader>.', ':Telescope AST_grep', {noremap=true, silent=true})
+			-- vim.keymap.set('n', '<leader>.', ':Telescope dumb_jump', {noremap=true, silent=true})
+		end,
+
+	},
+}
+

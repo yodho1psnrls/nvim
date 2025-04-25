@@ -178,6 +178,7 @@ function BuildAndRunCpp()
   BuildCmakeConfig('Release', function()
     vim.cmd('10split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')--12split
     vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
+    -- vim.cmd("setlocal nobuflisted") -- Exclude the buffer from the buffer list
     if vim.api.nvim_get_mode().mode ~= 't' then
       vim.api.nvim_input('i')
     end
@@ -253,6 +254,7 @@ function BuildAndRunPython()
   --vim.cmd('!python ' .. file)
   vim.cmd('10split | term python %') -- 12split
   vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
+  -- vim.cmd("setlocal nobuflisted") -- Exclude the buffer from the buffer list
   --vim.cmd('term python %')
 
   if vim.api.nvim_get_mode().mode ~= 't' then
@@ -429,9 +431,9 @@ end
 
 -- vim.keymap.set('n', '<F4>', function() Start("test") end )
 -- vim.keymap.set('n', '<F5>', function() Start("src") end )
-vim.keymap.set('n', '<F4>', function() Start(nil, nil, 'run') end, {silent = false})
-vim.keymap.set('n', '<F5>', function() Start(nil, nil, 'debug') end, {silent = false}) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
-vim.keymap.set('n', '<F6>', function() GenerateCMake() end, {silent = false})     -- Only for CPP
+vim.keymap.set({'n', 'i'}, '<F4>', function() Start(nil, nil, 'run') end, {silent = false})
+vim.keymap.set({'n', 'i'}, '<F5>', function() Start(nil, nil, 'debug') end, {silent = false}) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
+vim.keymap.set({'n', 'i'}, '<F6>', function() GenerateCMake() end, {silent = false})     -- Only for CPP
 
 
 vim.api.nvim_create_user_command("Run", function() Start(nil, 'src', 'run') end, {})

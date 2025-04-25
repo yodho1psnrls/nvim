@@ -1,4 +1,5 @@
 -- https://www.reddit.com/r/neovim/comments/10q2mjq/i_dont_really_get_folding/
+-- https://www.reddit.com/r/neovim/comments/1jmqd7t/sorry_ufo_these_7_lines_replaced_you/?rdt=46694
 
 -- TODO: It either uses the lsp or the parser(treesitter)
 -- , currently it uses the lsp, but later if you happen

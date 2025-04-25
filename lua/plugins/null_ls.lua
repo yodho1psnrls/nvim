@@ -3,6 +3,22 @@
 
 return {
 
+
+	-- For java-script / type-script
+	--[[{
+		"nvimtools/none-ls.nvim",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		config = function ()
+			local null_ls = require("null-ls")
+			null_ls.setup({
+				sources = {
+					null_ls.builtins.formatting.prettier, -- uses globally installed prettier
+				},
+			})
+		end
+	}]]--
+
+
   -- https://github.com/nvimtools/none-ls.nvim
   --[[{ "nvimtools/none-ls.nvim", config = function()
       local none_ls = require("none-ls")

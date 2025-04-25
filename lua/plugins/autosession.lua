@@ -7,6 +7,8 @@
 --       For now, i just made it to pre_restore_cmds = {"wa"}
 -- https://www.reddit.com/r/neovim/comments/14yhn1f/autosession_removes_modified_buffers/
 
+local util = require("utilities")
+
 local function get_session_shada_path()
   -- Use the session name or other unique identifying feature to name the shada
   local session_name = vim.fn.expand('%:p:h')  -- Or modify this to be a more suitable unique name
@@ -206,7 +208,10 @@ return {
         --post_save_cmds
         --pre_delete_cmds
         --post_delete_cmds
-        pre_restore_cmds = { "wa" },
+        pre_restore_cmds = {
+          "wa",
+          "LspRestart", -- To reset the root
+        },
 
         -- Save and Restore Jumplist
 
@@ -238,10 +243,18 @@ return {
             end
           end,]]--
 
+          function()
+            local nvim_tree = util.safe_require("nvim_tree.api")
+            if nvim_tree then
+              nvim_tree.tree.close()
+            end
+          end,
+
         },
 
         post_restore_cmds = {
           "rshada",
+          -- "LspRestart", -- To reset the root
           -- load_nvim_tree_state,
           -- load_severity_min,
         },

@@ -1,0 +1,8 @@
+-- This plugin enables you to browse github repos, whitout cloning them
+-- https://github.com/pwntester/octo.nvim
+-- https://github.com/ldelossa/gh.nvim
+-- https://github.com/nvim-telescope/telescope-github.nvim
+
+return {
+
+}

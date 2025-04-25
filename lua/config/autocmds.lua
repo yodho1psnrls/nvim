@@ -223,11 +223,12 @@ end
 -- function signatures, or other useful info) when hovering over a symbol.
 --map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
 
-local is_ufo_popup_open = false
-
 --hover documentation to appear automatically after hovering
 --the cursor over a variable or function for a brief time
--- vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+
+--[[
+local is_ufo_popup_open = false
 vim.api.nvim_create_autocmd("CursorHold", {
   pattern = "*",
   callback = function()
@@ -251,6 +252,7 @@ vim.api.nvim_create_autocmd("CursorHold", {
 
   end,
 })
+]]--
 
 
 -- Diagnostics hover window
