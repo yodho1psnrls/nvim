@@ -367,6 +367,10 @@ return {
       -- https://github.com/parmardiwakar150/neovim-config/blob/main/lua/core/plugin_config/telescope.lua#L37
       vim.keymap.set('n', '<leader>ch', function() require('telescope.builtin').command_history() end,
         { noremap = true, silent = true, desc = "Command [H]istory" })
+
+			vim.keymap.set('n', '<leader>ft', '<cmd>TodoTelescope<CR>',
+        { noremap = true, silent = true, desc = "telescope [T]oDo" })
+
     end,
   }
 

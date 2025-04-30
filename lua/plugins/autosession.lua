@@ -148,7 +148,11 @@ return {
     --  it (when you just enter a folder with a session)
     -- I dont know, why this problem occurs
     -- So Lazy Loading it, wont change its current behaiviour at all
-    lazy = true,
+
+		-- NOTE: (!!!)
+    lazy = false,
+    -- lazy = true,
+
     --event = "BufReadPre", -- https://github.com/folke/persistence.nvim
     cmd = { 'Telescope session-lens search_session' },
     --action = { 'Telescope session-lens search_session' },
@@ -166,17 +170,19 @@ return {
         root_dir = vim.fn.stdpath "data" .. "/sessions/",
         auto_save = true, -- This auto save doesnt quite work, i had to do an autocmd that saves the session on exit
 
-        --auto_restore = true,  -- restores you from previos session on startup
-        auto_restore = false, -- Disable automatic session restoration on startup so dashboard shows up
+				-- NOTE: (!!!)
+        -- auto_restore = true,  -- restores you from previos session on startup
+        auto_restore = false, -- Disable automatic session restoration on startup so Dashboard shows up
+
+				-- NOTE: (!!!)
+				--interferes with the Telescope session-lens session previewer/picker
+        auto_restore_last_session = true,
+        -- auto_restore_last_session = false, -- Set to false so dashboard shows up
 
         auto_create = true,
         --allowed_dirs = {'D:/'},
         allowed_dirs = nil,
         suppressed_dirs = nil,
-
-        --interferes with the Telescope session-lens session previewer/picker
-        --auto_restore_last_session = true,
-        auto_restore_last_session = false, -- Set to false so dashboard shows up
 
         use_git_branch = true, -- false
         lazy_support = true,
@@ -197,7 +203,9 @@ return {
 --        cwd_change_handling = true,
 --        pre_cwd_changed_cmds = { "NvimTreeClose" },
 
-        cwd_change_handling = false,
+				-- NOTE: (!!!)
+        -- cwd_change_handling = false,
+        cwd_change_handling = true,
 --        pre_cwd_changed_cmds = nil,
 --        pre_save_cmds = { "NvimTreeClose" },
 
@@ -244,10 +252,13 @@ return {
           end,]]--
 
           function()
-            local nvim_tree = util.safe_require("nvim_tree.api")
-            if nvim_tree then
-              nvim_tree.tree.close()
-            end
+            -- local nvim_tree = util.safe_require("nvim-tree.api")
+            -- if nvim_tree then
+            --   nvim_tree.tree.close()
+            -- end
+						if package.loaded['nvim-tree'] then
+							vim.cmd('NvimTreeClose')
+						end
           end,
 
         },

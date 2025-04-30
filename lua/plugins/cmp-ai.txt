@@ -1,0 +1,65 @@
+-- https://github.com/tzachar/cmp-ai
+-- https://ollama.com/library/codegemma:2b-code
+
+return {
+	{
+		'tzachar/cmp-ai',
+		dependencies = 'nvim-lua/plenary.nvim',
+		config = function ()
+			require('cmp_ai.config'):setup({
+				max_lines = 100,
+				provider = 'Ollama',
+				provider_options = {
+					-- model = 'deepseek-coder:1.3b',
+					model = 'codegemma:2b-code',
+
+					-- prompt = function(lines_before, lines_after)
+					-- 	return lines_before
+					-- end,
+
+					prompt = function(lines_before, lines_after)
+						-- You may include filetype and/or other project-wise context in this string as well.
+						-- Consult model documentation in case there are special tokens for this.
+					  return "<|fim_prefix|>" .. lines_before .. "<|fim_suffix|>" .. lines_after .. "<|fim_middle|>"
+					end,
+
+					-- prompt = function(lines_before, lines_after)
+					-- 	-- Prepare the prompt in the format expected by the model
+					-- 	-- local prompt_content = table.concat(lines_before, '\n') .. '\n' .. table.concat(lines_after, '\n')
+					-- 	local prompt_content = lines_before .. '\n' .. lines_after
+					-- 	-- Use the template structure for the model input
+					-- 	local template = string.format([[
+					-- 		{{ .System }}
+					-- 		### Instruction:
+					-- 		%s
+					-- 		### Response:
+					-- 	]], prompt_content)
+					--
+					-- 	return template
+					-- end,
+
+					-- prompt = function(lines_before, lines_after)
+					-- 	-- return 'suggest' .. table.concat(lines_before, '\n')
+					-- 	return 'suggest' .. lines_before
+					-- end,
+
+					-- suffix = function(lines_after)
+					-- 	return lines_after
+					-- end,
+
+					auto_unload = false, -- Set to true to automatically unload the model when exiting nvim.
+				},
+				notify = true,
+				notify_callback = function(msg)
+					vim.notify(msg)
+				end,
+				run_on_every_keystroke = true,
+				ignored_file_types = {
+					-- default is not to ignore
+					-- uncomment to ignore in lua:
+					-- lua = true
+				},
+			})
+		end
+	},
+}

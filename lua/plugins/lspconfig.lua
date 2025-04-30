@@ -316,7 +316,6 @@ return {
           '--query-driver=**/clang++.exe', -- glob pattern for the compiler, so it loads its own std library implementation
           -- '--query-driver=D:\\Program Files\\MSYS2\\mingw64\\bin\\clang++.exe',
 
-
           "--clang-tidy",
           -- Enable all performance-related checks for clang-tidy
           --"--checks=performance-*",     
@@ -324,6 +323,12 @@ return {
           --'--checks="*,clang-analyzer-optin.performance.GCDAntipattern,clang-analyzer-optin.performance.Padding"',
 
           "--completion-style=detailed", -- To support Inlay Hints
+
+					-- Disable Unused Header Warning, But for some reason, it has no effect
+					-- "--header-insertion=never",
+
+					-- Disable all clang-tidy checks, enabling only this specific check, which warns about deprecated c headers
+					-- "--clang-tidy-checks=-*,modernize-deprecated-headers",
 
           --"--log=verbose", -- For Debugging
           -- "--header-insertion=never", -- (iwyu: default | never) automatically inserting #include directives for missing headers when completing symbols

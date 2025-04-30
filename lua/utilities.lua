@@ -38,9 +38,9 @@ end
 function M.get_project_root()
   -- Get all LSP clients for the current buffer
   -- https://stackoverflow.com/questions/76518562/looking-for-current-buffer-lsp-clients
-  local bufnr = vim.api.nvim_get_current_buf()
-  local clients = vim.lsp.buf_get_clients(bufnr) -- Deprecated
-  -- local clients = vim.lsp.get_clients()   -- But this will get all clients
+  -- local bufnr = vim.api.nvim_get_current_buf()
+  -- local clients = vim.lsp.buf_get_clients(bufnr) -- Deprecated
+  local clients = vim.lsp.get_clients()   -- But this will get all clients
 
   -- Check if there is an LSP client active for the current buffer
   if next(clients) ~= nil then

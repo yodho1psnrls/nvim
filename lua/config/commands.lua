@@ -13,6 +13,11 @@ vim.api.nvim_create_user_command("PrintBuffers", function()
 end, {})
 
 
+vim.api.nvim_create_user_command("Config", function()
+	vim.cmd('cd ~/AppData/Local/nvim | edit .')
+end, {desc = 'cd to dot files'})
+
+
 -------------------------------------------------------------
 
 

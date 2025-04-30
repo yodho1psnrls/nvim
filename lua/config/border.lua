@@ -6,22 +6,31 @@ vim.api.nvim_set_hl(0, 'FloatBorder', { fg = '#ffffff', bg = 'NONE' }) -- Set th
 vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, {
   border = border('FloatBorder')
 })
-
 vim.lsp.handlers['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, {
   border = border('FloatBorder')
 })
 ]] --
 
+-- BUG: After NVIM 0.11:
+-- https://www.reddit.com/r/neovim/comments/1jmsl3j/switch_to_011_now_not_showing_borders_on/
+
+-- NOTE: Since NVIM 0.11, these hover opts below are moved into the vim.lsp.buf.hover autocmd as arguments
 -- Customize hover window appearance (Hover handler)
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+--[[vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
   border = "rounded",
   --border = "none",  -- Disable border for floating windows
   focusable = false, -- Non-focusable floating windows
-
   -- https://www.reddit.com/r/neovim/comments/1182s32/is_it_possible_to_disable_no_information/
   silent = true,
+})]]--
 
-})
+--[[vim.lsp.handlers["textDocument/hover"] = function(err, result, ctx, config)
+  config = config or {}
+  config.border = "rounded"
+  config.focusable = false
+  config.silent = true
+  return vim.lsp.handlers.hover(err, result, ctx, config)
+end]]--
 
 -- Signature help handler (cmp-lsp-signature-helper)
 --vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {

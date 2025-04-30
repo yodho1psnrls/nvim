@@ -42,9 +42,9 @@ end, { desc = "Project roo[T]", noremap = true, silent = true })
 map('n', '<leader>oo', util.move_current_fold_contents_after,
   { desc = "[O]utline cpp inline methods", noremap = true, silent = true })
 
-map('n', '<leader>on', function ()
-  vim.cmd("edit " .. util.get_project_root() .. "/notes.txt")
-end, { desc = "Open [N]otes", noremap = true, silent = true })
+-- map('n', '<leader>on', function ()
+--   vim.cmd("edit " .. util.get_project_root() .. "/notes.txt")
+-- end, { desc = "Open [N]otes", noremap = true, silent = true })
 
 
 map("n", "<leader>fe", function()

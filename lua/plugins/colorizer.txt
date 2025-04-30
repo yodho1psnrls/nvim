@@ -1,0 +1,10 @@
+-- https://github.com/norcalli/nvim-colorizer.lua
+
+-- NOTE: I think that this is only for html
+return {
+
+	{
+		"norcalli/nvim-colorizer.lua",
+	}
+
+}

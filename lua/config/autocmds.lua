@@ -225,7 +225,18 @@ end
 
 --hover documentation to appear automatically after hovering
 --the cursor over a variable or function for a brief time
-vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+-- vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+vim.api.nvim_create_autocmd({'CursorHold'}, {
+  pattern = '*',
+  callback = function()
+		vim.lsp.buf.hover({
+			border = 'rounded',
+			focusable = false,
+			focus = false,
+			silent = true,
+		})
+  end,
+})
 
 --[[
 local is_ufo_popup_open = false
