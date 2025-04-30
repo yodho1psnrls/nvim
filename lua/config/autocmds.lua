@@ -75,8 +75,20 @@ vim.api.nvim_create_autocmd({'BufEnter', 'TermOpen'}, {
 })
 
 
-
 -------------------------------------------------------------------------------------
+
+-- Disable highlight on the symbol that you lsp.hover over
+-- This should be set, before any use of the :colorscheme ... command
+vim.api.nvim_create_autocmd('ColorScheme', {
+  callback = function()
+    vim.api.nvim_set_hl(0, 'LspReferenceTarget', {})
+		--[[vim.api.nvim_set_hl(0, 'LspReferenceText', {})
+    vim.api.nvim_set_hl(0, 'LspReferenceRead', {})
+    vim.api.nvim_set_hl(0, 'LspReferenceWrite', {})
+    vim.api.nvim_set_hl(0, 'LspReferenceTarget', {})]]--
+  end,
+})
+
 
 vim.cmd("colorscheme rose-pine-moon")
 -- vim.cmd("colorscheme rose-pine-main")
@@ -231,12 +243,13 @@ vim.api.nvim_create_autocmd({'CursorHold'}, {
   callback = function()
 		vim.lsp.buf.hover({
 			border = 'rounded',
-			focusable = false,
+			focusable = true,
 			focus = false,
 			silent = true,
 		})
   end,
 })
+
 
 --[[
 local is_ufo_popup_open = false

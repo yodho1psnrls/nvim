@@ -57,6 +57,11 @@ return {
         update_in_insert = true,
         severity_sort = true,
 
+				-- float = {
+				-- 	border = 'rounded',
+				-- 	-- source = true,
+				-- }
+
         -- severity = {
           -- min = vim.diagnostic.severity.WARN, -- HINT | INFO | WARN | ERROR
           -- min = nil,
