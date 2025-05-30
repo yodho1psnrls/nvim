@@ -5,6 +5,10 @@
 -- vim.g.did_load_filetypes = 1
 -- vim.g.did_load_ftplugin = 1
 
+-- BUG:
+-- This places a second border on top of windows that already have a border
+--  like Telescope and Lazy windows
+-- vim.o.winborder = 'rounded'
 
 -- Folding options
 -- zc folds by method, h or l on the folded line, unfolds it
@@ -23,14 +27,14 @@ vim.o.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 
 -- Prefer LSP foldexpr, if supported
 -- vim.api.nvim_create_autocmd('LspAttach', {
--- 	callback = function(args)
--- 		local client = vim.lsp.get_client_by_id(args.data.client_id)
--- 		if client and client.supports_method('textDocument/foldingRange') then
--- 			local win = vim.api.nvim_get_current_win()
--- 			vim.wo[win][0].foldmethod = 'expr'
--- 			vim.wo[win][0].foldexpr = 'v:lua.vim.lsp.foldexpr()'
--- 		end
--- 	end,
+--	callback = function(args)
+--		local client = vim.lsp.get_client_by_id(args.data.client_id)
+--		if client and client.supports_method('textDocument/foldingRange') then
+--			local win = vim.api.nvim_get_current_win()
+--			vim.wo[win][0].foldmethod = 'expr'
+--			vim.wo[win][0].foldexpr = 'v:lua.vim.lsp.foldexpr()'
+--		end
+--	end,
 -- })
 -- vim.api.nvim_create_autocmd('LspDetach', { command = 'setl foldexpr<' })
 
@@ -185,7 +189,7 @@ o.cursorline = true
 o.cursorlineopt = "number"
 
 -- Indenting
-o.expandtab = false    -- (true) Convert tabs to spaces
+o.expandtab = true    -- (true) Convert tabs to spaces
 o.shiftwidth = 2      -- Number of spaces for each step of (auto)indent
 vim.o.softtabstop = 2 -- Number of spaces a <Tab> counts for while editing
 o.tabstop = 2         -- Number of spaces a <Tab> in the file counts for

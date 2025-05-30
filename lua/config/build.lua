@@ -123,12 +123,16 @@ function BuildCmakeConfig(config_name, on_success_callback)
     if data and #data > 0 then
       -- Print standard output messages
       print(table.concat(data, "\n"))
+      -- vim.notify(table.concat(data, "\n"), vim.log.levels.OFF)
+      -- vim.cmd("normal! <CR>")
     end
   end,
 
   on_stderr = function(_, data)
     if data and #data > 1 then
       print("Error during build:\n" .. table.concat(data, "\n"))
+      -- vim.notify("Error during build:\n" .. table.concat(data, "\n"), vim.log.levels.OFF)
+      -- vim.cmd("normal! <CR>")
     end
   end,
 

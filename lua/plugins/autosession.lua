@@ -176,8 +176,8 @@ return {
 
 				-- NOTE: (!!!)
 				--interferes with the Telescope session-lens session previewer/picker
-        auto_restore_last_session = true,
-        -- auto_restore_last_session = false, -- Set to false so dashboard shows up
+        -- auto_restore_last_session = true,
+        auto_restore_last_session = false, -- Set to false so dashboard shows up
 
         auto_create = true,
         --allowed_dirs = {'D:/'},

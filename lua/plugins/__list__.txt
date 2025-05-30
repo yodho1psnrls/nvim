@@ -1,0 +1,8 @@
+Plugins to consider in the future
+
+
+https://github.com/SmiteshP/nvim-navic
+https://github.com/SmiteshP/nvim-navbuddy
+https://github.com/nikola-vukicevic/breadcrumbs.nvim
+https://github.com/LunarVim/breadcrumbs.nvim
+

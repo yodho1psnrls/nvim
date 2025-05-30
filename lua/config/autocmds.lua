@@ -57,14 +57,17 @@ local function is_buffer_writable()
 
 end
 
--- Enable quick-scope if the buffer is writable, disable otherwise
 local function toggle_on_buffer_writable()
   if is_buffer_writable() then
-    vim.g.qs_enable = 1     -- Enable QuickScope
+    -- Enable QuickScope
+    vim.g.qs_enable = 1
+    -- Map Enter in normal mode to behave as enter in insert mode
     vim.keymap.set("n", "<CR>", "i<CR><Esc>", { noremap = false, desc = "Enter as in Insert Mode" })
   else
-    vim.g.qs_enable = 0     -- Disable QuickScope
-    vim.keymap.set("n", "<CR>", "<CR>", { noremap = false }) -- Toggle the mapping off (It fixes the Diagnostic window Enter press to jump to a diagnostic line)
+    -- Disable QuickScope
+    vim.g.qs_enable = 0
+    -- Toggle the mapping off (It fixes the Diagnostic window Enter press to jump to a diagnostic line)
+    vim.keymap.set("n", "<CR>", "<CR>", { noremap = false })
   end
 end
 
@@ -77,12 +80,13 @@ vim.api.nvim_create_autocmd({'BufEnter', 'TermOpen'}, {
 
 -------------------------------------------------------------------------------------
 
+-- NOTE: Since NVIM 0.11
 -- Disable highlight on the symbol that you lsp.hover over
 -- This should be set, before any use of the :colorscheme ... command
 vim.api.nvim_create_autocmd('ColorScheme', {
   callback = function()
     vim.api.nvim_set_hl(0, 'LspReferenceTarget', {})
-		--[[vim.api.nvim_set_hl(0, 'LspReferenceText', {})
+    --[[vim.api.nvim_set_hl(0, 'LspReferenceText', {})
     vim.api.nvim_set_hl(0, 'LspReferenceRead', {})
     vim.api.nvim_set_hl(0, 'LspReferenceWrite', {})
     vim.api.nvim_set_hl(0, 'LspReferenceTarget', {})]]--
@@ -160,6 +164,7 @@ end
 
 -- Set highlight for search matches
 -- DarkRed
+-- TODO: Fixe this to work on command mode completion with nvim-cmp
 vim.cmd [[
   highlight Search ctermfg=Black ctermbg=Yellow guifg=Black guibg=Yellow
   highlight IncSearch ctermfg=Black ctermbg=Yellow guifg=Black guibg=Yellow
@@ -241,12 +246,13 @@ end
 vim.api.nvim_create_autocmd({'CursorHold'}, {
   pattern = '*',
   callback = function()
-		vim.lsp.buf.hover({
-			border = 'rounded',
-			focusable = true,
-			focus = false,
-			silent = true,
-		})
+    vim.lsp.buf.hover({
+      border = 'rounded',
+      -- focusable = true, -- Can you focus it with a mouse
+      focusable = false, -- Can you focus it with a mouse
+      focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+      silent = true,
+    })
   end,
 })
 

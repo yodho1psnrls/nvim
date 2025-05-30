@@ -52,10 +52,18 @@ return {
           -- end,
         },]]--
 
-        signs = true, -- true
         underline = true,
         update_in_insert = true,
         severity_sort = true,
+        -- signs = true, -- true
+				signs = {
+					text = {
+						[vim.diagnostic.severity.ERROR] = "",
+						[vim.diagnostic.severity.WARN] = "",
+						[vim.diagnostic.severity.INFO] = "",
+						[vim.diagnostic.severity.HINT] = "",
+					},
+				},
 
 				-- float = {
 				-- 	border = 'rounded',
@@ -78,14 +86,17 @@ return {
       })
 
 
+			-- NOTE: Deprecated:
+
       -- vim.fn.sign_define("DiagnosticSignWarn", { text = "⚠️", texthl = "DiagnosticWarn" })  -- Warning icon
       -- vim.fn.sign_define("DiagnosticSignError", { text = "❌", texthl = "DiagnosticError" })  -- Error icon
       -- vim.fn.sign_define("DiagnosticSignHint", { text = "💡", texthl = "DiagnosticHint" })   -- Hint icon
       -- vim.fn.sign_define("DiagnosticSignInfo", { text = "ℹ️", texthl = "DiagnosticInfo" })  -- Info icon
-      vim.fn.sign_define("DiagnosticSignWarn", { text = "W", texthl = "DiagnosticWarn" })  -- Warning icon
-      vim.fn.sign_define("DiagnosticSignError", { text = "E", texthl = "DiagnosticError" })  -- Error icon
-      vim.fn.sign_define("DiagnosticSignHint", { text = "H", texthl = "DiagnosticHint" })   -- Hint icon
-      vim.fn.sign_define("DiagnosticSignInfo", { text = "I", texthl = "DiagnosticInfo" })  -- Info icon
+
+      -- vim.fn.sign_define("DiagnosticSignWarn", { text = "W", texthl = "DiagnosticWarn" })  -- Warning icon
+      -- vim.fn.sign_define("DiagnosticSignError", { text = "E", texthl = "DiagnosticError" })  -- Error icon
+      -- vim.fn.sign_define("DiagnosticSignHint", { text = "H", texthl = "DiagnosticHint" })   -- Hint icon
+      -- vim.fn.sign_define("DiagnosticSignInfo", { text = "I", texthl = "DiagnosticInfo" })  -- Info icon
 
 
       local function ToggleWarnings()
@@ -271,7 +282,9 @@ return {
         cmd = { 'pylsp' },
         filetypes = { 'python' },
         root_dir = function(fname)
-          return lspconfig.util.find_git_ancestor(fname) or lspconfig.util.path.dirname(fname)
+          -- return lspconfig.util.find_git_ancestor(fname) or lspconfig.util.path.dirname(fname)
+					return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
+					-- return vim.fs.dirname(vim.fs.find('.git', { path = vim.fn.getcwd(), upward = true })[1])
         end,
         settings = {
           python = {
@@ -356,8 +369,9 @@ return {
         -- $env:CLANGD_INDEX_STORAGE_PATH = "C:\path\to\custom\cache" (powershell)
 
         root_dir = function(fname)
-          return util.find_git_ancestor(fname) or vim.fn.getcwd() -- Deprecated
+          -- return util.find_git_ancestor(fname) or vim.fn.getcwd() -- Deprecated
           -- return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
+					return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
 				end,
 
         --root_dir = function(fname)

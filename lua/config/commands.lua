@@ -87,7 +87,7 @@ end
 -- Function to list and select folders using Telescope
 function ClearCache()
   -- List of folders to choose from
-  local cache_folders = { "shada", "swap", "sessions", "undo" }
+  local cache_folders = { "shada", "swap", "sessions", "undo", "notes" }
 
   -- Telescope entry maker for the cache folders
   local make_entry = require('telescope.make_entry')
