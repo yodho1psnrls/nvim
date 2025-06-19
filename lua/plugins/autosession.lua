@@ -149,7 +149,7 @@ return {
     -- I dont know, why this problem occurs
     -- So Lazy Loading it, wont change its current behaiviour at all
 
-		-- NOTE: (!!!)
+    -- NOTE: (!!!)
     lazy = false,
     -- lazy = true,
 
@@ -170,12 +170,12 @@ return {
         root_dir = vim.fn.stdpath "data" .. "/sessions/",
         auto_save = true, -- This auto save doesnt quite work, i had to do an autocmd that saves the session on exit
 
-				-- NOTE: (!!!)
+        -- NOTE: (!!!)
         -- auto_restore = true,  -- restores you from previos session on startup
         auto_restore = false, -- Disable automatic session restoration on startup so Dashboard shows up
 
-				-- NOTE: (!!!)
-				--interferes with the Telescope session-lens session previewer/picker
+        -- NOTE: (!!!)
+        --interferes with the Telescope session-lens session previewer/picker
         -- auto_restore_last_session = true,
         auto_restore_last_session = false, -- Set to false so dashboard shows up
 
@@ -203,7 +203,7 @@ return {
 --        cwd_change_handling = true,
 --        pre_cwd_changed_cmds = { "NvimTreeClose" },
 
-				-- NOTE: (!!!)
+        -- NOTE: (!!!)
         -- cwd_change_handling = false,
         cwd_change_handling = true,
 --        pre_cwd_changed_cmds = nil,
@@ -218,7 +218,10 @@ return {
         --post_delete_cmds
         pre_restore_cmds = {
           "wa",
-          "LspRestart", -- To reset the root
+          -- NOTE: To reset the root when you change from session to other session
+          -- "LspRestart",
+          -- "LspStop",
+          -- "LspStart",
         },
 
         -- Save and Restore Jumplist
@@ -241,6 +244,7 @@ return {
         pre_save_cmds = {
           -- save_nvim_tree_state,
           -- save_severity_min,
+          -- "wshada"
 
           --[[function()
             for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
@@ -256,10 +260,12 @@ return {
             -- if nvim_tree then
             --   nvim_tree.tree.close()
             -- end
-						if package.loaded['nvim-tree'] then
-							vim.cmd('NvimTreeClose')
-						end
+            if package.loaded['nvim-tree'] then
+              vim.cmd('NvimTreeClose')
+            end
           end,
+
+          "RemoveUnsavableBuffers"
 
         },
 

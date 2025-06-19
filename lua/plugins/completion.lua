@@ -187,7 +187,7 @@ return {
             }
           },
 
-					-- NOTE: Bloats the suggestion list
+          -- NOTE: Bloats the suggestion list
           --[[{
             name = "buffer",
             keyword_length = 3, -- Only suggest buffer words with 3 or more characters
@@ -204,31 +204,31 @@ return {
           -- { name = "path" },
           -- { name = 'cmdline' },
 
-					-- NOTE: AI completions
-					-- { name = 'cmp_ai' },
-					-- { name = 'minuet' },
+          -- NOTE: AI completions
+          -- { name = 'cmp_ai' },
+          -- { name = 'minuet' },
 
           -- You dont need those, since the lsp source is from nvim_lsp
           -- { name = "nvim_lsp_signature_help" }, -- Correct source name here
           -- {name = "lsp-signature"}
         },
-				cmdline = {
-					-- Only activate cmdline completion in the command-line mode
-					enabled = function()
-						return vim.fn.mode() == 'c'  -- Only for command-line mode
-					end,
-					sources = {
-						{ name = 'cmdline' },
-						{ name = 'path' },
-					},
-				},
-				-- performance = {
-					-- It is recommended to increase the timeout duration due to
-					-- the typically slower response speed of LLMs compared to
-					-- other completion sources. This is not needed when you only
-					-- need manual completion.
-				--	fetching_timeout = 2000,
-				-- },
+        cmdline = {
+          -- Only activate cmdline completion in the command-line mode
+          enabled = function()
+            return vim.fn.mode() == 'c'  -- Only for command-line mode
+          end,
+          sources = {
+            { name = 'cmdline' },
+            { name = 'path' },
+          },
+        },
+        -- performance = {
+          -- It is recommended to increase the timeout duration due to
+          -- the typically slower response speed of LLMs compared to
+          -- other completion sources. This is not needed when you only
+          -- need manual completion.
+        --  fetching_timeout = 2000,
+        -- },
       }
 
       -- Configure completion window borders
@@ -239,7 +239,7 @@ return {
 
     ----------------------------------------------------------
 
-			--[[
+      --[[
       -- Use buffer source for `/` and `?` (if you enabled
       --  `native_menu`, this won't work anymore).
       cmp.setup.cmdline({ '/', '?' }, {
@@ -266,24 +266,24 @@ return {
         matching = { disallow_symbol_nonprefix_matching = false }
       })]]--
 
-			cmp.setup.cmdline(':', {
-				sources = {
-					{ name = 'cmdline' },  -- Enable cmdline completion only for command-line mode
-					{ name = 'path' },
-				},
-			})
+      cmp.setup.cmdline(':', {
+        sources = {
+          { name = 'cmdline' },  -- Enable cmdline completion only for command-line mode
+          { name = 'path' },
+        },
+      })
 
-			cmp.setup.cmdline('/', {
-				sources = {
-					{ name = 'buffer' },   -- Enable buffer completion for `/` search mode
-				},
-			})
+      cmp.setup.cmdline('/', {
+        sources = {
+          { name = 'buffer' },   -- Enable buffer completion for `/` search mode
+        },
+      })
 
-			cmp.setup.cmdline('?', {
-				sources = {
-					{ name = 'buffer' },   -- Enable buffer completion for `?` search mode
-				},
-			})
+      cmp.setup.cmdline('?', {
+        sources = {
+          { name = 'buffer' },   -- Enable buffer completion for `?` search mode
+        },
+      })
 
     ----------------------------------------------------------
 
@@ -303,27 +303,27 @@ return {
     }
     ]] --
 
-			----------------------------------------------------------
+      ----------------------------------------------------------
 
-			-- Sort cmp-ai to show on top
-			--[[local compare = require('cmp.config.compare')
-			cmp.setup({
-				sorting = {
-					priority_weight = 2,
-					comparators = {
-						require('cmp_ai.compare'),
-						compare.offset,
-						compare.exact,
-						compare.score,
-						compare.recently_used,
-						compare.kind,
-						compare.sort_text,
-						compare.length,
-						compare.order,
-					},
-				},
-			})]]--
+      -- Sort cmp-ai to show on top
+      --[[local compare = require('cmp.config.compare')
+      cmp.setup({
+        sorting = {
+          priority_weight = 2,
+          comparators = {
+            require('cmp_ai.compare'),
+            compare.offset,
+            compare.exact,
+            compare.score,
+            compare.recently_used,
+            compare.kind,
+            compare.sort_text,
+            compare.length,
+            compare.order,
+          },
+        },
+      })]]--
 
-		end
+    end
   }
 }

@@ -177,7 +177,37 @@ return {
       -- dap.defaults.fallback.force_external_terminal = true
       -- dap.defaults.fallback.focus_terminal = true -- If the integrated terminal should get focus when its created
 
+      ------------------------------------------------------------
 
+      -- NOTE: NodeJS debugger
+      -- Steps to install it:
+      -- git clone https://github.com/microsoft/vscode-node-debug2.git
+      -- cd vscode-node-debug2
+      -- npm install
+      -- npm install source-map@0.7.4 -- Fix to an issue, that i had
+      -- npm run build
+
+      dap.adapters.node2 = {
+        type = "executable",
+        command = "node",
+        args = {"C:/MyPrograms/vscode-node-debug2/out/src/nodeDebug.js"},
+      }
+
+      dap.configurations.javascript = {
+        {
+          type = "node2",
+          request = "launch",
+          name = "Launch File",
+          program = "${file}",
+          cwd = vim.fn.getcwd(),
+          sourceMaps = true,
+          protocol = "inspector",
+        },
+      }
+
+      dap.configurations.javascriptreact = dap.configurations.javascript
+
+      ------------------------------------------------------------
 
       -- https://github.com/mfussenegger/nvim-dap/wiki/C-C---Rust-(via--codelldb)
       --local dap = require('dap')

@@ -18,6 +18,40 @@ vim.api.nvim_create_user_command("Config", function()
 end, {desc = 'cd to dot files'})
 
 
+vim.api.nvim_create_user_command('OpenCMD', function()
+  local cwd = vim.fn.getcwd():gsub("/", "\\") -- convert to Windows-style path
+  vim.fn.jobstart({'cmd.exe'}, {
+    cwd = cwd,
+    detach = true,
+  })
+end, {})
+
+
+-- vim.api.nvim_create_user_command('RemoveUnsavableBuffers', function()
+--   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+--     if vim.api.nvim_buf_get_option(buf, 'buflisted') and
+--        (vim.api.nvim_buf_get_name(buf) == '' or
+--         not vim.api.nvim_buf_get_option(buf, 'modifiable')) then
+--       vim.api.nvim_buf_delete(buf, {force = true})
+--     end
+--   end
+-- end, {})
+
+-- With a check to skip unsaved/changed buffers
+vim.api.nvim_create_user_command('RemoveUnsavableBuffers', function()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    local listed = vim.api.nvim_buf_get_option(buf, 'buflisted')
+    local name = vim.api.nvim_buf_get_name(buf)
+    local modifiable = vim.api.nvim_buf_get_option(buf, 'modifiable')
+    local modified = vim.api.nvim_buf_get_option(buf, 'modified')
+    if listed and (name == '' or not modifiable) and not modified then
+      vim.api.nvim_buf_delete(buf, {force = true})
+    end
+  end
+end, {})
+
+
+
 -------------------------------------------------------------
 
 

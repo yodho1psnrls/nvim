@@ -2,6 +2,8 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+map("n", "<leader>cm", "<cmd>OpenCMD<CR>", opts)
+
 -- NOTE: ALT == ESC
 map({'i', 't', 'c'}, '<A-*>', '<Esc>', { noremap = true });
 
@@ -89,6 +91,7 @@ Ex-Mode	!
 
 
 map('n', '<leader>q', '<cmd>q<CR>', { desc = '[Q]uit Window', noremap = true, silent = true })
+map('n', '<leader>Q', '<cmd>qa<CR>', { desc = '[Q]uit All Windows', noremap = true, silent = true })
 -- map('n', '<leader>x', '<cmd>Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
 map('n', '<leader>x', function ()
   if vim.bo.buftype == 'terminal' then
@@ -97,6 +100,10 @@ map('n', '<leader>x', function ()
     require("bufdelete").bufdelete(0, false)
   end
 end, { noremap = true, silent = true, desc = "Buffer delete" })
+
+-- TODO:
+-- map('n', '<leader>X', ' x q',
+--   { noremap = false, silent = true, desc = "Delete buffer and close window" })
 
 map('n', '<leader>cd', '<cmd>cd %:p:h<CR>', {desc = "Set cwd to current file", noremap = true })
 

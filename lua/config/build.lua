@@ -275,6 +275,24 @@ function BuildAndDebugPython()
 end
 
 
+
+function BuildAndRunJavaScript()
+  print(prepend_time("Running JavaScript ..."))
+  vim.cmd('10split | terminal node %') -- 12split
+  vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
+
+  if vim.api.nvim_get_mode().mode ~= 't' then
+    vim.api.nvim_input('i')
+  end
+end
+
+function BuildAndDebugJavaScript()
+  print(prepend_time("Debugging JavaScript ..."))
+  -- require('dap').continue()
+  LaunchDapConfig('javascript', 'Launch File')
+end
+
+
 --=======================================================================--
 
 
@@ -361,6 +379,12 @@ local filetype_to_run_table = {
       debug = BuildAndDebugPython,
     },
   },
+  javascript = {
+    src = {
+      run = BuildAndRunJavaScript,
+      debug = BuildAndDebugJavaScript,
+    }
+  }
 }
 
 

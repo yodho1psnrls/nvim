@@ -132,9 +132,9 @@ return {
             filetype = "NvimTree",
             --text = "File Explorer",
             text = function() return ' ' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') end,
-            --text = function() return ' ' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') end,
-            --text = function() return '󰇘\\' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') end,
-            --text = function() return '\\' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') .. '\\' end,
+            -- text = function() return ' ' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') end,
+            -- text = function() return '󰇘\\' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') end,
+            -- text = function() return '\\' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') .. '\\' end,
             highlight = "Directory",
             text_align = "left",  -- left, center, right
 

@@ -1,7 +1,7 @@
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#ccls
 
 -- TODO: Fix the Code Action Feature
---		and some others that dont work properly or have their keymaps overriten like Go To Implementation
+--    and some others that dont work properly or have their keymaps overriten like Go To Implementation
 --    Most importantly: Generate definition out of declaration
 
 -- TODO: Disable the Unused Include Directories Warning 
@@ -56,19 +56,19 @@ return {
         update_in_insert = true,
         severity_sort = true,
         -- signs = true, -- true
-				signs = {
-					text = {
-						[vim.diagnostic.severity.ERROR] = "",
-						[vim.diagnostic.severity.WARN] = "",
-						[vim.diagnostic.severity.INFO] = "",
-						[vim.diagnostic.severity.HINT] = "",
-					},
-				},
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = "",
+            [vim.diagnostic.severity.WARN] = "",
+            [vim.diagnostic.severity.INFO] = "",
+            [vim.diagnostic.severity.HINT] = "",
+          },
+        },
 
-				-- float = {
-				-- 	border = 'rounded',
-				-- 	-- source = true,
-				-- }
+        -- float = {
+        --  border = 'rounded',
+        --  -- source = true,
+        -- }
 
         -- severity = {
           -- min = vim.diagnostic.severity.WARN, -- HINT | INFO | WARN | ERROR
@@ -86,7 +86,7 @@ return {
       })
 
 
-			-- NOTE: Deprecated:
+      -- NOTE: Deprecated:
 
       -- vim.fn.sign_define("DiagnosticSignWarn", { text = "⚠️", texthl = "DiagnosticWarn" })  -- Warning icon
       -- vim.fn.sign_define("DiagnosticSignError", { text = "❌", texthl = "DiagnosticError" })  -- Error icon
@@ -283,8 +283,9 @@ return {
         filetypes = { 'python' },
         root_dir = function(fname)
           -- return lspconfig.util.find_git_ancestor(fname) or lspconfig.util.path.dirname(fname)
-					return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
-					-- return vim.fs.dirname(vim.fs.find('.git', { path = vim.fn.getcwd(), upward = true })[1])
+          -- return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
+          return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fs.dirname(fname)
+          -- return vim.fs.dirname(vim.fs.find('.git', { path = vim.fn.getcwd(), upward = true })[1])
         end,
         settings = {
           python = {
@@ -335,6 +336,7 @@ return {
           -- '--query-driver=D:\\Program Files\\MSYS2\\mingw64\\bin\\clang++.exe',
 
           "--clang-tidy",
+          "--clang-tidy-checks=*",  -- aggressive clang-tidy
           -- Enable all performance-related checks for clang-tidy
           --"--checks=performance-*",     
           -- Or you can enable performance related checks one by one
@@ -342,11 +344,11 @@ return {
 
           "--completion-style=detailed", -- To support Inlay Hints
 
-					-- Disable Unused Header Warning, But for some reason, it has no effect
-					-- "--header-insertion=never",
+          -- Disable Unused Header Warning, But for some reason, it has no effect
+          -- "--header-insertion=never",
 
-					-- Disable all clang-tidy checks, enabling only this specific check, which warns about deprecated c headers
-					-- "--clang-tidy-checks=-*,modernize-deprecated-headers",
+          -- Disable all clang-tidy checks, enabling only this specific check, which warns about deprecated c headers
+          -- "--clang-tidy-checks=-*,modernize-deprecated-headers",
 
           --"--log=verbose", -- For Debugging
           -- "--header-insertion=never", -- (iwyu: default | never) automatically inserting #include directives for missing headers when completing symbols
@@ -371,8 +373,8 @@ return {
         root_dir = function(fname)
           -- return util.find_git_ancestor(fname) or vim.fn.getcwd() -- Deprecated
           -- return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
-					return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
-				end,
+          return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
+        end,
 
         --root_dir = function(fname)
         --  return util.root_pattern('compile_commands.json', '.git')(fname)
@@ -385,12 +387,21 @@ return {
       }
 
 
-			-- JavaScript/TypeScript
-			-- lspconfig.tsserver.setup {}
-			lspconfig.ts_ls.setup {}
+      -- NOTE: After seting up nodejs you would get npm
+      -- run npm install -g vscode-langservers-extracted
+      -- and npm install -g typescript typescript-language-server
+      --
+      -- others:
+      -- npm install -g prettier
+      -- npm install -g eslint
+      -- npm install -g typescript
+      -- npm install -g live-server
 
-			-- CSS
-			lspconfig.cssls.setup {}
+      -- lspconfig.tsserver.setup {} -- JavaScript/TypeScript
+      lspconfig.ts_ls.setup {} -- JavaScript/TypeScript
+      lspconfig.cssls.setup {} -- CSS
+      lspconfig.html.setup{}
+      lspconfig.eslint.setup{}
 
 
       --[[

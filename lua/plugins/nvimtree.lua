@@ -118,15 +118,27 @@ return {
 
       },
 
-     -- highlight_opened_files_group = 'NvimTreeOpenedFiles',
+      -- highlight_opened_files_group = 'NvimTreeOpenedFiles',
 
+      -- Potential fix for the error:
+      -- [NvimTree] Could not start the fs_event watcher for path \c\Users\Todor\AppData\Local\nvim\.git : ENOENT
+      -- git = {
+      --   enable = true,
+      --   ignore = false,
+      -- },
 
       filters = {
-        dotfiles = true,
-        custom = { "compile_commands.json" },
+
+        -- dotfiles = true,
+        dotfiles = false,
+
+        custom = {
+          "compile_commands.json",
+          -- ".git",
+        },
       },
 
-     -- disable_netrw = true,
+      -- disable_netrw = true,
 
       -- Custom function to handle a sticky root folder
       --[[on_attach = function(bufnr)
@@ -144,6 +156,8 @@ return {
 
 
   config = function(_, opts)
+
+    require'nvim-tree'.setup(opts)
 
     vim.cmd("highlight! NvimTreeOpenedFiles guibg=#2a273f guifg=#e0def4")
 
@@ -207,14 +221,12 @@ return {
 
     --======================================================================--
 
-    require'nvim-tree'.setup(opts)
-
     -- Highlighing groups for current buffer/file
       -- vim.cmd[[ highlight NvimTreeCursorLine guibg=#512C57 gui=bold]]
     --vim.cmd[[ highlight NvimTreeCursorLine guibg=#484069 guifg=#FFFFFF gui=bold]]
     --vim.cmd[[ highlight NvimTreeCursorLineNr guifg=red]]
 
-  --[[
+    --[[
     -- Autocommand for when opening Neovim with a directory
     -- Or when you open a folder like :edit some_folder
     vim.api.nvim_create_autocmd("VimEnter", {
@@ -226,11 +238,13 @@ return {
         end
       end,
     })
-  ]]--
+    ]]--
 
-    -- Make :bd and :q behave as usual when tree is visible
+
+    -- NOTE: Make :q to ignore the tree window when
+    -- you have other window opened and you use :quit on it
     -- Is this compatible with nvim-bufdelete ???
-    vim.api.nvim_create_autocmd({ 'BufEnter', 'QuitPre' }, {
+    --[[vim.api.nvim_create_autocmd({ 'BufEnter', 'QuitPre' }, {
       nested = false,
       callback = function(e)
         local tree = require('nvim-tree.api').tree
@@ -294,10 +308,10 @@ return {
           end, 10)
         end
       end
-    })
+    })]]--
 
 
-    -- Make Nvim-Tree always focus the file that you are currently in
+    -- NOTE: Make Nvim-Tree always focus the file that you are currently in
     vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter' }, {
       callback = function()
         local tree_api = require('nvim-tree.api')

@@ -40,6 +40,7 @@ return {
 
 {
   "lukas-reineke/indent-blankline.nvim",
+  lazy = true,
   main = "ibl",
   ---@module "ibl"
   ---@type ibl.config
@@ -60,7 +61,7 @@ return {
       remove_blankline_trail = true,
     },
     exclude = {
-      filetypes = { "dashboard" },
+      filetypes = { "dashboard", "undotree" },
     },
   },
   config = function (_, opts)

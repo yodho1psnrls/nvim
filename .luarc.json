@@ -1,5 +1,6 @@
 {
     "diagnostics.disable": [
-        "inject-field"
+        "inject-field",
+        "deprecated"
     ]
 }
