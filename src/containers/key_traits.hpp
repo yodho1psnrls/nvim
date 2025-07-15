@@ -17,6 +17,91 @@ struct key_cont_traits;
 
 // ============================================================== //
 
+template <typename IterType>
+class key_cont_traits<View<IterType>> {
+
+  using container = View<IterType>;
+
+public:
+
+  using value_type = typename container::value_type;
+  using reference = typename container::reference;
+  using pointer = typename container::pointer;
+  using value_iterator = typename container::iterator;
+  
+  using difference_type = typename container::difference_type;
+  using size_type = std::make_unsigned_t<difference_type>;
+  
+  using key_type = size_type;
+  using key_iterator = IndexIterator<key_type>;
+  
+ 
+  static bool contains(const container& cont, key_type key) {
+    size_type k(key);
+    if constexpr (std::is_unsigned_v<size_type>)
+      return k < cont.size();
+    else
+      return 0 <= k && k < cont.size();
+  }
+
+  static key_iterator find(const container&, key_type key) {
+    return key_iterator(key);
+  }
+
+  static value_iterator find(const container& cont, key_iterator key_it) {
+    return cont.begin() + *key_it;
+  }
+
+  template <typename KeyIter>
+  static LookupIterator<KeyIter, const container>
+  find(const container& cont, KeyIter key_it) {
+    return make_lookup_iterator(key_it, cont);
+  }
+
+  static key_iterator begin(const container& cont) {
+  // static key_iterator kbegin(const container& cont) {
+    return key_iterator(key_type(0ULL));
+  }
+
+  static key_iterator end(const container& cont) {
+  // static key_iterator kend(const container& cont) {
+    return key_iterator(key_type(cont.size()));
+  }
+
+  static View<key_iterator> keys(const container& cont) {
+    return {
+      key_iterator(key_type(0ULL)),
+      key_iterator(key_type(cont.size()))
+    };
+  }
+
+  static View<value_iterator> values(const container& cont) {
+    return {
+      cont.begin(),
+      cont.end()
+    };
+  }
+
+  // static View<value_iterator> cvalues(const container& cont) {
+  //   return {
+  //     cont.cbegin(),
+  //     cont.cend()
+  //   };
+  // }
+
+  static reference at(const container& cont, key_type key) {
+    return cont[size_type(key)];
+  }
+
+};
+
+// template <typename ViewType>
+// struct __view_key_cont_traits {
+//
+//   static_assert(is_range_v<ViewType>);
+//
+// };
+
 
 template <
   typename VecType
@@ -25,6 +110,7 @@ template <
 class __vec_key_cont_traits {
   
   static_assert(is_container_v<VecType>);
+  // static_assert(is_range_v<VecType>);
   static_assert(is_vector_container_v<VecType>);
 
   // using container = std::vector<T, Alloc>;
@@ -258,6 +344,7 @@ template <typename Container>
 class __stability_of_ref_key_cont_traits {
   
   static_assert(is_container_v<Container>);
+  // static_assert(is_range_v<Container>);
 
   // using container = std::vector<T, Alloc>;
   // using container = Container;
@@ -776,7 +863,8 @@ struct key_cont_traits : public _if_t<
 
 template <typename Container>
 struct key_cont_traits : public _if_t<
-  !is_container_v<Container>,
+  // !is_container_v<Container>,
+  !is_range_v<Container>,
   EmptyType,
   _if_t<
     is_set_container_v<Container>,

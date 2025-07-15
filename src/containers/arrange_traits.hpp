@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../meta_func.hpp"
+#include "key_traits.hpp"
 
 
 // NOTE: Each of the order/shift traits classes have one to one
@@ -8,21 +9,31 @@
 
 // NOTE: We wont touch the exact erased key value !!
 
+// TODO: Make them also not branchless if they happen to be
+//  non-random-access iterators
 
 struct ShiftArrange {
 
-  template <typename Key>
+  template <
+    typename Cont,
+    typename Key = typename key_cont_traits<Cont>::key_type
+  >
   static void will_insert(
     Key& key_to_update,
+    const Cont&,
     const Key& inserted_key,
     std::ptrdiff_t count = 1
   ) {
     key_to_update += count * (key_to_update > inserted_key);
   }
 
-  template <typename Key>
+  template <
+    typename Cont,
+    typename Key = typename key_cont_traits<Cont>::key_type
+  >
   static void was_erased(
     Key& key_to_update,
+    const Cont&,
     const Key& erased_key,
     std::ptrdiff_t count = 1
   ) {
@@ -41,22 +52,32 @@ struct ChainArrange {
   // NOTE: You will need to know the size of the container
   // that the keys point to
 
-  template <typename Key>
+  template <
+    typename Cont,
+    typename Key = typename key_cont_traits<Cont>::key_type
+  >
   static void will_insert(
     Key& key_to_update,
+    const Cont& cont,
     const Key& inserted_key,
     std::ptrdiff_t count = 1
   ) {
-
+    key_to_update +=
+      (key_to_update == inserted_key) * (cont.size() - key_to_update);
   }
 
-  template <typename Key>
+  template <
+    typename Cont,
+    typename Key = typename key_cont_traits<Cont>::key_type
+  >
   static void was_erased(
     Key& key_to_update,
+    const Cont& cont,
     const Key& erased_key,
     std::ptrdiff_t count = 1
   ) {
-
+    key_to_update +=
+      (key_to_update == cont.size()) * (erased_key - key_to_update);
   }
   
 };
@@ -64,23 +85,27 @@ struct ChainArrange {
 
 struct NoShiftArrange {
 
-  template <typename Key>
+  template <
+    typename Cont,
+    typename Key = typename key_cont_traits<Cont>::key_type
+  >
   static void will_insert(
     Key& key_to_update,
+    const Cont&,
     const Key& inserted_key,
     std::ptrdiff_t count = 1
-  ) {
+  ) {}
 
-  }
-
-  template <typename Key>
+  template <
+    typename Cont,
+    typename Key = typename key_cont_traits<Cont>::key_type
+  >
   static void was_erased(
     Key& key_to_update,
+    const Cont&,
     const Key& erased_key,
     std::ptrdiff_t count = 1
-  ) {
-
-  }
+  ) {}
   
 };
 

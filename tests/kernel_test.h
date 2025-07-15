@@ -30,10 +30,10 @@ TEST(Kernel, KernelAreKeysUpdatedOnErase) {
     >, vert_handle_tag>,
     TaggedType<PropertyContainer<
       std::vector<vert_key>
-    >, hedge_handle_tag>,
-    TaggedType<PropertyContainer<
-      std::vector<View<hedge_key_iter>>
-    >, face_handle_tag>
+    >, hedge_handle_tag>
+    // TaggedType<PropertyContainer<
+    //   std::vector<View<hedge_key_iter>>
+    // >, face_handle_tag>
   >;
 
   kernel_type ker;
@@ -44,9 +44,15 @@ TEST(Kernel, KernelAreKeysUpdatedOnErase) {
   ker.insert(ker.end<vert_handle_tag>(), zit, zit + 13);
   ker.insert(ker.end<hedge_handle_tag>(), vkit + 2, vkit + 9);
   
-  for(auto& x : ker.values<hedge_key, vert_key>())
-    std::cout << x << ", ";
-  std::cout << "\n";
+  View vals = ker.values<hedge_key, vert_key>();
+  std::array<size_t, 7> expected;
+  
+  expected = {2, 3, 4, 5, 6, 7, 8};
+  EXPECT_EQ(expected, vals);
+  
+  // for(auto& x : ker.values<hedge_key, vert_key>())
+  //   std::cout << x << ", ";
+  // std::cout << "\n";
 
   auto vit = ker.begin<vert_handle_tag>() + 4;
   // ker.insert(vit, 7, {'x'});
@@ -55,18 +61,18 @@ TEST(Kernel, KernelAreKeysUpdatedOnErase) {
 
   // ker.erase(ker.insert(vit, {'J'}));
   vit = ker.insert(vit, 7, {'J'});
-  // vit = ker.erase(vit, vit + 7);
 
-  for(auto& x : ker.values<hedge_key, vert_key>())
-    std::cout << x << ", ";
-  std::cout << "\n";
+  expected = {2, 3, 4, 12, 13, 14, 15};
+  EXPECT_EQ(expected, vals);
   
-  using iter_type = kernel_type::tag_to_key_iterator<face_key::tag_type>;
+  vit = ker.erase(vit, vit + 7);
   
-  // WHYY DOESNT WORK WITH FACE_KEY ??
-  for(face_key x : ker.keys<face_key>())
-    std::cout << x << ", ";
-  std::cout << "\n";
+  expected = {2, 3, 4, 5, 6, 7, 8};
+  EXPECT_EQ(expected, vals);
+  
+  // for(face_key x : ker.keys<face_key>())
+  //   std::cout << x << ", ";
+  // std::cout << "\n";
 
 }
 
@@ -116,7 +122,7 @@ TEST(Kernel, KernelAreKeysUpdatedWithMatrix) {
   ker.push_back<face_key>({{vert_key(3), vert_key(4), vert_key(5)}});
 
 
-  decltype(auto) vals = ker.values<face_key, std::vector<vert_key>>();
+  View vals = ker.values<face_key, std::vector<vert_key>>();
   std::array<std::array<size_t, 3>, 2> expected({{0, 1, 2}, {3, 4, 5}});
   EXPECT_EQ(expected, vals);
   

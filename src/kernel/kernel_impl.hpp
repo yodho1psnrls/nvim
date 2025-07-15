@@ -471,8 +471,8 @@ public:
     using ContType = tag_to_cont_type<KeyIter>;
     
     // std::apply([key_it](Containers& ...cont) { (__update_all(cont, key_it), ...); }, _groups);
-    for_each_rec<KeyRef>(_groups, [&key_it](KeyRef k) {
-      arrange_traits<ContType>::will_insert(k, *key_it);
+    for_each_rec<KeyRef>(_groups, [this, &key_it](KeyRef k) {
+      arrange_traits<ContType>::will_insert(k, group<KeyIter>(), *key_it);
     });
 
     using Traits = key_cont_traits<ContType>;
@@ -491,8 +491,8 @@ public:
     using KeyRef = std::remove_const_t<KeyType>&;
     using ContType = tag_to_cont_type<KeyIter>;
     
-    for_each_rec<KeyRef>(_groups, [&key_it, n](KeyRef k) {
-      arrange_traits<ContType>::will_insert(k, *key_it, n);
+    for_each_rec<KeyRef>(_groups, [this, &key_it, n](KeyRef k) {
+      arrange_traits<ContType>::will_insert(k, group<KeyIter>(), *key_it, n);
     });
 
     using Traits = key_cont_traits<tag_to_cont_type<KeyIter>>;
@@ -520,8 +520,8 @@ public:
     KeyIter kit(Traits::insert(group<KeyIter>(), key_it.base(), first, last));
     count = size<KeyIter>() - count;
     
-    for_each_rec<KeyRef>(_groups, [&key_it, count](KeyRef k) {
-      arrange_traits<ContType>::will_insert(k, *key_it, count);
+    for_each_rec<KeyRef>(_groups, [this, &key_it, count](KeyRef k) {
+      arrange_traits<ContType>::will_insert(k, group<KeyIter>(), *key_it, count);
     });
 
     return kit;
@@ -541,8 +541,8 @@ public:
     using Traits = key_cont_traits<tag_to_cont_type<KeyIter>>;
     KeyIter kit(Traits::erase(group<KeyIter>(), key_it.base()));
 
-    for_each_rec<KeyRef>(_groups, [&key_it](KeyRef k) {
-      arrange_traits<ContType>::was_erased(k, *key_it);
+    for_each_rec<KeyRef>(_groups, [this, &key_it](KeyRef k) {
+      arrange_traits<ContType>::was_erased(k, group<KeyIter>(), *key_it);
     });
 
     return kit;
@@ -564,9 +564,9 @@ public:
     using Traits = key_cont_traits<ContType>;
     KeyIter kit(Traits::erase(group<KeyIter>(), from.base(), to.base()));
     count = count - size<KeyIter>();
-    
-    for_each_rec<KeyRef>(_groups, [&kit, count](KeyRef k) {
-      arrange_traits<ContType>::was_erased(k, *kit, count);
+
+    for_each_rec<KeyRef>(_groups, [this, &kit, count](KeyRef k) {
+      arrange_traits<ContType>::was_erased(k, group<KeyIter>(), *kit, count);
     });
 
     return kit;
