@@ -1,0 +1,59 @@
+#pragma once
+
+// #include "../containers/"
+#include "../keys.hpp"
+#include "../iterators/index_iterator.hpp"
+
+#include <vector>
+
+
+template <
+  typename PointCloud,
+  typename FaceData = void
+> class Mesh : public PointCloud {
+public:
+
+  using PointCloud::PointCloud;
+
+  using typename PointCloud::vert_key;
+  using typename PointCloud::vert_key_iter;
+  using typename PointCloud::difference_type;
+
+  using face_key = TaggedType<difference_type, face_handle_tag>;
+  using face_key_iter = TaggedIterator<IndexIterator<difference_type>, face_handle_tag>;
+
+private:
+
+  std::vector<std::vector<vert_key>> _faces;
+  // std::vector<std::array<vert_key, N> _faces;
+
+public:
+
+  face_key_iter faces_begin() const {
+    return face_key_iter(IndexIterator(difference_type(0)));
+  }
+  
+  face_key_iter faces_end() const {
+    return face_key_iter(IndexIterator(difference_type(_faces.size())));
+  }
+
+  View<face_key_iter> faces() const {
+    return View(faces_begin(), faces_end());
+  }
+
+  face_key add_face(const std::vector<vert_key>& face) {
+    face_key f(_faces.size());
+    _faces.push_back(face);
+    return f;
+  }
+
+  void remove_face(face_key fi) {
+    _faces.erase(_faces.cbegin() + fi);
+  }
+
+
+};
+
+
+
+

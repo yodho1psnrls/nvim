@@ -1,0 +1,119 @@
+#pragma once
+
+#include <iterator>     // iterator categories and std::reverse_iterator
+#include <type_traits>  // std::enable_if
+// #include "../keys/keys.hpp"
+
+
+template <typename IntType, typename ValType = IntType>
+class index_iterator {
+
+  static_assert(std::is_integral_v<IntType>);
+
+  ValType _id{};
+  
+  template <typename, typename>
+  friend class index_iterator;
+
+public:
+
+  // using base_type = ValType;
+  // base_type base() const { return _id; }
+
+  // using iterator_category = std::contiguous_iterator_tag;
+  using iterator_category = std::random_access_iterator_tag;
+  using difference_type = std::make_signed_t<IntType>;
+  using value_type = ValType;
+  using pointer = const value_type*;
+  // using reference = const value_type&;
+  using reference = value_type;
+
+	constexpr index_iterator() noexcept : _id() {}
+	explicit constexpr index_iterator(ValType id) noexcept : _id(id) {}
+
+	constexpr bool operator==(const index_iterator&) const = default;
+	// constexpr bool operator==(const index_iterator<IntType, ValType>&) const = default;
+
+  // template <typename I>
+  // constexpr index_iterator(index_iterator<I, I> other)
+  // : _id(other._id) {}
+
+  template <typename I = IntType>
+  constexpr operator index_iterator<I, I>() const {
+    return index_iterator<I, I>(_id);
+  }
+
+  // template <typename I, typename VT>
+  // explicit operator index_iterator<I, VT>() const {
+  //   return index_iterator<I, VT>(VT(IntType(_id)));
+  // }
+  
+  // template <typename I, typename VT>
+  // constexpr index_iterator(const index_iterator<I, VT>& other)
+  // : _id(other.base()) {}
+
+  // explicit constexpr operator index_iterator<IntType, IntType>() const {
+  //   return index_iterator<IntType, IntType>(_id);
+  // }
+  // 
+  // explicit constexpr operator index_iterator<IntType, index_handle<IntType, void>>() const {
+  //   return index_iterator<IntType, IntType>(_id);
+  // }
+  
+
+  reference operator*() const { return _id; }  
+  pointer operator->() const { return &_id; }
+  value_type operator[](difference_type i) const { return _id + i; }
+
+  index_iterator& operator++() { ++_id; return *this; }
+  index_iterator operator++(int) { auto temp(*this); ++(*this); return temp; }
+  
+  index_iterator& operator--() { --_id; return *this; }
+  index_iterator operator--(int) { auto temp(*this); --(*this); return temp; }
+  
+  index_iterator& operator+=(difference_type i) { _id += i; return *this; }
+  index_iterator operator+(difference_type i) const { auto temp(*this); return temp += i; }
+  friend index_iterator operator+(difference_type i, index_iterator rhs) { return rhs += i; }
+
+  index_iterator& operator-=(difference_type i) { _id -= i; return *this; }
+  index_iterator operator-(difference_type i) const { auto temp(*this); return temp -= i; }
+  difference_type operator-(index_iterator other) const { return _id - other._id; }
+
+  bool operator==(index_iterator other) const { return _id == other._id; }
+  bool operator!=(index_iterator other) const { return _id != other._id; }
+  bool operator>(index_iterator other) const { return _id > other._id; }
+  bool operator>=(index_iterator other) const { return _id >= other._id; }
+  bool operator<(index_iterator other) const { return _id < other._id; }
+  bool operator<=(index_iterator other) const { return _id <= other._id; }
+
+};
+  
+
+/*template <typename ValType, typename = void>
+struct __index_iterator_type {
+  static_assert(std::is_integral_v<ValType>);
+  using type = __index_iterator_impl<ValType, ValType>;
+};
+
+template <typename ValType>
+struct __index_iterator_type<
+  ValType,
+  std::void_t<typename ValType::base_type>
+> {
+  // Assuming that ValType is not std::integral, but behaves like integer
+  // Most likely it is a index_key_handle type
+  // static_assert(is_key_handle_v<ValType>);
+  using type = __index_iterator_impl<typename ValType::base_type, ValType>;
+};
+
+template <typename ValType>
+using index_iterator = typename __index_iterator_type<ValType>::type;*/
+
+
+// template <typename ValType>
+// __index_iterator_impl(ValType)
+// -> index_iterator<ValType>;
+
+template <typename DiffType>
+index_iterator(DiffType)
+-> index_iterator<DiffType, DiffType>;

@@ -1,0 +1,286 @@
+#pragma once
+
+// NOTE: Based on tensor_iterator1
+
+// #include "iterable.hpp"
+#include "view.hpp"
+#include "jump_iterator.hpp"
+#include "crtp_iterator.hpp"
+
+#include <iterator>
+#include <type_traits>
+// #include <memory>
+#include <ostream>
+
+
+template <typename, typename, bool> 
+class BaseTensorIterable;
+
+template <typename IterType, typename SizePolicy, bool STACKABLE = true>
+using InputTensorIterable = InputViewLayer<BaseTensorIterable<IterType, SizePolicy, STACKABLE>>;
+
+// Iterable with assignment of same size containers
+template <typename IterType, typename SizePolicy, bool STACKABLE = true>
+using TensorIterable = OutputViewLayer<InputViewLayer<BaseTensorIterable<IterType, SizePolicy, STACKABLE>>>;
+
+
+template <size_t SKIP_DEPTH = 0>
+struct GetAsIterFunctor {
+	
+	template <typename IterType, typename Policy, bool ST>
+	const get_base_type_t<typename BaseTensorIterable<IterType, Policy, ST>::as_iter_type, SKIP_DEPTH>&
+	operator()(const BaseTensorIterable<IterType, Policy, ST>& itb) const {
+		if constexpr (SKIP_DEPTH == 0)
+			return itb.as_iter();
+		else if constexpr (SKIP_DEPTH == 1)
+			return itb.as_iter().base();
+		else
+			return get_depth_base<SKIP_DEPTH>(itb.as_iter());
+	}
+	
+	template <typename IterType, typename Policy, bool ST>
+	get_base_type_t<typename BaseTensorIterable<IterType, Policy, ST>::as_iter_type, SKIP_DEPTH>&
+	operator()(BaseTensorIterable<IterType, Policy, ST>& itb) const {
+		if constexpr (SKIP_DEPTH == 0)
+			return itb.as_iter();
+		else if constexpr (SKIP_DEPTH == 1)
+			return itb.as_iter().base();
+		else
+			return get_depth_base<SKIP_DEPTH>(itb.as_iter());
+	}
+
+};
+
+
+/*template <bool SKIP_SIZE>
+struct GetAsIterFunctor {
+	
+	template <typename IterType, typename Policy, bool ST>
+	const get_base_type_t<typename BaseTensorIterable<IterType, Policy, ST>::as_iter_type, SKIP_SIZE>&
+	operator()(const BaseTensorIterable<IterType, Policy, ST>& itb) const {
+		if constexpr (SKIP_SIZE)
+			return itb.as_iter().base();
+		else
+			return itb.as_iter();
+	}
+	
+	template <typename IterType, typename Policy, bool ST>
+	get_base_type_t<typename BaseTensorIterable<IterType, Policy, ST>::as_iter_type, SKIP_SIZE>&
+	operator()(BaseTensorIterable<IterType, Policy, ST>& itb) const {
+		if constexpr (SKIP_SIZE)
+			return itb.as_iter().base();
+		else
+			return itb.as_iter();
+	}
+
+};*/
+
+
+template <typename BaseItb, size_t SKIP_DEPTH = 0>
+// template <typename BaseItb, bool SKIP_SIZE = false>
+class IterableToIterator
+: public CrtpIterator<IterableToIterator<BaseItb, SKIP_DEPTH>, BaseItb, GetAsIterFunctor<SKIP_DEPTH>>{
+// : public CrtpIterator<IterableToIterator<BaseItb, SKIP_SIZE>, BaseItb, GetAsIterFunctor<SKIP_SIZE>>{
+
+	static_assert(!is_iterator_v<BaseItb>);
+	static_assert(is_container_v<BaseItb>);
+
+	using ThisType = IterableToIterator<BaseItb, SKIP_DEPTH>;
+	using CrtpType = CrtpIterator<ThisType, BaseItb, GetAsIterFunctor<SKIP_DEPTH>>;
+	// using ThisType = IterableToIterator<BaseItb, SKIP_SIZE>;
+	// using CrtpType = CrtpIterator<ThisType, BaseItb, GetAsIterFunctor<SKIP_SIZE>>;
+	using IterType = typename CrtpType::template IterType<0>;
+
+protected:
+
+	// template <typename, bool>
+	template <typename, size_t>
+	friend class IterableToIterator;
+
+	const BaseItb& itb() const { return CrtpType::base(); }
+
+public:
+
+	using jump_iter_equivalent = IterType;
+
+	using CrtpType::CrtpType;
+
+	template <typename ITB, typename = std::enable_if_t<std::is_constructible_v<BaseItb, ITB>>>
+	IterableToIterator(const IterableToIterator<ITB, SKIP_DEPTH>& other)
+	// IterableToIterator(const IterableToIterator<ITB, SKIP_SIZE>& other)
+	// : CrtpType(static_cast<const CrtpIterator<IterableToIterator<ITB>, ITB, GetAsIterFunctor>&>(other).base()) {}
+	: CrtpType(other.itb()) {}
+
+	using typename CrtpType::iterator_category;
+	using typename CrtpType::difference_type;
+	using value_type = BaseItb;
+	using reference = const value_type&;
+	using pointer = const value_type*;
+
+	reference operator*() const { return CrtpType::base(); }
+	pointer operator->() const { return &CrtpType::base(); }
+	
+  template <typename IC = iterator_category, typename = std::enable_if_t<
+    std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  reference operator[](difference_type i) const {
+		ThisType temp(*this);
+		return *(temp += i);
+	}
+
+	static constexpr size_t NUM_DEPTH = IterType::NUM_DEPTH;
+	using depth_base_type = typename IterType::depth_base_type;
+	using base_type = typename IterType::base_type;
+
+	base_type& base() { return CrtpType::iter().base(); }
+	const base_type& base() const { return CrtpType::iter().base(); }
+
+};
+
+template <typename BaseItb>
+IterableToIterator(const BaseItb&)
+-> IterableToIterator<BaseItb>;
+
+// template <typename BaseItb, size_t SKIP_DEPTH, long long DIFF>
+// struct add_depth_to_jump_iterator<IterableToIterator<BaseItb, SKIP_DEPTH>, DIFF>
+// : public add_depth_to_jump_iterator<typename IterableToIterator<BaseItb, SKIP_DEPTH>::jump_iter_equivalent, DIFF> {};
+//
+// template <typename BaseItb>
+// struct rec_jump_iterator<IterableToIterator<BaseItb>>
+// : public rec_jump_iterator<typename IterableToIterator<BaseItb>::jump_iter_equivalent> {};
+
+// template <template <typename> class ItbLayer, typename JmpIter, long long DIFF>
+// struct add_depth_to_jump_iterator<IterableToIterator<ItbLayer<JmpIter>>, DIFF> {
+// 	// BUG: ItbLayer specialization wouldnt work, because its typename is
+// 	// another ItbLayer, only for the BaseItb types, the typename is an Iterator
+// 	using type = IterableToIterator<ItbLayer<typename add_depth_to_jump_iterator<JmpIter, DIFF>::type>>;
+// };
+
+
+struct UseItbSize {};
+
+
+// template <typename BaseItb, typename StridePolicy = UseItbSize, bool STCKB = true>
+// using TensorIterator = _if_t<
+// 	std::is_same_v<StridePolicy, UseItbSize>,
+// 	IterableToIterator<BaseItb>,
+// 	SkipSizeTensorIterator<BaseItb, StridePolicy, STCKB>
+// >;
+
+
+template <
+	typename BaseItb,
+	typename StridePolicy = UseItbSize,
+	bool STCKB = true
+>
+using TensorIterator = _if_t<
+	std::is_same_v<StridePolicy, UseItbSize>,
+	IterableToIterator<BaseItb, 0>,
+	_if_t<
+		// STCKB && does_have_base_v<typename BaseItb::iterator>,
+		STCKB,
+		jump_iterator<IterableToIterator<BaseItb, 1>, StridePolicy>,
+		rec_jump_iterator<jump_iterator<IterableToIterator<BaseItb, 1>, StridePolicy>>
+	>
+>;
+
+
+
+template <
+	typename BaseIter,
+	typename SizePolicy = FixedJumpPolicy<typename std::iterator_traits<BaseIter>::difference_type>,
+	bool STCKB = true
+>
+class BaseTensorIterable {
+
+	static_assert(is_iterator_v<BaseIter>);
+
+	using IterType = _if_t<
+		STCKB,
+		jump_iterator<BaseIter, SizePolicy>,
+		rec_jump_iterator_t<jump_iterator<BaseIter, SizePolicy>>
+	>;
+
+  IterType _it;
+
+protected:
+
+	template <size_t>
+	// template <bool>
+	friend class GetAsIterFunctor;
+
+	using as_iter_type = IterType;
+	const as_iter_type& as_iter() const noexcept { return _it; }
+	as_iter_type& as_iter() noexcept { return _it; }
+
+public:
+  
+	using difference_type = long long;
+	// using iterator = BaseIter;
+	using iterator = typename IterType::base_type;
+ 
+  template <typename ...Args, typename = std::enable_if_t<
+    std::is_constructible_v<IterType, Args...>>>
+  explicit BaseTensorIterable(Args&&... args)
+  : _it(std::forward<Args>(args)...) {}
+
+  template <typename IT>
+  BaseTensorIterable(const BaseTensorIterable<IT, SizePolicy, STCKB>& other)
+  : _it(other._it) {}
+
+	const iterator& begin() const {
+		return _it.base();
+	}
+	
+	iterator end() const {
+		IterType temp(_it);
+		return (++temp).base();
+	}
+
+  // difference_type size() const { return std::distance(begin(), end()); }
+  // bool empty() const { return begin() == end(); }
+
+  difference_type size() const {
+		if constexpr (STCKB)
+			return _it.stride();
+		else
+			return std::distance(begin(), end());
+	}
+
+  bool empty() const {
+		if constexpr (STCKB)
+			return !_it.stride();
+		else
+			return begin() == end();
+	}
+
+  template <typename ...Args, typename =
+		std::enable_if_t<std::is_constructible_v<IterType, Args...>>>
+  void reconstruct(Args&&... args) {
+    _it = IterType(std::forward<Args>(args)...);
+  }
+
+};
+
+
+// template <typename IterType, typename SizeArg>
+// BaseTensorIterable(const IterType&, const SizeArg&)
+// 	-> BaseTensorIterable<
+// 		IterType,
+// 		arg_to_jump_policy_t<SizeArg>
+// 	>;
+
+
+template <typename BaseIterType, typename SizePolicy, bool STACKABLE>
+inline std::ostream& operator<<(std::ostream& stream, const BaseTensorIterable<BaseIterType, SizePolicy, STACKABLE>& iterable) {
+  stream << "{";
+  for(auto iter = iterable.begin(); iter != iterable.end();) {
+    stream << *iter;
+    if (++iter != iterable.end())
+      stream << ", ";
+  }
+  stream << "}";
+
+  return stream;
+}
+
+

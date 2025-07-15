@@ -1,0 +1,217 @@
+#pragma once
+
+#include "../meta_func.hpp"	// most_base_t
+
+#include <iterator>
+#include <type_traits>
+
+
+// NOTE: FilterIterator adaptor, with FilterType being either a
+// unary function that returns bool or an iterator with value of bool
+
+template <typename IterType, typename FilterType>
+class __FunctionFilterIterator {
+public:
+
+	using difference_type = typename std::iterator_traits<IterType>::difference_type;
+
+	using iterator_category = most_base_t<
+		std::bidirectional_iterator_tag,
+		typename std::iterator_traits<IterType>::iterator_category
+	>;
+
+	using value_type = typename std::iterator_traits<IterType>::value_type;
+	using reference = typename std::iterator_traits<IterType>::reference;
+	using pointer = typename std::iterator_traits<IterType>::pointer;
+	
+	using base_type = IterType;
+	using filter_function = function_to_pointer_t<FilterType>;
+
+	const base_type& base() const { return _it; }
+	const filter_function& filter() const { return _pred; }
+
+	static_assert(is_iterator_v<FilterType> || std::is_convertible_v<std::invoke_result_t<FilterType, reference>, bool>);
+
+public:
+
+	template <bool COND = std::is_default_constructible_v<FilterType>,
+		typename = std::enable_if_t<COND>>
+	explicit FilterIterator(const IterType& iter)
+	: _it(iter), _pred() {
+		while(!_pred(*_it)) ++_it;
+	}
+
+	FilterIterator(const IterType& iter, const FilterType& pred)
+	: _it(iter), _pred(pred) {
+		while(!_pred(*_it)) ++_it;
+	}
+	
+	template <typename IT, typename = std::enable_if_t<std::is_constructible_v<IterType, IT>>>
+	FilterIterator(const FilterIterator<IT, FilterType>& other)
+	: _it(other.base()), _pred(other.filter()) {
+		// NOTE: We assume that it is in a valid state, since it comes
+		// from another FilterIterator with the same predicate
+		// while(!_pred(*_it)) ++_it;
+	}
+
+	reference operator*() const {
+		return _it.operator*();
+	}
+	
+	pointer operator->() const {
+		return _it.operator->();
+	}
+
+	bool operator==(const FilterIterator& other) const {
+		return _it == other._it;
+	}
+	
+	bool operator!=(const FilterIterator& other) const {
+		return _it != other._it;
+	}
+
+	FilterIterator& operator++() {
+		do {
+			++_it;
+		} while(!_pred(*_it));
+		return *this;
+	}
+
+	FilterIterator operator++(int) {
+		FilterIterator temp(*this);
+		++(*this);
+		return temp;
+	}
+	
+	template <typename IC = iterator_category, typename = std::enable_if_t<
+		std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+	FilterIterator& operator--() {
+		do {
+			--_it;
+		} while(!_pred(*_it));
+		return *this;
+	}
+
+	template <typename IC = iterator_category, typename = std::enable_if_t<
+		std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+	FilterIterator operator--(int) {
+		FilterIterator temp(*this);
+		--(*this);
+		return temp;
+	}
+
+private:
+
+	base_type _it;
+	[[no_unique_address]] filter_function _pred;
+
+};
+
+
+template <typename IterType, typename FilterType>
+class __IteratorFilterIterator {
+public:
+
+	using difference_type = typename std::iterator_traits<IterType>::difference_type;
+
+	using iterator_category = most_base_t<
+		std::bidirectional_iterator_tag,
+		typename std::iterator_traits<IterType>::iterator_category
+	>;
+
+	using value_type = typename std::iterator_traits<IterType>::value_type;
+	using reference = typename std::iterator_traits<IterType>::reference;
+	using pointer = typename std::iterator_traits<IterType>::pointer;
+	
+	using base_type = IterType;
+	using filter_function = function_to_pointer_t<FilterType>;
+
+	const base_type& base() const { return _it; }
+	const filter_function& filter() const { return _pred; }
+
+	static_assert(is_iterator_v<FilterType> || std::is_convertible_v<std::invoke_result_t<FilterType, reference>, bool>);
+
+public:
+
+	template <bool COND = std::is_default_constructible_v<FilterType>,
+		typename = std::enable_if_t<COND>>
+	explicit FilterIterator(const IterType& iter)
+	: _it(iter), _pred() {
+		while(!_pred(*_it)) ++_it;
+	}
+
+	FilterIterator(const IterType& iter, const FilterType& pred)
+	: _it(iter), _pred(pred) {
+		while(!_pred(*_it)) ++_it;
+	}
+	
+	template <typename IT, typename = std::enable_if_t<std::is_constructible_v<IterType, IT>>>
+	FilterIterator(const FilterIterator<IT, FilterType>& other)
+	: _it(other.base()), _pred(other.filter()) {
+		// NOTE: We assume that it is in a valid state, since it comes
+		// from another FilterIterator with the same predicate
+		// while(!_pred(*_it)) ++_it;
+	}
+
+	reference operator*() const {
+		return _it.operator*();
+	}
+	
+	pointer operator->() const {
+		return _it.operator->();
+	}
+
+	bool operator==(const FilterIterator& other) const {
+		return _it == other._it;
+	}
+	
+	bool operator!=(const FilterIterator& other) const {
+		return _it != other._it;
+	}
+
+	FilterIterator& operator++() {
+		do {
+			++_it;
+		} while(!_pred(*_it));
+		return *this;
+	}
+
+	FilterIterator operator++(int) {
+		FilterIterator temp(*this);
+		++(*this);
+		return temp;
+	}
+	
+	template <typename IC = iterator_category, typename = std::enable_if_t<
+		std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+	FilterIterator& operator--() {
+		do {
+			--_it;
+		} while(!_pred(*_it));
+		return *this;
+	}
+
+	template <typename IC = iterator_category, typename = std::enable_if_t<
+		std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+	FilterIterator operator--(int) {
+		FilterIterator temp(*this);
+		--(*this);
+		return temp;
+	}
+
+private:
+
+	base_type _it;
+	[[no_unique_address]] filter_function _pred;
+
+};
+
+
+template <typename IterType, typename FilterType>
+using FilterIterator = _if_t<
+	is_iterator_v<FilterType>,
+	__IteratorFilterIterator<IterType, FilterType>,
+	__FunctionFilterIterator<IterType, FilterType>
+>;
+
+

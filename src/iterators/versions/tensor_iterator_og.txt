@@ -1,0 +1,1207 @@
+#pragma once
+
+#include "iterable.hpp"
+#include "jump_iterator.hpp"
+
+#include <iterator>
+#include <type_traits>
+
+// NOTE: This approach uses C++20 [[no_unique_adress]] attribute
+
+// NOTE: num of flat args = policy_id + 1
+
+// TODO:
+// Make the initial policy_id in jump_iterator to be 1 instead of 0
+// this way, the number of all policies will be equal to the policy_id
+// and then the 0 policy_id will represent the absolute base type
+
+// TODO:
+// Make the constructors arguments to filter out
+// default initializable policies
+// For example the type
+// using itb_type = TensorIterable<iter, NoPolicy, FixedJumpPolicy, UseItbSize, FixedJumpPolicy>
+// currenly should only be constructed like this:
+// itb_type itb(iter, NoPolicy(), 4, UseItbSize(), 20)
+// instead, make it to be able to be constructed like this
+// itb_type itb(iter, 4, 20);
+
+// TODO: transpose function for rank 2 (matrix) TensorIterable types
+
+
+// Tag for the tensor_iterator_layer to use the SizePolicy
+//  of the BaseTensorIterableLayer as StridePolicy, so it trims off memory
+template <int Index = 0>
+struct UseItbSize {
+  template <int ID>
+  using indexed = UseItbSize<ID>;
+  template <int ID>
+  operator UseItbSize<ID>() const { return UseItbSize<ID>(); }
+  template <int ID>
+  operator NoPolicy<ID>() const { return NoPolicy<ID>(); }
+};
+
+
+// ========================================================== //
+
+
+template <typename SizePolicy, typename StridePolicy>
+struct layer_policy_traits {
+
+  using iterator_category = base_t<
+    typename SizePolicy::iterator_category,
+    typename StridePolicy::iterator_category
+  >;
+
+};
+
+template <typename IterType, typename StridePolicy, int ID>
+struct layer_policy_traits<JumpByIndexValue<IterType, ID>, StridePolicy> {
+
+  using iterator_category = base_t<
+    typename std::random_access_iterator_tag,
+    typename StridePolicy::iterator_category
+  >;
+
+};
+
+template <typename SizePolicy, int ID>
+struct layer_policy_traits<SizePolicy, UseItbSize<ID>> {
+
+  using iterator_category = SizePolicy::iterator_category;
+
+};
+
+
+// ========================================================== //
+
+
+template <
+  typename BaseItbType,
+  typename StridePolicy,
+  bool STACKABLE = false
+>
+class TensorIteratorLayer;
+
+
+template <
+  typename BaseIterType,
+  typename SizePolicy,
+  bool STACKABLE = false
+>
+class BaseTensorIterableLayer;
+
+
+template<
+  typename BaseIterType,
+  typename SizePolicy,
+  bool STACKABLE = false
+>
+using InputTensorIterableLayer = InputIterablePolicy<BaseTensorIterableLayer<BaseIterType, SizePolicy, STACKABLE>>;
+
+template<
+  typename BaseIterType,
+  typename SizePolicy,
+  bool STACKABLE = false
+>
+using TensorIterableLayer = OutputIterablePolicy<InputIterablePolicy<BaseTensorIterableLayer<BaseIterType, SizePolicy, STACKABLE>>>;
+// TODO:
+// using TensorIterableLayer = _if_t<
+//   is_const_iterator_v<BaseIterType>,
+//   InputTensorIterableLayer<BaseIterType, SizePolicy>,
+//   OutputIterablePolicy<InputTensorIterableLayer<BaseIterType, SizePolicy>>
+// >;
+
+
+// TODO: Fix the tensor_iterator_layer iterator_category problem
+// so you can differentiate if JumpByIndexValue is random_access_iterator_tag
+// or bidirectional_iterator_tag based on if it is in tensor_iterator_layer or TensorIterableLayer
+/*template <typename Policy>
+struct policy_traits<Policy, tensor_iterator_layer> {
+
+};*/
+
+
+
+// Get type in the inheritance hierrarchy, based on its policy_id
+
+template <typename TopMostType, int ID>
+struct tensor_type_below;
+
+// template <typename TopMostType>
+// struct tensor_type_below<TopMostType, 0> {
+//   using type = TopMostType;
+// };
+
+template <typename IT, typename StridePolicy>
+struct tensor_type_below<jump_iterator<IT, StridePolicy>, 1> {
+  using type = IT;
+};
+
+template <typename IT, typename StridePolicy>
+struct tensor_type_below<jump_iterator<IT, StridePolicy>, 0> {
+  using type = jump_iterator<IT, StridePolicy>;
+};
+
+template <typename ITB, typename StridePolicy, bool STACKABLE>
+struct tensor_type_below<TensorIteratorLayer<ITB, StridePolicy, STACKABLE>, 0> {
+  using type = TensorIteratorLayer<ITB, StridePolicy, STACKABLE>;
+};
+
+template <typename IT, typename SizePolicy, bool STACKABLE>
+struct tensor_type_below<TensorIterableLayer<IT, SizePolicy, STACKABLE>, 0> {
+  using type = TensorIterableLayer<IT, SizePolicy, STACKABLE>;
+};
+
+template <typename ITB, typename StridePolicy, bool STACKABLE, int ID>
+struct tensor_type_below<TensorIteratorLayer<ITB, StridePolicy, STACKABLE>, ID>
+: public tensor_type_below<ITB, ID - 1> {};
+
+template <typename IT, typename SizePolicy, bool STACKABLE, int ID>
+struct tensor_type_below<TensorIterableLayer<IT, SizePolicy, STACKABLE>, ID>
+: public tensor_type_below<IT, ID - 1> {};
+
+// template <typename ITB, typename StridePolicy, int ID>
+// struct tensor_type_below<jump_iterator<ITB, StridePolicy>, ID>
+// : public tensor_type_below<ITB, ID - 1> {};
+
+template <typename T, int ID>
+using tensor_type_below_t = typename tensor_type_below<T, ID>::type;
+
+
+
+template <typename BaseItbType, typename StridePolicy, bool STCKB>
+class TensorIteratorLayer
+: protected BaseItbType
+, private StridePolicy::template indexed<
+  1 + BaseItbType::policy_id> {
+
+  // template <typename, typename, bool>
+  // friend class tensor_iterator_layer;
+
+  using ThisType = TensorIteratorLayer<BaseItbType, StridePolicy, STCKB>;
+  using BaseItbIter = typename BaseItbType::iterator;
+
+  using SizePolicy = typename BaseItbType::policy_type;
+  static constexpr bool ItbOPT = BaseItbType::is_stackable;
+
+
+public:
+
+  static constexpr bool USES_ITB_SIZE =
+    std::is_same_v<StridePolicy, UseItbSize<>>;
+
+  static constexpr bool STACKABLE = USES_ITB_SIZE ? BaseItbType::STACKABLE : STCKB;
+  // static_assert(!(STACKABLE && USES_ITB_SIZE));
+  // static constexpr bool is_stackable = STACKABLE;
+  
+  // Or you can assert, if USES_ITB_SIZE, then STACKABLE should equal the BaseItbType::STACKABLE
+  // static_assert(USES_ITB_SIZE && (STACKABLE == BaseItbType::STACKABLE));
+
+  // using base_type = BaseItbIter;
+  using base_type = _if_t<STACKABLE, BaseItbIter, typename BaseItbIter::base_type>;
+  // using abs_base_type = typename BaseItbIter::base_type;
+
+  static constexpr bool NONFIXED_SIZE_POL =
+    std::is_same_v<
+      typename SizePolicy::policy_category,
+      nonfixed_jump_policy_tag
+    >;
+
+  static constexpr int policy_id = 1 + BaseItbType::policy_id;
+
+  using policy_type = _if_t<
+    USES_ITB_SIZE,
+    typename SizePolicy::template indexed<policy_id - 1>,
+    typename StridePolicy::template indexed<policy_id>
+  >;
+ 
+  using difference_type = typename policy_type::difference_type;
+
+  using curr_min_category = layer_policy_traits<
+    typename BaseItbType::policy_type,
+    policy_type
+  >::iterator_category;
+  // using curr_min_category = base_t<
+  //   typename policy_type::iterator_category,
+  //   typename BaseItbType::policy_type::iterator_category
+  // >;
+
+  // using iterator_category = typename policy_type::iterator_category;
+  using iterator_category = _if_t<
+    STACKABLE,
+    base_t<curr_min_category, typename BaseItbIter::iterator_category>,
+    curr_min_category
+  >;
+
+  using value_type = BaseItbType;
+  using reference = const value_type&;
+  using pointer = const value_type*;
+
+private:
+
+  using StridePolicyID = typename StridePolicy::template indexed<policy_id>;
+
+  template <typename P>
+  static constexpr auto __assign_policy(const P& pol) {
+    if constexpr (USES_ITB_SIZE)
+      return StridePolicyID();
+    else
+      return pol;
+  }
+
+  template <int ID>
+  using type_below_t = tensor_type_below_t<ThisType, ID>;
+
+public:
+
+  const base_type& base() const {
+    // if constexpr (STACKABLE)
+    if constexpr (STACKABLE)
+      return static_cast<const BaseItbIter&>(*this);
+      // return BaseItbType::begin(); // (*)
+      // return _itb.begin();
+      // return _itb._it;
+    else
+      return this->_it;
+      // return _itb.begin().base();
+      // return _itb._it.base();
+  }
+  
+  base_type& base() {
+    // if constexpr (STACKABLE)
+    if constexpr (STACKABLE)
+      return static_cast<BaseItbIter&>(*this);
+      // return BaseItbType::begin(); // (*) // NOTE: this gives a const iterator
+      // return _itb.begin();
+      // return _itb._it;
+    else
+      return this->_it;
+      // return _itb.begin().base();
+      // return _itb._it.base();
+  }
+
+
+  difference_type stride() const {
+    return policy_type::value();
+  }
+
+  const policy_type& policy() const {
+    return static_cast<const policy_type&>(*this);
+  }
+
+  policy_type& policy() {
+    return static_cast<policy_type&>(*this);
+  }
+
+  
+  TensorIteratorLayer(const BaseItbType& itb)
+    : BaseItbType(itb), StridePolicyID() {}
+
+  TensorIteratorLayer(const BaseItbType& itb, const StridePolicyID& stride)
+    : BaseItbType(itb), StridePolicyID(stride) {}
+ 
+  template <typename ITB>
+  TensorIteratorLayer(const TensorIteratorLayer<ITB, StridePolicy, STACKABLE>& other)
+  : BaseItbType(other.operator*()),
+    StridePolicyID(__assign_policy(other.policy())) {}
+
+
+  // TODO: You should create a helper meta function
+  // that gives you n times the ancestor of this class
+  // so you can know if its STACKABLE or not.
+  // And with it, you can compress the constructor signature
+  // from policies like NoPolicy and UseItbSize
+  // template <typename ST, typename SZ, typename ...Rest>
+  // // template <bool STCKB, typename ST, typename SZ, typename ...Rest>
+  // TensorIteratorLayer(const abs_base_type& it, ST&& stride, SZ&& size, Rest&&... rest)
+  // : TensorIteratorLayer(TensorIterableLayer<
+  //     jump_iterator<
+  //       abs_base_type, 
+  //       arg_to_jump_policy_t<ST>
+  //     >,
+  //     arg_to_jump_policy_t<SZ>
+  //     // , STCKB
+  //   >
+  //     (jump_iterator(it, std::forward<ST>(stride)), std::forward<SZ>(size)), std::forward<Rest>(rest)...)
+  // {
+  //   static_assert(sizeof...(Rest) + 1 == policy_id);
+  // }
+  //
+  // template <typename ST, typename SZ, typename Next, typename ...Rest>
+  // TensorIteratorLayer(const jump_iterator<abs_base_type, ST>& jit, SZ&& size, Next&& next, Rest&&... rest)
+  // : TensorIteratorLayer(TensorIterableLayer<
+  //   jump_iterator<abs_base_type, ST>, arg_to_jump_policy_t<SZ>>
+  //   (jit, std::forward<SZ>(size)), std::forward<Next>(next), std::forward<Rest>(rest)...) {
+  //   static_assert(sizeof...(Rest) + 2 == policy_id);
+  // }
+  //
+  // template <typename IT, typename SZ, bool STCKB, typename ST, typename Next, typename ...Rest>
+  // TensorIteratorLayer(const TensorIterableLayer<IT, SZ, STCKB>& itb, ST&& stride, Next&& next, Rest&&... rest)
+  // : TensorIteratorLayer(TensorIterableLayer<TensorIteratorLayer<
+  //   TensorIterableLayer<IT, SZ, STCKB>,
+  //     arg_to_jump_policy_t<ST>>, 
+  //     arg_to_jump_policy_t<Next>>
+  //     ({itb, std::forward<ST>(stride)},
+  //     std::forward<Next>(next)),
+  //     std::forward<Rest>(rest)...) {
+  //   static_assert(sizeof...(Rest) + 2 == policy_id - TensorIterableLayer<IT, SZ>::policy_id);
+  // }
+
+
+  template <typename Policy0, typename Policy1, typename ...Rest>
+  TensorIteratorLayer(const type_below_t<2 + sizeof...(Rest)>& it, Policy0&& pol0, Policy1&& pol1, Rest&&... rest)
+  : TensorIteratorLayer(
+      type_below_t<sizeof...(Rest)>(
+        type_below_t<1 + sizeof...(Rest)>(
+         it, std::forward<Policy0>(pol0)
+        ),
+        std::forward<Policy1>(pol1)
+      ),
+    std::forward<Rest>(rest)...
+    ) {
+    // static_assert(policy_id + 1 == 2 + sizeof...(Rest));
+    static_assert(policy_id + 1 >= 2 + sizeof...(Rest));
+    static_assert((2 + sizeof...(Rest)) % 2 == 1);
+  }
+
+
+  // NOTE: Iterable Types operator= is overloaded and would copy the elements
+  // , and because this is inheriting from Iterable Type, then we need to overload
+  // it here to not copy, the elements, but the range as intended !!!
+  template <typename ITB>
+  ThisType& operator=(const TensorIteratorLayer<ITB, StridePolicy, STACKABLE>& other) {
+    BaseItbType::reconstruct(static_cast<const ITB&>(other));
+    policy_type::operator=(other.policy());
+    return *this;
+  }
+
+
+  reference operator*() const {
+    return static_cast<const BaseItbType&>(*this);
+  }
+  
+  pointer operator->() const {
+    return static_cast<const BaseItbType*>(this);
+  }
+
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  value_type operator[](difference_type i) const {
+    auto temp(*this);
+    return *(temp += i);
+  }
+
+
+  ThisType& operator++() {
+    policy_type::advance(base());
+    if constexpr (!USES_ITB_SIZE && NONFIXED_SIZE_POL)
+      BaseItbType::policy().advance_alone();
+    return *this;
+  }
+
+  ThisType operator++(int) { auto temp(*this); ++(*this); return temp; }
+
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  ThisType& operator--() {
+    policy_type::radvance(base());
+    if constexpr (!USES_ITB_SIZE && NONFIXED_SIZE_POL)
+      BaseItbType::policy().radvance_alone();
+    return *this;
+  }
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  ThisType operator--(int) { auto temp(*this); --(*this); return temp; }
+
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType& operator+=(difference_type i) {
+    policy_type::advance(base(), i);
+    if constexpr (!USES_ITB_SIZE && NONFIXED_SIZE_POL)
+      BaseItbType::policy().advance_alone(i);
+    return *this;
+  }
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType operator+(difference_type i) const {
+    auto temp(*this);
+    return temp += i;
+  }
+ 
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  friend ThisType operator+(difference_type i, ThisType iter) {
+    return iter += i;
+  }
+
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType& operator-=(difference_type i) {
+    policy_type::radvance(base(), i);
+    if constexpr (!USES_ITB_SIZE && NONFIXED_SIZE_POL)
+      BaseItbType::policy().radvance_alone(i);
+    return *this;
+  }
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  friend ThisType operator-(ThisType iter, difference_type i) {
+    return iter -= i;
+  }
+ 
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  difference_type operator-(const ThisType& rhs) const {
+    return policy_type::get_diff(*this, rhs);
+  }
+
+
+  bool operator==(const ThisType& other) const {
+    return base() == other.base();
+  }
+
+  bool operator!=(const ThisType& other) const {
+    return base() != other.base();
+  }
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<(const ThisType& other) const {
+    return base() < other.base();
+  }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<=(const ThisType& other) const {
+    return base() <= other.base();
+  }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>(const ThisType& other) const {
+    return base() > other.base();
+  }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>=(const ThisType& other) const {
+    return base() >= other.base();
+  }
+
+};
+
+
+// ===================================================================== //
+
+
+
+template <typename BaseIterType, typename SizePolicy, bool STCKB>
+class BaseTensorIterableLayer
+: protected BaseIterType
+, protected SizePolicy::template indexed<
+  1 + BaseIterType::policy_id>{
+  
+  static_assert(!std::is_same_v<SizePolicy, UseItbSize<>>);
+  // TODO: With UseItbSize included policy type argument
+  // you canot use BaseIterType::policy_type, because it will
+  // never be UseItbSize !!!
+  // static_assert(!(STACKABLE && std::is_same_v<UseItbSize<>, StridePolicy>));
+
+  using ThisType = BaseTensorIterableLayer<BaseIterType, SizePolicy, STCKB>;
+  using BaseType = BaseIterType;
+
+  // using abs_base_type = typename BaseIterType::abs_base_type;
+  // using abs_base_type = typename BaseIterType::BaseTensorIterableLayer<BaseItb>;
+  // using abs_base_type = typename BaseItb::abs_base_type;
+  // using abs_base_type = typename BaseIterType::abs_base_type;
+
+  template <typename, typename, bool>
+  friend class tensor_iterator_layer;
+  
+  static constexpr bool NONFIXED_SIZE_POL =
+    std::is_same_v<
+      typename SizePolicy::policy_category,
+      nonfixed_jump_policy_tag
+    >;
+
+  template <int ID>
+  using type_below_t = tensor_type_below_t<OutputIterablePolicy<InputIterablePolicy<ThisType>>, ID>;
+
+public:
+  
+  static constexpr bool STACKABLE = STCKB;
+  // static constexpr bool is_stackable = STACKABLE;
+  static constexpr int policy_id = 1 + BaseIterType::policy_id;
+  using policy_type = typename SizePolicy::template indexed<policy_id>;
+  
+  using iterator = BaseIterType;
+  using difference_type = typename SizePolicy::difference_type;
+
+  // using abs_base_type = typename BaseIterType::abs_base_type;
+
+
+protected:
+
+  policy_type& policy() {
+    return static_cast<policy_type&>(*this);
+  }
+
+public:
+ 
+  // template <typename PC = typename policy_type::policy_category,
+  //   typename = std::enable_if_t<std::is_same_v<PC, static_jump_policy_tag>>>
+  BaseTensorIterableLayer(const BaseIterType& it)
+    : BaseIterType(it), policy_type() {}
+  
+  BaseTensorIterableLayer(const BaseIterType& it, const policy_type& size)
+    : BaseIterType(it), policy_type(size) {}
+  
+  template <typename IT>
+  BaseTensorIterableLayer(const BaseTensorIterableLayer<IT, SizePolicy, STACKABLE>& other)
+  : BaseIterType(other.begin()), policy_type(other.policy()) {}
+  
+  // ---------------------------------------------------------- //
+
+  // template <typename ST, typename SZ, typename ...Rest>
+  // BaseTensorIterableLayer(const abs_base_type& it, ST&& stride, SZ&& size, Rest&&... rest)
+  // : BaseTensorIterableLayer(
+  //   jump_iterator<abs_base_type, arg_to_jump_policy_t<ST>>
+  //   (it, std::forward<ST>(stride)),
+  //   std::forward<SZ>(size),
+  //   std::forward<Rest>(rest)...) {
+  //   static_assert(sizeof...(Rest) + 1 == policy_id);
+  // }
+  // 
+  // template <typename ST, typename SZ, typename Next, typename ...Rest>
+  // BaseTensorIterableLayer(const jump_iterator<abs_base_type, ST>& jit, SZ&& size, Next&& next, Rest&&... rest)
+  // : BaseTensorIterableLayer(
+  //   TensorIteratorLayer<TensorIterableLayer<jump_iterator<
+  //   abs_base_type, ST>, arg_to_jump_policy_t<SZ>>, arg_to_jump_policy_t<Next>>
+  //   ({jit, std::forward<SZ>(size)}, std::forward<Next>(next)), std::forward<Rest>(rest)...) {
+  //   static_assert(sizeof...(Rest) + 2 == policy_id);
+  // }
+  // 
+  // template <typename ITB, typename ST, bool STCKB, typename SZ, typename Next, typename ...Rest>
+  // BaseTensorIterableLayer(const TensorIteratorLayer<ITB, ST, STCKB>& it, SZ&& size, Next&& next, Rest&&... rest)
+  // : BaseTensorIterableLayer(
+  //   TensorIteratorLayer<
+  //   TensorIterableLayer<
+  //   TensorIteratorLayer<ITB, ST>,
+  //   arg_to_jump_policy_t<SZ>>,
+  //   arg_to_jump_policy_t<Next>>
+  //   ({it, std::forward<SZ>(size)}, std::forward<Next>(next)), std::forward<Rest>(rest)...) {
+  //   static_assert(sizeof...(Rest) + 2 == policy_id - TensorIteratorLayer<ITB, ST>::policy_id);
+  // }
+  
+
+  template <typename Policy0, typename Policy1, typename ...Rest>
+  BaseTensorIterableLayer(const type_below_t<2 + sizeof...(Rest)>& it, Policy0&& pol0, Policy1&& pol1, Rest&&... rest)
+  : BaseTensorIterableLayer(
+      type_below_t<sizeof...(Rest)>(
+        type_below_t<1 + sizeof...(Rest)>(
+         it, std::forward<Policy0>(pol0)
+        ),
+        std::forward<Policy1>(pol1)
+      ),
+    std::forward<Rest>(rest)...
+    ) {
+    // static_assert(policy_id + 1 == 2 + sizeof...(Rest));
+    static_assert(policy_id + 1 >= 2 + sizeof...(Rest));
+    static_assert((2 + sizeof...(Rest)) % 2 == 0);
+  }
+
+
+  
+  void reconstruct(const BaseIterType& first) {
+    BaseIterType::operator=(first);
+  }
+
+  // void reconstruct(const BaseType& first, const SizePolicy& size) {
+  void reconstruct(const BaseIterType& first, const SizePolicy& policy) {
+    BaseIterType::operator=(first);
+    policy_type::operator=(policy);
+  }
+
+  /*template <
+    typename PC = SizePolicy::policy_category,
+    typename = std::enable_if_t<
+      std::is_same_v<PC, static_jump_policy_tag>
+    >
+  >
+  void reconstruct(const BaseIterType& first) {
+    BaseIterType::operator=(first);
+  }*/
+  
+  template <typename IT>
+  void reconstruct(const BaseTensorIterableLayer<IT, SizePolicy, STACKABLE>& other) {
+    BaseIterType::operator=(other.begin());
+    policy_type::operator=(other.policy());
+  }
+
+
+  const iterator& begin() const {
+    return static_cast<const BaseIterType&>(*this);
+  }
+
+  iterator end() const {
+    BaseIterType temp(begin());
+
+    if constexpr (STACKABLE)
+      // temp += policy_type::value();
+      policy_type::advance(temp);
+    else
+      // temp.base() += policy_type::value();
+      policy_type::advance(temp.base());
+
+    // NOTE: Go back, if its nonfixed_jump_policy,
+    // because if not, at every end(), you will advance
+    // the size policy iterator
+    if constexpr (NONFIXED_SIZE_POL)
+      policy_type::radvance_alone();
+
+    return temp;
+  }
+
+
+  // NOTE: SFINAE for the case where we cannot get the size in const time:
+  // (!) If this is the case it is impossible to get the size
+  //  distance in const time, you would have to iterate
+  //  with a counter to find it
+  template <bool ST = STACKABLE, typename = std::enable_if_t<
+  !(!ST && std::is_same_v<
+    typename BaseIterType::policy_type::policy_category,
+    nonfixed_jump_policy_tag>
+  )>>
+  difference_type size() const {
+    if constexpr (STACKABLE)
+      return policy_type::value();
+    else
+      return policy_type::value() / this->begin().stride();
+  }
+
+  difference_type stride() const {
+    if constexpr (STACKABLE) {
+      auto temp(this->begin());
+      temp += policy_type::value();
+      return temp.base() - this->begin().base();
+    }
+    else
+      return policy_type::value();
+  }
+
+  bool empty() const {
+    return policy_type::value() == 0;
+  }
+
+  const policy_type& policy() const {
+    return static_cast<const policy_type&>(*this);
+  }
+  
+  static constexpr int rank() {
+    return policy_id / 2 + 1;
+  }
+
+  Iterable<typename BaseIterType::base_type> flat() const {
+    return Iterable(begin().base(), end().base());
+  }
+
+};
+
+
+template <typename BaseItb, typename StridePolicy>
+class BaseIterable<TensorIteratorLayer<BaseItb, StridePolicy>>
+: public BaseTensorIterableLayer<
+    TensorIteratorLayer<BaseItb, StridePolicy>,
+    FixedJumpPolicy<int>,
+    true
+  > {
+
+  using BaseIter = TensorIteratorLayer<BaseItb, StridePolicy>;
+  using BaseType = BaseTensorIterableLayer<BaseIter, FixedJumpPolicy<int>, true>;
+  
+public:
+
+  // using BaseType::BaseType;
+  BaseIterable(const BaseType& itb) : BaseType(itb) {}
+  BaseIterable(const BaseIter& first, const BaseIter& last)
+  : BaseType(first, last - first) {}
+  BaseIterable(const BaseIter& first, int length)
+  : BaseType(first, length) {}
+
+};
+
+
+
+template <typename BaseIterType, typename SizePolicy, bool STACKABLE>
+inline std::ostream& operator<<(std::ostream& stream, const BaseTensorIterableLayer<BaseIterType, SizePolicy, STACKABLE>& iterable) {
+  stream << "{";
+  for(auto iter = iterable.begin(); iter != iterable.end();) {
+    stream << *iter;
+    if (++iter != iterable.end())
+      stream << ", ";
+  }
+  stream << "}";
+
+  return stream;
+}
+
+
+// ======================================================================= //
+
+
+template <typename BaseIter, typename ...Policies>
+struct __tensor_iterable_helper_ext;
+
+template <typename BaseIter, typename ...Policies>
+struct __tensor_iterator_helper_ext;
+
+
+template <typename BaseIter>
+struct __tensor_iterator_helper_ext<BaseIter> {
+  using type = BaseIter;
+};
+
+template <typename BaseItb>
+struct __tensor_iterable_helper_ext<BaseItb> {
+  using type = BaseItb;
+};
+
+
+template <typename BaseItb, typename StridePolicy, typename ...Policy1toN>
+struct __tensor_iterator_helper_ext<
+  BaseItb,
+  StridePolicy,
+  Policy1toN...
+> {
+  using type = __tensor_iterable_helper_ext<
+    // jump_iterator<BaseItb, StridePolicy>,
+    TensorIteratorLayer<BaseItb, StridePolicy>,
+    Policy1toN...
+  >::type;
+};
+
+
+template <typename BaseIter, typename SizePolicy, typename ...Policy1toN>
+struct __tensor_iterable_helper_ext<
+  BaseIter,
+  SizePolicy,
+  Policy1toN...
+> {
+  using type = __tensor_iterator_helper_ext<
+    TensorIterableLayer<BaseIter, SizePolicy>,
+    Policy1toN...
+  >::type;
+};
+
+
+template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Policy2toN>
+using __tensor_iterator_type_ext =
+__tensor_iterator_helper_ext<
+  TensorIterableLayer<
+    jump_iterator<
+      BaseIter,
+      _if_t <std::is_same_v<UseItbSize<>, StridePolicy>,
+        NoPolicy<>,
+        StridePolicy
+      >
+    >,
+    SizePolicy
+  >,
+  Policy2toN...
+>::type;
+
+template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Rest>
+using __tensor_iterable_type_ext =
+__tensor_iterable_helper_ext<
+  jump_iterator<
+    BaseIter,
+    _if_t <std::is_same_v<UseItbSize<>, StridePolicy>,
+      NoPolicy<>,
+      StridePolicy
+    >
+  >,
+  SizePolicy,
+  Rest...
+>::type;
+
+
+template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Policy2toN>
+using TensorIteratorExt = __tensor_iterator_type_ext<BaseIter, StridePolicy, SizePolicy, Policy2toN...>;
+
+template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Policy1toN>
+using TensorIterableExt = __tensor_iterable_type_ext<BaseIter, StridePolicy, SizePolicy, Policy1toN...>;
+
+
+// ------------------------------------------------------------------ //
+
+
+template <typename BaseIter, typename ...Policies>
+struct __tensor_iterable_helper;
+
+template <typename BaseIter, typename ...Policies>
+struct __tensor_iterator_helper;
+
+
+template <typename BaseIter>
+struct __tensor_iterator_helper<BaseIter> {
+  static_assert(is_iterator_v<BaseIter>);
+  using type = BaseIter;
+};
+
+// template <typename BaseItb>
+// struct __tensor_iterable_helper<BaseItb> {
+//   static_assert(is_container_v<BaseItb>);
+//   using type = BaseItb;
+// };
+
+template <typename BaseIter, typename SZ>
+struct __tensor_iterable_helper<BaseIter, SZ> {
+  static_assert(is_iterator_v<BaseIter>);
+  using type = TensorIterableLayer<BaseIter, arg_to_jump_policy_t<SZ>>;
+};
+
+
+// template <typename BaseItb, typename SizePolicy, typename ...Policy1toN>
+// struct __tensor_iterator_helper<
+//   BaseItb,
+//   SizePolicy,
+//   Policy1toN...
+// > {
+//   using type = __tensor_iterable_helper<
+//     TensorIteratorLayer<BaseItb, UseItbSize<>>,
+//     SizePolicy,
+//     Policy1toN...
+//   >::type;
+// };
+
+template <typename BaseIter, typename SizePolicy, typename ...Policy1toN>
+struct __tensor_iterable_helper<
+  BaseIter,
+  SizePolicy,
+  Policy1toN...
+> {
+  // using type = __tensor_iterator_helper<
+  //   TensorIterableLayer<BaseIter, SizePolicy>,
+  //   Policy1toN...
+  // >::type;
+  using type = __tensor_iterable_helper<
+    TensorIteratorLayer<
+      TensorIterableLayer<BaseIter, SizePolicy>,
+      UseItbSize<>
+    >,
+    Policy1toN...
+  >::type;
+};
+
+
+// template <typename BaseIter, typename SizePolicy, typename ...Policy1toN>
+// using __tensor_iterator_type =
+//   __tensor_iterator_helper<
+//     TensorIterableLayer<
+//       jump_iterator<
+//         BaseIter,
+//         NoPolicy<>
+//       >,
+//       SizePolicy
+//     >,
+//     Policy1toN...
+//   >::type;
+
+template <typename BaseIter, typename SizePolicy, typename ...Rest>
+using __tensor_iterable_type =
+  __tensor_iterable_helper<
+    jump_iterator<
+      BaseIter,
+      NoPolicy<>
+    >,
+    SizePolicy,
+    Rest...
+  >::type;
+
+
+template <typename BaseIter, typename SizePolicy, typename ...Policy1toN>
+using TensorIterable = __tensor_iterable_type<BaseIter, SizePolicy, Policy1toN...>;
+
+
+template <typename BaseIter, typename SizePolicy, typename ...Policy1toN>
+using TensorIterator = TensorIteratorLayer<TensorIterable<BaseIter, SizePolicy, Policy1toN...>, UseItbSize<>>;
+
+
+
+// NOTE: Implemented as classes instead of type-aliases
+// template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Rest>
+// class tensor_iterator;
+//
+// template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Rest>
+// class TensorIterator;
+//
+//
+// template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Rest>
+// class tensor_iterator 
+// : public __tensor_iterator_type<BaseIter, StridePolicy, SizePolicy, Rest...> {
+//
+//   using BaseType = __tensor_iterator_type<BaseIter, StridePolicy, SizePolicy, Rest...>;
+//
+// public:
+//
+//   tensor_iterator(const BaseIter& it, const StridePolicy& stride, const SizePolicy& size, const Rest&... rest) 
+//   : BaseType(it, stride, size, rest...) {}
+//
+// };
+//
+//
+// template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Rest>
+// tensor_iterator(const BaseIter& it, const StridePolicy& stride, const SizePolicy& size, const Rest&... rest)
+// -> tensor_iterator<
+//   BaseIter,
+//   arg_to_jump_policy_t<StridePolicy>,
+//   arg_to_jump_policy_t<SizePolicy>,
+//   arg_to_jump_policy_t<Rest>...
+// >;
+//
+// template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Rest>
+// class TensorIterable
+// : public __tensor_iterable_type<BaseIter, StridePolicy, SizePolicy, Rest...> {
+//
+//   using BaseType = __tensor_iterable_type<BaseIter, StridePolicy, SizePolicy, Rest...>;
+//
+// public:
+//
+//   template <typename IT>
+//   TensorIterable(const TensorIterable<IT, StridePolicy, SizePolicy, Rest...>& other)
+//   : BaseType(other) {}
+//
+//   TensorIterable(const BaseIter& it, const StridePolicy& stride, const SizePolicy& size, const Rest&... rest) 
+//   : BaseType(it, stride, size, rest...) {}
+//
+// };
+//
+//
+// template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename ...Rest>
+// TensorIterable(const BaseIter& it, const StridePolicy& stride, const SizePolicy& size, const Rest&... rest)
+// -> TensorIterable<
+//   BaseIter,
+//   arg_to_jump_policy_t<StridePolicy>,
+//   arg_to_jump_policy_t<SizePolicy>,
+//   arg_to_jump_policy_t<Rest>...
+// >;
+
+
+// ------------------------------------------------------------------ //
+
+
+template <typename ITB>
+const ITB& __make_tensor_iterable_ext_impl(const ITB& itb) {
+  return itb;
+}
+
+template <typename IT>
+const IT& __make_tensor_iterator_ext_impl(const IT& it) {
+  return it;
+}
+
+template <typename IT, typename SZ, typename ...Rest>
+auto __make_tensor_iterable_ext_impl(const IT& it, SZ&& size, Rest&&... rest) {
+  using TensorIterableType = TensorIterableLayer<IT, arg_to_jump_policy_t<SZ>>;
+  return __make_tensor_iterator_ext_impl(
+    TensorIterableType(it, std::forward<SZ>(size)), std::forward<Rest>(rest)...);
+}
+
+template <typename ITB, typename ST, typename ...Rest>
+auto __make_tensor_iterator_ext_impl(const ITB& itb, ST&& stride, Rest&&... rest) {
+  using TensorIteratorType = TensorIteratorLayer<ITB, arg_to_jump_policy_t<ST>>;
+  return __make_tensor_iterable_ext_impl(
+    TensorIteratorType(itb, std::forward<ST>(stride)), std::forward<Rest>(rest)...);
+}
+
+
+template <typename IT, typename ST, typename ...Rest>
+auto make_tensor_iterable_ext(const IT& it, ST&& stride, Rest&&... rest) {
+  static_assert(sizeof...(Rest) % 2 == 1);
+  return __make_tensor_iterable_ext_impl(
+    jump_iterator(it, std::forward<ST>(stride)), std::forward<Rest>(rest)...);
+}
+
+// template <typename IT, typename ST, typename ...Rest>
+// auto make_tensor_iterable(const jump_iterator<IT, ST>& jit, const Rest&... rest) {
+//   static_assert(sizeof...(Rest) % 2 == 1);
+//   return __make_tensor_iterable_impl(jit, rest...);
+// }
+
+
+template <typename IT, typename ST, typename SZ, typename ...Rest>
+auto make_tensor_iterator_ext(const IT& it, ST&& stride, SZ&& size, Rest&&... rest) {
+  static_assert(sizeof...(Rest) % 2 == 1);
+  using TensorIterableType = TensorIterableLayer<jump_iterator<IT, arg_to_jump_policy_t<ST>>, arg_to_jump_policy_t<SZ>>;
+  return __make_tensor_iterator_ext_impl(
+    TensorIterableType(jump_iterator(it, 
+      std::forward<ST>(stride)), std::forward<SZ>(size)), std::forward<Rest>(rest)...);
+}
+
+
+// -------------------------------------------------------- //
+
+
+template <typename IT, typename SZ>
+auto __make_tensor_iterable_impl(const IT& it, SZ&& size) {
+  static_assert(is_iterator_v<IT>);
+  return TensorIterableLayer<IT, arg_to_jump_policy_t<SZ>>(it, size);
+}
+
+
+template <typename IT, typename SZ, typename ...Rest>
+auto __make_tensor_iterable_impl(const IT& it, SZ&& size, Rest&&... rest) {
+  static_assert(is_iterator_v<IT>);
+  using TensorIterableType = TensorIterableLayer<IT, arg_to_jump_policy_t<SZ>>;
+  using TensorIteratorType = TensorIteratorLayer<TensorIterableType, UseItbSize<>>;
+  // return __make_tensor_iterator_impl(
+  //   TensorIterableType(it, std::forward<SZ>(size)), std::forward<Rest>(rest)...);
+  return __make_tensor_iterable_impl(
+    TensorIteratorType(
+      TensorIterableType(it, std::forward<SZ>(size)),
+      UseItbSize()
+    ),
+    std::forward<Rest>(rest)...);
+}
+
+template <typename IT, typename SZ, typename ...Rest>
+auto make_tensor_iterable(const IT& it, SZ&& size, Rest&&... rest) {
+  static_assert(is_iterator_v<IT>);
+  return __make_tensor_iterable_impl(
+    jump_iterator(it, NoPolicy()), std::forward<SZ>(size), std::forward<Rest>(rest)...);
+}
+
+template <typename IT, typename SZ, typename ...Rest>
+auto make_tensor_iterator(const IT& it, SZ&& size, Rest&&... rest) {
+  // using IterType = TensorIteratorLayer<TensorIterable<IT, SZ, Rest...>, UseItbSize<>>;
+  // using IterType = TensorIterator<IT, SZ, Rest...>;
+  using IterType = TensorIterator<IT, arg_to_jump_policy_t<SZ>, arg_to_jump_policy_t<Rest>...>;
+  return IterType(
+    make_tensor_iterable(it, std::forward<SZ>(size), std::forward<Rest>(rest)...),
+  UseItbSize());
+}
+
+// -------------------------------------------------------- //
+
+
+// template <typename IT, typename ST, typename SZ, typename ...Rest>
+// auto make_tensor_iterator(const jump_iterator<IT, ST>& jit, const SZ& size, const Rest&... rest) {
+//   static_assert(sizeof...(Rest) % 2 == 1);
+//   using TensorIterableType = TensorIterableLayer<jump_iterator<IT, ST>, arg_to_jump_policy_t<SZ>>;
+//   return __make_tensor_iterator_impl(TensorIterableType(jit, size), rest...);
+// }
+
+
+// ------------------------------------------------------------------ //
+
+
+/*template <
+  typename BaseIter,
+  typename StridePolicyArg>
+jump_iterator<
+  BaseIter,
+  arg_to_jump_policy_t<StridePolicyArg>>
+make_tensor_iterator(const BaseIter& first, const StridePolicyArg& stride) {
+  return jump_iterator(first, stride);
+}
+
+
+template <typename BaseIter, typename StridePolicyArg, typename SizePolicyArg, typename NextPolicyArg, typename ...RestArgs>
+auto make_tensor_iterator(const BaseIter& first, const StridePolicyArg& stride, const SizePolicyArg& size, const NextPolicyArg& next, const RestArgs&... rest) {
+  using TensorIteratorType = __tensor_iterator_type<
+    BaseIter,
+    arg_to_jump_policy_t<StridePolicyArg>,
+    arg_to_jump_policy_t<SizePolicyArg>,
+    arg_to_jump_policy_t<NextPolicyArg>,
+    arg_to_jump_policy_t<RestArgs>...
+  >;
+  return TensorIteratorType(make_tensor_iterable(first, size, next, rest...), stride);
+}
+
+
+
+template <typename BaseIter, typename StridePolicyArg, typename SizePolicyArg, typename ...PolicyArgs2toN>
+auto make_tensor_iterable(const BaseIter& first, const StridePolicyArg& stride, const SizePolicyArg& size, const PolicyArgs2toN&... policy2toN) {
+  // return make_tensor_iterable(TensorIterable(jump_iterator(first, stride), size), policy2toN...);
+  using TensorIterableType = __tensor_iterable_type<
+    BaseIter,
+    arg_to_jump_policy_t<StridePolicyArg>,
+    arg_to_jump_policy_t<SizePolicyArg>,
+    arg_to_jump_policy_t<PolicyArgs2toN>...
+  >;
+  // return make_tensor_iterable(TensorIterableType(jump_iterator(first, stride), size), policy2toN...);
+  return TensorIterableType(make_tensor_iterator(first, stride, policy2toN...), size);
+  // return make_tensor_iterable(TensorIterableType(jump_iterator(first, stride), size), policy2toN...);
+  // return TensorIterableType(make_tensor_iterable(first, stride), size), policy2toN...);
+}
+
+
+template <typename BaseIter, typename StridePolicyArg, typename SizePolicyArg>
+auto make_tensor_iterable(const BaseIter& first, const StridePolicyArg& stride, const SizePolicyArg& size) {
+  // return JumpIterable(jump_iterator(first, stride), size);
+  using TensorIterableType =   __tensor_iterable_type<
+    BaseIter,
+    arg_to_jump_policy_t<StridePolicyArg>,
+    arg_to_jump_policy_t<SizePolicyArg>
+  >;
+  return TensorIterableType(jump_iterator(first, stride), size);
+}*/
+
+
+/*template <typename BaseIter, typename SizePolicy, typename ...Rest>
+auto make_tensor_iterable(const BaseIter& first, const SizePolicy& size, const Rest&... rest) {
+  // return make_tensor_iterable(JumpIterable(jump_iterator(first, UseItbSize()), size), rest...);
+  using TensorIterableType = __tensor_iterable_type<jump_iterator<BaseIter, StridePolicy>, StridePolicy, SizePolicy>;
+  return TensorIterableType(jump_iterator(first, stride), size);
+}
+
+template <typename BaseIter, typename SizePolicyArg>
+auto make_tensor_iterable(const BaseIter& first, const SizePolicyArg& size) {
+  return JumpIterable(jump_iterator(first, UseItbSize()), size);
+}*/
+
+
+// NOTE: TensorIterable as Class
+/*template <typename BaseIter, typename SizePolicy, typename StridePolicy, typename ...Rest>
+class TensorIterable :
+public __tensor_iterable_type<BaseIter, SizePolicy, StridePolicy, Rest...> {
+
+  using BaseType = __tensor_iterable_type<BaseIter, SizePolicy, StridePolicy, Rest...>;
+
+public:
+
+  using BaseType::BaseType;
+  TensorIterable(const BaseType& itb) : BaseType(itb) {}
+
+};
+
+
+template <typename BaseIter, typename SizePolicyArg, typename StridePolicyArg, typename ...RestArgs>
+TensorIterable(const BaseIter&, const SizePolicyArg&, const StridePolicyArg&, const RestArgs&...)
+-> TensorIterable<
+  BaseIter,
+  arg_to_jump_policy_t<SizePolicyArg>,
+  arg_to_jump_policy_t<StridePolicyArg>,
+  arg_to_jump_policy_t<RestArgs>...
+>;*/
+
+
+// template <typename BaseIter, typename StridePolicy, typename SizePolicy, typename NextStride, typename ...Policies>
+// tensor_iterator_layer(const BaseIter&, const StridePolicy&, const SizePolicy&, const NextStride&, const Policies&...)
+// -> tensor_iterator_layer<TensorIterable<BaseIter, SizePolicy, NextStride, Policies...>, StridePolicy>;
+// template <typename BaseIter, typename SizePolicyArg, typename StridePolicyArg, typename ...PolicyArgs>
+//
+// OutputIterablePolicy(const BaseIter&, const SizePolicyArg&, const StridePolicyArg&, const PolicyArgs&...)
+// -> OutputIterablePolicy<InputIterablePolicy<BaseTensorIterableLayer<
+//   tensor_iterator<
+//     BaseIter,
+//     arg_to_jump_policy_t<StridePolicyArg>,
+//     arg_to_jump_policy_t<PolicyArgs>...>,
+//   arg_to_jump_policy_t<SizePolicyArg>
+// >>>;
+
+

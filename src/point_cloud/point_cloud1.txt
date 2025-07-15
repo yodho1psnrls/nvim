@@ -1,0 +1,56 @@
+#pragma once
+#include "../containers/stable_vector.hpp"
+#include "../keys.hpp"
+
+template <typename V>
+class PointCloudLayer {
+
+  using base_type = StableVector<V>;
+  StableVector<V> _verts;
+
+  using difference_type = typename base_type::difference_type;
+  using size_type = typename base_type::size_type;
+
+public:
+
+  using vert_key = TaggedType<difference_type, vert_handle_tag>;
+  using vert_key_iter = TaggedIterator<IndexIterator<difference_type>, vert_handle_tag>;
+
+  using vert_value_type = typename base_type::value_type;
+  using vert_reference = typename base_type::reference;
+  using vert_const_reference = typename base_type::const_reference;
+
+  vert_key_iter verts_begin() const { return vert_key_iter(IndexIterator<difference_type>(0)); }
+  vert_key_iter verts_end() const { return vert_key_iter(IndexIterator<difference_type>(_verts.size() + _verts.erased_size())); }
+
+  View<vert_key_iter> verts() const {
+    return View(verts_begin(), verts_end());
+  }
+
+  // const base_type& verts() const {
+  //  return _verts;
+  // }
+  // 
+  // View<typename base_type::iterator> verts() {
+  //  return View(_verts.begin(), _verts.end());
+  // }
+
+  vert_reference vert(vert_key vi) {
+    return _verts[vi];
+  }
+  
+  vert_const_reference vert(vert_key vi) const {
+    return _verts[vi];
+  }
+
+  vert_key add_vert(const vert_value_type& v) {
+    return _verts.insert(v);
+  }
+
+  void remove_vert(vert_key vi) {
+    _verts.erase(_verts.find(vi));
+  }
+
+};
+
+

@@ -1,0 +1,960 @@
+#pragma once
+
+#include "../meta_func.hpp"
+
+#include <type_traits>  // std::is_constructible_v
+#include <utility>      // std::forward
+
+#include <iterator>
+#include <stdexcept>
+#include <cassert>
+#include "index_iterator.hpp"
+
+
+struct static_jump_policy_tag {};
+struct fixed_jump_policy_tag : public static_jump_policy_tag {};
+struct nonfixed_jump_policy_tag : public fixed_jump_policy_tag {};
+
+
+// TODO: Fix get_diff, because currently it works, but it casts to the most base
+// jump_iterator, which means that it gets the difference with respect
+// to the most Base JumpPolicy when used in iterable_iterator operator-
+// which means its wrong
+
+// NOTE: We Tag all of them, so we can use them in iterable_iterator
+// multiple times as different types, so EBO kicks in, and memory is
+// shrinked
+
+
+class NoPolicy {
+// template <typename Tag>
+// template <int Index>
+// class __NoPolicy {
+
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+
+public:
+  
+  // https://stackoverflow.com/questions/67606956/standard-or-idiomatic-empty-object-in-c
+  // static inline NoPolicy EMPTY = NoPolicy();
+
+  using difference_type = std::ptrdiff_t;
+  using iterator_category = std::random_access_iterator_tag;
+  using policy_category = static_jump_policy_tag;
+
+  static constexpr std::ptrdiff_t value() { return 1; }
+
+  explicit NoPolicy() = default;
+
+public:
+
+  // template <typename IT>
+  // jump_iterator<IT, NoPolicy> get_iter(const IT& it) const {
+  //   return jump_iterator<IT, NoPolicy>(it, *this);
+  // }
+
+  template <typename IT>
+  static void advance(IT& it) {
+    ++it;
+  }
+  
+  template <typename IT, typename = std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC<IT>>>>
+  static void radvance(IT& it) {
+    --it;
+  }
+ 
+  template <typename IT, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>>>
+  static void advance(IT& it, difference_type i) {
+    it += i;
+  }
+  
+  template <typename IT, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>>>
+  static void radvance(IT& it, difference_type i) {
+    it -= i;
+  }
+
+  // template <typename IT>
+  // difference_type get_diff(
+  //   const jump_iterator<IT, NoPolicy>& lhs,
+  //   const jump_iterator<IT, NoPolicy>& rhs) const {
+  template <typename JIT, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC<JIT>>>>
+  static difference_type get_diff(const JIT& lhs, const JIT& rhs) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<JIT>>);
+    return lhs.base() - rhs.base();
+  }
+
+};
+
+
+// Static version of FixedJumpPolicy
+template <std::ptrdiff_t N>
+class StaticJumpPolicy {
+
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+
+public:
+  
+  // https://stackoverflow.com/questions/67606956/standard-or-idiomatic-empty-object-in-c
+  //static inline StaticJumpPolicy EMPTY = {};
+  static inline StaticJumpPolicy EMPTY = StaticJumpPolicy<N>();
+  // static inline __StaticJumpPolicy EMPTY = StaticJumpPolicy<N>();
+
+  using difference_type = std::ptrdiff_t;
+  using iterator_category = std::random_access_iterator_tag;
+  using policy_category = static_jump_policy_tag;
+
+  // constexpr std::ptrdiff_t base() { return N; }
+  // static constexpr StaticJumpPolicy& policy() { return EMPTY; }
+  //static constexpr StaticJumpPolicy policy() { return StaticJumpPolicy(); }
+  //static constexpr StaticJumpPolicy policy() { return {}; }
+
+  static constexpr std::ptrdiff_t value() { return N; }
+
+  explicit StaticJumpPolicy() = default;
+
+// protected:
+public:
+
+  // template <typename IT>
+  // jump_iterator<IT, StaticJumpPolicy> get_iter(const IT& it) const {
+  //   return jump_iterator<IT, StaticJumpPolicy>(it, *this);
+  // }
+
+  template <typename IT>
+  static void advance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it += N;
+  }
+  
+  template <typename IT>
+  static void radvance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it -= N;
+  }
+ 
+  template <typename IT>
+  static void advance(IT& it, difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it += N * i;
+  }
+  
+  template <typename IT>
+  static void radvance(IT& it, difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it -= N * i;
+  }
+
+  // template <typename IT>
+  // difference_type get_diff(
+  //   const jump_iterator<IT, StaticJumpPolicy>& lhs,
+  //   const jump_iterator<IT, StaticJumpPolicy>& rhs) const {
+  template <typename JIT>
+  static difference_type get_diff(const JIT& lhs, const JIT& rhs) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<JIT>>);
+		if constexpr (N)
+			return (lhs.base() - rhs.base()) / N;
+		return 0;
+  }
+
+};
+
+template <>
+struct StaticJumpPolicy<1>
+: public NoPolicy {
+
+  using NoPolicy::NoPolicy;
+ 
+  StaticJumpPolicy(const NoPolicy& other)
+	: StaticJumpPolicy() {}
+
+};
+
+
+template <typename T>
+class FixedJumpPolicy {
+
+  static_assert(std::is_integral_v<T>);
+
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+  
+  T _n;  // stride(jump) length
+
+public:
+
+  //using difference_type = typename std::iterator_traits<IT>::difference_type;
+  using difference_type = T;
+  using iterator_category = std::random_access_iterator_tag;
+  using policy_category = fixed_jump_policy_tag;
+  
+  //difference_type stride() const { return _n; }
+  // std::ptrdiff_t base() const { return _n; }
+  // const FixedJumpPolicy& policy() const { return *this; }
+  difference_type value() const { return _n; }
+  // FixedJumpPolicy() = default;
+  FixedJumpPolicy(difference_type stride) : _n(stride) {}
+  // __FixedJumpPolicy(difference_type stride) : _n(stride) {}
+  
+  template <typename OT>
+  FixedJumpPolicy(const FixedJumpPolicy<OT> other)
+  : _n(other.value()) {
+    static_assert(std::is_convertible_v<OT, T>);
+  }
+  
+  //template <typename IT>
+  //FixedJumpPolicy(const jump_iterator<IT, FixedJumpPolicy>&) = delete;
+
+// protected:
+public:
+
+  // template <typename IT>
+  // jump_iterator<IT, FixedJumpPolicy> get_iter(const IT& it) const {
+  //   return jump_iterator<IT, FixedJumpPolicy>(it, *this);
+  // }
+ 
+  template <typename IT>
+  void advance(IT& it) const {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it += _n;
+  }
+  
+  template <typename IT>
+  void radvance(IT& it) const {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it -= _n;
+  }
+ 
+  template <typename IT>
+  void advance(IT& it, difference_type i) const {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it += _n * i;
+  }
+  
+  template <typename IT>
+  void radvance(IT& it, difference_type i) const {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it -= _n * i;
+  }
+
+  // template <typename IT>
+  // difference_type get_diff(
+  //   const jump_iterator<IT, FixedJumpPolicy>& lhs,
+  //   const jump_iterator<IT, FixedJumpPolicy>& rhs) const {
+  //   static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+  // template <typename JIT, typename std::enable_if_t<std::is_base_of_v<typename JIT::policy_type, FixedJumpPolicy>>>
+  template <typename JIT>
+  // difference_type get_diff(const JIT& lhs, const JIT& rhs) const {
+    // return (lhs.base() - rhs.base()) / _n;
+  static difference_type get_diff(const JIT& lhs, const JIT& rhs) {
+		if (lhs.value())
+			return (lhs.base() - rhs.base()) / lhs.value();
+		return 0;
+
+		// NOTE: Branchless check for division by zero doesnt work, the thread still stops
+		// bool COND = lhs.value() != 0;
+    // return COND * (lhs.base() - rhs.base()) / lhs.value() + !COND * 0;
+		// return bool(lhs.value()) * ((lhs.base() - rhs.base()) / lhs.value());
+  }
+
+};
+
+
+// ================================================================================= //
+
+template <typename IndexIter, bool Cyclic = false>
+class JumpByIndexValue {
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+  
+  static_assert(is_iterator_v<IndexIter>);
+  static_assert(std::is_integral_v<typename std::iterator_traits<IndexIter>::value_type>);
+
+  IndexIter _id_it;
+
+public:
+  
+  using difference_type = typename std::iterator_traits<IndexIter>::difference_type;
+  using iterator_category = base_t<IC<IndexIter>, std::bidirectional_iterator_tag>;
+  using policy_category = nonfixed_jump_policy_tag;
+
+  // JumpByIndexValue() = default;
+  JumpByIndexValue(const IndexIter& index_it) : _id_it(index_it) {}
+  // __JumpByIndexValue(const IndexIter& index_it) : _id_it(index_it) {}
+  
+  template <typename IT>
+  JumpByIndexValue(const JumpByIndexValue<IT, Cyclic>& other)
+  : _id_it(other.base()) {
+    static_assert(std::is_convertible_v<IT, IndexIter>);
+  }
+
+	using iter_type = IndexIter;
+  iter_type& iter() { return _id_it; }
+  const iter_type& iter() const { return _id_it; }
+
+  // const IndexIter& base() const { return _id_it; }
+  difference_type value() const { return *_id_it; }
+  // const JumpByIndexValue& policy() const { return *this; }
+  
+  //template <typename IT>
+  //JumpByIndexValue(const jump_iterator<IT, JumpByIndexValue>&) = delete;
+
+// protected:
+public:
+
+  // template <typename IT>
+  // jump_iterator<IT, JumpByIndexValue> get_iter(const IT& it) const {
+  //   return jump_iterator<IT, JumpByIndexValue>(it, *this);
+  // }
+ 
+  void advance_alone() { ++_id_it; }
+  void radvance_alone() { --_id_it; }
+  void advance_alone(difference_type i) { _id_it += i; }
+  void radvance_alone(difference_type i) { _id_it -= i; }
+
+ //  template <typename IT>
+ //  IT next(const IT&) { return *std::next(_id_it); }
+ //  
+ //  template <typename IT>
+ //  IT prev(const IT&) { return *std::prev(_id_it); }
+ //  
+ //  template <typename IT>
+ //  IT next(const IT&, difference_type i) { return *std::next(_id_it, i); }
+ // 
+ //  template <typename IT>
+ //  IT prev(const IT&, difference_type i) { return *std::prev(_id_it, i); }
+
+
+  template <typename IT>
+  // template <typename IT, typename = std::enable_if_t<is_iterator_v<IT>>>
+  void advance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it += *(_id_it++);
+  }
+  
+  template <typename IT>
+  void radvance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it -= *(--_id_it);
+  }
+
+};
+
+
+template <typename IndexIter>
+class JumpByIndexDiff {
+
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+  
+  static_assert(is_iterator_v<IndexIter>);
+  static_assert(std::is_integral_v<typename std::iterator_traits<IndexIter>::value_type>);
+
+  IndexIter _id_it;
+
+public:
+ 
+  using difference_type = typename std::iterator_traits<IndexIter>::difference_type;
+  using iterator_category = typename std::iterator_traits<IndexIter>::iterator_category;
+  using policy_category = nonfixed_jump_policy_tag;
+  
+	using iter_type = IndexIter;
+  iter_type& iter() { return _id_it; }
+  const iter_type& iter() const { return _id_it; }
+
+  // const IndexIter& base() const { return _id_it; }
+  // const JumpByIndexDiff& policy() const { return *this; }
+  difference_type value() const { return *(std::next(_id_it)) - *_id_it; }
+  // JumpByIndexDiff() = default;
+  JumpByIndexDiff(const IndexIter& index_id) : _id_it(index_id) {}
+  // __JumpByIndexDiff(const IndexIter& index_id) : _id_it(index_id) {}
+  
+  template <typename IT>
+  JumpByIndexDiff(const JumpByIndexDiff<IT>& other)
+  : _id_it(other.base()) {
+    static_assert(std::is_convertible_v<IT, IndexIter>);
+  }
+
+  //template <typename IT>
+  //JumpByIndexDiff(const jump_iterator<IT, JumpByIndexDiff>&) = delete;
+
+public:
+  
+  void advance_alone() { ++_id_it; }
+  void radvance_alone() { --_id_it; }
+  void advance_alone(difference_type i) { _id_it += i; }
+  void radvance_alone(difference_type i) { _id_it -= i; }
+ 
+  template <typename IT>
+  void advance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    auto id0 = *_id_it;
+    it += *(++_id_it) - id0;
+  }
+
+  template <typename IT>
+  void radvance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    auto id0 = *_id_it;
+    it += *(--_id_it) - id0;
+  }
+
+  template <typename IT>
+  void advance(IT& it, difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    auto id0 = *_id_it;
+    it += *(_id_it += i) - id0;
+  }
+
+  template <typename IT>
+  void radvance(IT& it, difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    auto id0 = *_id_it;
+    it += *(_id_it -= i) - id0;
+  }
+
+  // template <typename IT>
+  // difference_type get_diff(
+  //   const jump_iterator<IT, JumpByIndexDiff>& lhs,
+  //   const jump_iterator<IT, JumpByIndexDiff>& rhs) const {
+  template <typename JIT>
+  static difference_type get_diff(const JIT& lhs, const JIT& rhs) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<JIT>>);
+    // return lhs.policy()._id_it - rhs.policy()._id_it;
+    return lhs.policy().base() - rhs.policy().base();
+  }
+
+};
+
+
+// This Policy allows you you use jump iterator with
+//  non-random access iterators
+// It might seem redundant at first, but this policy
+//  could be used as stride policy for tensor iterator
+//  or size policy for tensor iterable
+// Allowing classes like std::list to be the flat base
+//  for JaggedMatrix and Tensors
+template <typename IterIter>
+class JumpByEqualNext {
+
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+  
+  template <typename IT>
+  using VT = typename std::iterator_traits<IT>::value_type;
+
+  static_assert(is_iterator_v<IterIter>);
+  // static_assert(is_iterator_v<typename std::iterator_traits<IterIter>::value_type>);
+
+  IterIter _it_it;
+
+public:
+  
+  using difference_type = typename std::iterator_traits<IterIter>::difference_type;
+  using iterator_category = typename std::iterator_traits<IterIter>::iterator_category;
+  using policy_category = nonfixed_jump_policy_tag;
+
+  const IterIter& base() const { return _it_it; }
+  // const JumpByEqualNext& policy() const { return *this; }
+  difference_type value() const { return *(std::next(_it_it)) - *_it_it; }
+  // JumpByEqualNext() = default;
+  JumpByEqualNext(const IterIter& iter_it) : _it_it(iter_it) {}
+  
+  template <typename IT>
+  JumpByEqualNext(const JumpByEqualNext<IT>& other)
+  : _it_it(other.base()) {
+    static_assert(std::is_convertible_v<IT, IterIter>);
+  }
+
+// protected:
+public:
+  
+  void advance_alone() {
+    ++_it_it;
+  }
+  void radvance_alone() {
+    static_assert(std::is_base_of_v<std::bidirectional_iterator_tag, iterator_category>);
+    --_it_it;
+  }
+  void advance_alone(difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, iterator_category>);
+    _it_it += i;
+  }
+  void radvance_alone(difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, iterator_category>);
+    _it_it -= i;
+  }
+ 
+  template <typename IT>
+  void advance(IT& it) {
+		// static_assert(is_iterator_v<IT>);
+    static_assert(std::is_convertible_v<VT<IterIter>, IT>);
+
+    ++_it_it;
+    it = *_it_it;
+    // it.base() = IterIter(*_it_it);
+  }
+
+  template <typename IT>
+  void radvance(IT& it) {
+		// static_assert(is_iterator_v<IT>);
+    static_assert(std::is_base_of_v<std::bidirectional_iterator_tag, iterator_category>);
+    static_assert(std::is_convertible_v<VT<IterIter>, IT>);
+    static_assert(std::is_base_of_v<std::bidirectional_iterator_tag, IC<IterIter>>);
+
+    --_it_it;
+    it = *_it_it;
+    // it.base() = IterIter(*_it_it);
+  }
+
+  template <typename IT>
+  void advance(IT& it, difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, iterator_category>);
+    static_assert(std::is_convertible_v<VT<IterIter>, IT>);
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IterIter>>);
+    _it_it += i;
+    it = *_it_it;
+    // it.base() = IterIter(*_it_it);
+  }
+
+  template <typename IT>
+  void radvance(IT& it, difference_type i) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, iterator_category>);
+    static_assert(std::is_convertible_v<VT<IterIter>, IT>);
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IterIter>>);
+    _it_it -= i;
+    it = *_it_it;
+    // it.base() = IterIter(*_it_it);
+  }
+
+  template <typename JIT>
+  static difference_type get_diff(const JIT& lhs, const JIT& rhs) {
+    // static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IterIter>>);
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, iterator_category>);
+    // return lhs.policy()._it_it - rhs.policy()._it_it;
+    return lhs.policy().base() - rhs.policy().base();
+  }
+
+  // Examples:
+  //   std::list l = {'a', 'b', 'c', 'd', 'e', 'f'};
+  //   std::vector/list iters = {l.begin(), std::next(l.begin(), 2), std::next(l.begin(), 4), l.end()};
+  //   auto itb = make_tensor_iterable(
+  //     l.begin(),
+  //     iters.begin(),
+  //     iters.size() - 1
+  //   );
+  //   auto itb = make_tensor_iterable_ext(
+  //     l.begin(), NoPolicy(),
+  //     iters.begin(), UseItbSize(),
+  //     std::prev(iters.end(), 2)
+  //   );
+
+};
+
+
+// ----------------------------------------------------------- //
+
+
+// NOTE: Policy traits concept
+/*template <typename Policy, template <typename...> class User>
+struct policy_traits {};
+
+
+template <>
+struct policy_traits<NoPolicy, jump_iterator> {
+  
+  using difference_type = std::ptrdiff_t;
+  using iterator_category = std::random_access_iterator_tag;
+  using policy_category = fixed_jump_policy_tag;
+
+};
+
+template <int N>
+struct policy_traits<StaticJumpPolicy<N>, jump_iterator> {
+  
+  using difference_type = int;
+  using iterator_category = std::random_access_iterator_tag;
+  using policy_category = fixed_jump_policy_tag;
+
+};
+
+template <>
+struct policy_traits<FixedJumpPolicy, jump_iterator> {
+  
+  using difference_type = std::ptrdiff_t;
+  using iterator_category = std::random_access_iterator_tag;
+  using policy_category = fixed_jump_policy_tag;
+
+};
+
+template <typename PolIter>
+struct policy_traits<JumpByIndexDiff<PolIter>, jump_iterator> {
+  
+  using difference_type = PolIter;
+  using iterator_category = std::random_access_iterator_tag;
+  using policy_category = nonfixed_jump_policy_tag;
+
+};
+
+template <typename PolIter>
+struct policy_traits<JumpByIndexValue<PolIter>, jump_iterator> {
+  
+  using difference_type = PolIter;
+  using iterator_category = std::bidirectional_iterator_tag;
+  using policy_category = nonfixed_jump_policy_tag;
+
+};*/
+
+
+// =================================================================== //
+
+// TODO: Fix
+// std::vector vec = {1, 2, 3};
+// // jump_iterator jit(vec.cbegin());
+// // jit = vec.begin();
+// jump_iterator jit(vec.begin());
+// decltype(vec.cbegin()) it = jit;
+
+
+template <
+	typename IterType,
+	typename Policy,
+	// size_t DEPTH = 1
+	bool STACKABLE = true
+>
+class jump_iterator;
+
+
+template <typename T>
+struct is_jump_iterator
+: public std::false_type {};
+
+template <typename IT, typename P, bool STCKB>
+struct is_jump_iterator<jump_iterator<IT, P, STCKB>>
+: public std::true_type {};
+
+template <typename T>
+constexpr bool is_jump_iterator_v = is_jump_iterator<T>::value;
+
+
+template <typename T, typename = void>
+struct is_jump_policy
+: public std::false_type {};
+
+template <typename Policy>
+struct is_jump_policy<
+	Policy,
+	std::void_t<typename Policy::policy_category>
+> : public std::true_type {};
+
+template <typename T>
+constexpr bool is_jump_policy_v = is_jump_policy<T>::value;
+
+
+// template <typename IterType>
+// inline auto&& get_iter_base(IterType&& iter, const size_t N = 1) {
+// 	if (N)
+// 		return get_iter_base(iter.base(), N - 1);
+// 	return iter;
+// }
+
+
+template <typename BaseIter, bool STACKABLE>
+struct __get_depth_base_impl;
+
+template <typename BaseIter>
+struct __get_depth_base_impl<BaseIter, true> {
+	using type = BaseIter;
+};
+
+template <typename BaseIter>
+struct __get_depth_base_impl<BaseIter, false> {
+	using type = typename BaseIter::depth_base_type;
+};
+
+template <typename BaseIter, bool STACKABLE>
+using __get_depth_base_t = typename __get_depth_base_impl<BaseIter, STACKABLE>::type;
+
+
+// template <typename IterType, typename Policy = NoPolicy<>>
+template <typename IterType, typename Policy, bool STCKB>
+// template <typename IterType, typename Policy, size_t DEPTH>
+class jump_iterator : private Policy {
+// class jump_iterator : private Policy::type {
+
+	static_assert(is_iterator_v<IterType>);
+	static_assert(is_jump_policy_v<Policy>);
+
+	// static_assert(!!STCKB || does_have_base_v<IterType>);
+	// static_assert(!!STCKB || is_jump_iterator_v<IterType>);
+
+	// static_assert(does_have_base_v<IterType, DEPTH - 1>);
+	// static_assert(!!STCKB || does_have_base_v<IterType>);
+
+  using ThisType = jump_iterator<IterType, Policy, STCKB>;
+
+  friend Policy; // NOTE: !!! (Because of get_diff(...))
+  
+public:
+	
+	// static constexpr bool STACKABLE = does_have_base_v<IterType> ? STCKB : true;
+	static constexpr bool STACKABLE = is_jump_iterator_v<IterType> ? STCKB : true;
+  
+  // using base_type = IterType;
+  // using depth_base_type = get_base_type_t<IterType, DEPTH - 1>;
+  // using depth_base_type = _if_t<STACKABLE, IterType, get_base_type_t<IterType>>;
+  // using depth_base_type = get_base_type_t<IterType, !STACKABLE>; // 1 gets the base true is 1 false is 0
+  using depth_base_type = __get_depth_base_t<IterType, STACKABLE>; // 1 gets the base true is 1 false is 0
+
+	using base_type = IterType;
+  using policy_type = Policy;
+
+  using difference_type = typename policy_type::difference_type;
+  using iterator_category = typename policy_type::iterator_category;
+
+  using value_type = typename std::iterator_traits<IterType>::value_type;
+  using reference = typename std::iterator_traits<IterType>::reference;
+  using pointer = typename std::iterator_traits<IterType>::pointer;
+
+  // Make those methods public from the protectedly inherited Policy
+  // using policy_type::policy;
+  // using stride = policy_type::value;
+
+  const policy_type& policy() const {
+    return static_cast<const policy_type&>(*this);
+  }
+  
+	policy_type& policy() {
+    return static_cast<policy_type&>(*this);
+  }
+
+  difference_type stride() const {
+    return policy_type::value();
+  }
+
+
+private:
+
+  IterType _it{};
+
+protected:
+
+	template <typename, typename, bool>
+	friend class jump_iterator;
+	
+	depth_base_type& depth_base() {
+		if constexpr (STACKABLE)
+			return _it;
+		else
+			// return _it.base();
+			return _it.depth_base();
+	}
+
+	const depth_base_type& depth_base() const {
+		if constexpr (STACKABLE)
+			return _it;
+		else
+			// return _it.base();
+			return _it.depth_base();
+	}
+
+public:
+
+  base_type& base() { return _it; }
+  const base_type& base() const { return _it; }
+
+
+  template <typename IT, typename P, typename = std::enable_if_t<
+   std::is_constructible_v<IterType, IT> && std::is_constructible_v<policy_type, P>>>
+  jump_iterator(const IT& iter, const P& pol)
+    : _it(iter), policy_type(pol) {}
+
+  template <typename P = Policy, typename = std::enable_if_t<
+    std::is_default_constructible_v<P>>>
+  jump_iterator(const IterType& iter)
+	: _it(iter), policy_type() {}
+
+
+  // Why this constructor doesnt call with an implicit
+  //  conversion from a single argument of the policy constructor ?
+  // Because you may be giving iterator when the argument is 
+  //  const iterator, so it gets a very long ching of conversions
+  //  iterator -> const_iterator -> Policy<const_iterator>
+  //  that can not be implicitly deduced
+  // And thats why we would just have the helper constructor
+  //  above this
+  //jump_iterator(const IterType& iter, const policy_type& pol)
+  //  : _it(iter), policy_type(pol) {}
+
+  template <typename IT, typename P, typename = std::enable_if_t<
+    std::is_convertible_v<IT, IterType> && std::is_convertible_v<P, policy_type>>>
+  jump_iterator(const jump_iterator<IT, P, STCKB>& other)
+    : _it(other.base()), policy_type(other.policy()) {}
+
+  template <typename P = Policy, typename =
+    std::enable_if_t<std::is_base_of_v<NoPolicy, P>>>
+  operator const IterType& () const { return _it; }
+  
+  template <typename P = Policy, typename =
+    std::enable_if_t<std::is_base_of_v<NoPolicy, P>>>
+  operator IterType& () { return _it; }
+
+
+  reference operator*() const { return *_it; }
+  pointer operator->() const { return _it.operator->(); }
+
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  reference operator[](difference_type i) const {
+    ThisType temp(_it); 
+    policy_type::advance(temp, i); 
+    return *temp;
+  }
+
+
+  ThisType& operator++() { policy_type::advance(depth_base()) ; return *this; }
+  ThisType operator++(int) { ThisType temp(*this); ++(*this); return temp; }
+
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  ThisType& operator--() { policy_type::radvance(depth_base()); return *this; }
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  ThisType operator--(int) { ThisType temp(*this); --(*this); return temp; }
+
+
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType& operator+=(difference_type i) { policy_type::advance(depth_base(), i); return *this; }
+  // friend ThisType operator+(ThisType iter, difference_type i) { return iter += i; }
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType operator+(difference_type i) const { ThisType temp(*this); return temp += i; }
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  friend ThisType operator+(difference_type i, ThisType iter) { return iter += i; }
+ 
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType& operator-=(difference_type i) { policy_type::radvance(depth_base(), i); return *this; }
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  friend ThisType operator-(ThisType iter, difference_type i) { return iter -= i; }
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  difference_type operator-(const ThisType& rhs) const {
+    // return policy_type::get_diff(this->depth_base(), rhs.depth_base());
+    return policy_type::get_diff(*this, rhs);
+  }
+
+
+  bool operator==(const jump_iterator& other) const {
+    if constexpr (std::is_base_of_v<std::random_access_iterator_tag, iterator_category>)
+      return !(*this - other);
+    else
+      return depth_base() == other.depth_base();
+  }
+
+  bool operator!=(const jump_iterator& other) const {
+    if constexpr (std::is_base_of_v<std::random_access_iterator_tag, iterator_category>)
+      return *this - other;
+    else
+      return depth_base() != other.depth_base();
+  }
+
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<(const jump_iterator& other) const {
+    // return depth_base() < other.depth_base();
+    return (*this - other) < 0;
+  }
+  
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<=(const jump_iterator& other) const {
+    // return depth_base() <= other.depth_base();
+    return (*this - other) <= 0;
+  }
+  
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>(const jump_iterator& other) const {
+    // return depth_base() > other.depth_base();
+    return (*this - other) > 0;
+  }
+  
+  template <typename IC = iterator_category, typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>=(const jump_iterator& other) const {
+    // return depth_base() >= other.depth_base();
+    return (*this - other) >= 0;
+  }
+
+
+};
+
+template <
+  typename PolicyArg, 
+  bool IS_ITER = is_iterator_v<std::remove_cvref_t<PolicyArg>>
+>
+class arg_to_jump_policy;
+
+template <typename PolicyArg>
+class arg_to_jump_policy<PolicyArg, false> {
+  using PA = std::remove_cvref_t<PolicyArg>;
+public:
+  using type = _if_t<
+    std::is_integral_v<PA>,
+    FixedJumpPolicy<PA>,
+    PA
+  >;
+};
+
+template <typename PolicyArg>
+class arg_to_jump_policy<PolicyArg, true> {
+  using PA = std::remove_cvref_t<PolicyArg>;
+public:
+  using type = _if_t<
+    std::is_integral_v<typename std::iterator_traits<PA>::value_type>,
+    JumpByIndexDiff<PA>,
+    _if_t<
+      is_iterator_v<typename std::iterator_traits<PA>::value_type>,
+      JumpByEqualNext<PA>,
+      // void
+      PA
+    >
+  >;
+};
+
+template <typename PolicyArg>
+using arg_to_jump_policy_t = typename arg_to_jump_policy<PolicyArg>::type;
+
+
+
+// NOTE:
+// Because of the perfect forwarding
+//  in make_tensor_iterator/iterable functions
+//  we need to ensure that the policy arguments
+//  are not const or reference
+/*template <typename PolicyArg>
+using arg_to_jump_policy_t = 
+  _if_t<
+    std::is_integral_v<std::remove_cvref_t<PolicyArg>>,
+    FixedJumpPolicy<std::remove_cvref_t<PolicyArg>>,
+    _if_t<
+      is_iterator_v<std::remove_cvref_t<PolicyArg>>,
+      JumpByIndexDiff<std::remove_cvref_t<PolicyArg>>,
+      std::remove_cvref_t<PolicyArg>
+    >
+  >;*/
+
+/*template <typename PolicyArg>
+using arg_to_jump_policy_t = 
+  _if_t<
+    std::is_integral_v<PolicyArg>,
+    FixedJumpPolicy<PolicyArg>,
+    _if_t<
+      is_iterator_v<PolicyArg>,
+      JumpByIndexDiff<PolicyArg>,
+      PolicyArg
+    >
+  >;*/
+
+
+// Template Deduction Guide
+template <typename IT, typename PolicyArg>
+jump_iterator(const IT&, const PolicyArg&)
+  -> jump_iterator<
+    IT,
+    arg_to_jump_policy_t<PolicyArg>
+  >;
+
+

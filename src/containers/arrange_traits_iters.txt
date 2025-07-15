@@ -1,0 +1,127 @@
+#pragma once
+
+#include "../meta_func.hpp"
+
+
+// NOTE: Each of the order/shift traits classes have one to one
+// mapping to arrange_traits
+
+// NOTE: We wont touch the exact erased key value !!
+
+
+struct ShiftArrange {
+
+  template <typename KeyIter>
+  static void will_insert(
+    KeyIter first,
+    KeyIter last,
+    typename std::iterator_traits<KeyIter>::value_type at_key,
+    typename std::iterator_traits<KeyIter>::difference_type n = 1
+  ) {
+    static_assert(is_iterator_v<KeyIter>);
+    static_assert(!is_const_iterator_v<KeyIter>);
+
+    while(first != last) {
+      using id_ref = typename std::iterator_traits<KeyIter>::reference;
+      id_ref id = *first;
+      id += n * (id > at_key);
+      ++first;
+    }
+  }
+
+  template <typename KeyIter>
+  static void was_erased(
+    KeyIter first,
+    KeyIter last,
+    typename std::iterator_traits<KeyIter>::value_type at_key,
+    typename std::iterator_traits<KeyIter>::difference_type n = 1
+  ) {
+    static_assert(is_iterator_v<KeyIter>);
+    static_assert(!is_const_iterator_v<KeyIter>);
+
+    while(first != last) {
+      // if (*first >= at_key && *first < at_key + n) {
+      //   first = keys.erase(first);
+      //   continue;
+      // }
+      *first -= n * (*first >= at_key + n);
+      ++first;
+    }
+  }
+
+};
+
+
+struct ChainArrange {
+
+  // NOTE: You will need to know the size of the container
+  // that the keys point to
+
+  template <typename Container>
+  static void will_insert(
+    Container& keys,
+    typename Container::value_type at_key,
+    typename Container::difference_type n = 1
+  ) {
+    static_assert(is_range_v<Container>);
+    // for(auto&& x : keys)
+    //   x += (x*)
+  }
+
+  template <typename Container>
+  static void was_erased(
+    Container& keys,
+    typename Container::value_type at_key,
+    typename Container::difference_type n = 1
+  ) {
+    static_assert(is_range_v<Container>);
+    
+  }
+  
+};
+
+
+struct NoShiftArrange {
+
+  template <typename Container>
+  static void will_insert(
+    Container& keys,
+    typename Container::value_type at_key,
+    typename Container::difference_type n = 1
+  ) {
+    static_assert(is_range_v<Container>);
+  }
+
+  template <typename Container>
+  static void was_erased(
+    Container& keys,
+    typename Container::value_type at_key,
+    typename Container::difference_type n = 1
+  ) {
+    static_assert(is_range_v<Container>);
+  }
+  
+};
+
+
+template <typename BaseVec>
+struct UnorderedVector;
+
+
+template <typename VecType>
+struct arrange_traits : public
+  _if_t<
+    is_vector_container_v<VecType>,
+    ShiftArrange,
+    NoShiftArrange
+  > {};
+
+
+template <typename BaseVec>
+struct arrange_traits<
+  UnorderedVector<BaseVec>
+> : public ChainArrange {};
+
+
+
+

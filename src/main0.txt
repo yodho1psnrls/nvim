@@ -1,0 +1,146 @@
+#include "containers/zip_container.hpp"
+#include "containers/order_traits.hpp"
+#include "containers/property_container.hpp"
+#include "iterators/jump_iterator.hpp"
+#include "iterators/tensor_iterator.hpp"
+#include "iterators/transform_iterator.hpp"
+#include "matrices/jagged_matrix.hpp"
+#include "matrices/matrix.hpp"
+#include "matrices/cyclic_matrix.hpp"
+
+#include "containers/unordered_vector.hpp"
+
+#include <iostream>
+#include <vector>
+#include <list>
+#include <forward_list>
+
+#include "iterators/filter_iterator.hpp"
+#include "kernel/key_kernel.hpp"
+#include "containers/fuse_traits.hpp"
+
+#include "iterators/circulator_iterator.hpp"
+#include "mesh/mesh.hpp"
+#include "point_cloud/point_cloud.hpp"
+
+#include "mixin.hpp"
+
+
+template <typename Cont>
+void print_cont(const Cont& cont) {
+  static_assert(is_range_v<Cont>);
+  for(const auto& x : cont) {
+    std::cout << x << "\n";
+  }
+}
+
+
+template <typename IterType>
+void print_iter(IterType it, long long n) {
+  static_assert(is_iterator_v<IterType>);
+  while(n--) std::cout << *(it++) << "\n";
+}
+  
+
+// struct Test {
+//  template <typename T = int>
+//  using blqlq = T;
+// };
+
+// struct Test {
+//
+//  template <bool COND = true, typename = std::enable_if_t<COND>>
+//  using base_type = int;
+//
+// };
+
+
+// struct A {
+//  int x;
+//  bool operator==(const A& other) const { return x == other.x; }
+// };
+//
+// struct B {
+//  A x;
+//  operator A() const { std::cout << "slqlqlq\n"; return x; }
+// };
+
+
+// struct A {
+//  void foo() const { std::cout << "A foo\n";}
+// };
+//
+// struct B : A {
+//  void foo() const { std::cout << "B foo\n";}
+// };
+//
+// struct C : B {
+//  void foo() const { std::cout << "C foo\n";}
+// };
+//
+// struct Derived
+// : C {};
+
+void foot() {
+  int x = INT_MAX;
+  x += 1;  // undefined behavior: signed int overflow
+}
+
+
+// struct MultOf
+// also, given a tag in the inserts list, will add the key with the corresponding tag
+
+
+int main() {
+
+  // PointCloud<char> pc;
+  Mesh<char> pc;
+
+  IndexIterator iit('a');
+  std::for_each(iit, iit + 7, [&pc](char x){ pc.add_vert(x); });
+
+  for(auto vi : pc.verts())
+    // std::cout << vi << ", ";
+    std::cout << pc.vert(vi) << ", ";
+
+  foot();
+
+
+  /*using vert_cont = std::vector<char>;
+  using vert_key = TaggedType<key_cont_traits<vert_cont>::key_type, vert_handle_tag>;
+
+  using face_cont = Matrix<std::vector<vert_key>>;
+  using face_key = TaggedType<key_cont_traits<face_cont>::key_type, face_handle_tag>;
+
+  using ker_type = KeyKernelImpl<
+    TaggedType<vert_cont, vert_handle_tag>,
+    TaggedType<face_cont, face_handle_tag>
+  >;
+
+  ker_type ker;
+  ker.insert(ker.begin<vert_key>(), 7, 'J');
+  print_cont(ker.values<vert_key>());*/
+  
+
+  // std::vector<std::vector<int>> mat = {
+  //  {1, 2, 3, 4},
+  //  {5, 6},
+  //  {7, 8, 9},
+  //  {69},
+  // };
+  //
+  // std::cout << std::distance(FlatIterator(mat.begin()), FlatIterator(mat.end()));
+
+
+  /*auto pred = [](int x) { return x % 2 == 0; };
+  // FilterIterator fit(IndexIterator(0), pred);
+  std::vector vec(IndexIterator(0), IndexIterator(11));
+  FilterIterator fit(vec.begin(), pred);
+
+  // print_iter(fit, 5);
+  print_cont(View(FilterIterator(vec.begin(), pred), FilterIterator(vec.end(), pred)));*/
+
+
+
+  return 0;
+}

@@ -1,0 +1,358 @@
+#pragma once
+#include "../meta_func.hpp"
+#include <iterator>
+#include <type_traits>
+#include <utility> // declval
+
+
+// LookUpType is anything that supports operator[]
+/*template <typename KeyIter, typename LookUpType>
+class lookup_iterator : public KeyIter {
+
+  KeyIter _it;
+  LookUpType& lookup;
+};*/
+
+
+// LookUpType is any random acess iterator that supports operator[]
+/*template <typename KeyIter, typename LookUpType>
+class iterator_lookup_iterator : public KeyIter {
+
+  using LookIC = typename std::iterator_traits<LookUpType>::iterator_category; 
+  static_assert(std::is_base_of_v<std::random_access_iterator_tag, LookIC>);
+  
+  //static_assert(std::is_integral_v<typename std::iterator_traits<KeyIter>::value_type>);
+  
+  using LookDT = typename std::iterator_traits<LookUpType>::difference_type;
+  using KeyV = typename std::iterator_traits<KeyIter>::value_type;
+  static_assert(std::is_constructible_v<LookDT, KeyV>);
+
+
+  // NOTE: KeyIter should be const_iterator, there is no problem if its not,
+  // but there is no reason for it to not be const, because the constness of
+  // this iterator depends on the lookuptype and the KeyIter only gives us
+  // an index, that we do not change here
+
+  LookUpType _lookup;
+
+public:
+
+  using value_type = typename LookUpType::value_type;
+  using reference = typename LookUpType::reference;
+  using pointer = typename LookUpType::pointer;
+
+
+  iterator_lookup_iterator(const KeyIter& it, const LookUpType& lookup)
+    : KeyIter(it), _lookup(lookup) {}
+  
+  reference operator*() const { return _lookup[KeyIter::operator*()]; }
+  pointer operator->() const { return &(_lookup[KeyIter::operator*()]); }
+  
+};
+
+
+// LookUpType is any container that supports operator[]
+template <typename KeyIter, typename LookUpType>
+class container_lookup_iterator  : public KeyIter {
+
+  // The container may not be with integer key/index/handle so, we should not assert that
+  //static_assert(std::is_integral_v<typename std::iterator_traits<KeyIter>::value_type>);
+
+  // NOTE: KeyIter should be const_iterator, there is no problem if its not,
+  // but there is no reason for it to not be const, because the constness of
+  // this iterator depends on the lookuptype and the KeyIter only gives us
+  // an index, that we do not change here
+
+  LookUpType& _lookup;
+
+public:
+
+  using value_type = typename LookUpType::value_type;
+  using reference = _if_t<std::is_const_v<LookUpType>, typename LookUpType::const_reference, typename LookUpType::reference>;
+  using pointer = _if_t<std::is_const_v<LookUpType>, typename LookUpType::const_pointer, typename LookUpType::pointer>;
+
+
+  container_lookup_iterator(const KeyIter& it, LookUpType& lookup)
+    : KeyIter(it), _lookup(lookup) {}
+  
+  reference operator*() const { return _lookup[KeyIter::operator*()]; }
+  pointer operator->() const { return &(_lookup[KeyIter::operator*()]); }
+  
+};*/
+
+
+// template <typename MapType, bool IsIter = true>
+// struct 
+
+
+template <typename LookupType, typename KeyIter>
+class __IteratorLookupIterator {
+
+  using key_type = typename std::iterator_traits<KeyIter>::value_type;
+
+protected:
+  
+  static_assert(is_iterator_v<LookupType>);
+  LookupType _map;
+  
+  using lookup_const_reference = const LookupType&;
+
+public:
+  
+  // using lookup_type = LookupType;
+  // using value_type = typename std::iterator_traits<LookupType>::value_type;
+  // using reference = typename std::iterator_traits<LookupType>::reference;
+  // using pointer = typename std::iterator_traits<LookupType>::pointer;
+  
+  using reference = decltype(std::declval<LookupType>()[std::declval<key_type>()]);
+
+  __IteratorLookupIterator(const LookupType& map)
+  : _map(map) {}
+
+};
+
+
+template <typename LookupType, typename KeyIter>
+class __ContainerLookupIterator {
+
+  using key_type = typename std::iterator_traits<KeyIter>::value_type;
+
+protected:
+  
+  static_assert(is_container_v<std::remove_cvref_t<LookupType>>);
+  // static_assert(!std::is_reference_v<std::remove_cv_t<LookupType>>);
+  static_assert(!std::is_reference_v<LookupType>); // no need for remove_cv
+
+  LookupType& _map;
+  
+  using lookup_const_reference = LookupType&;
+
+public:
+
+  // using lookup_type = LookupType;
+  // using value_type = typename LookupType::value_type;
+  // using reference = _if_t<
+  //   // std::is_const_v<std::remove_reference_t<LookupType>>,
+  //   std::is_const_v<LookupType>,
+  //   typename LookupType::const_reference,
+  //   typename LookupType::reference
+  // >;
+  // using pointer = _if_t<
+  //   // std::is_const_v<std::remove_reference_t<LookupType>>,
+  //   std::is_const_v<LookupType>,
+  //   typename LookupType::const_pointer,
+  //   typename LookupType::pointer
+  // >;
+  
+  using reference = decltype(std::declval<LookupType>().at(std::declval<key_type>()));
+
+  __ContainerLookupIterator(LookupType& map)
+  : _map(map) {}
+
+};
+
+
+
+template <typename LookupType, typename KeyIter>
+class LookupIterator 
+: public _if_t<
+    is_iterator_v<LookupType>,
+    __IteratorLookupIterator<LookupType, KeyIter>,
+    __ContainerLookupIterator<LookupType, KeyIter>
+  > {
+
+  using ThisType = LookupIterator<LookupType, KeyIter>;
+  using BaseType = _if_t<
+    is_iterator_v<LookupType>,
+    __IteratorLookupIterator<LookupType, KeyIter>,
+    __ContainerLookupIterator<LookupType, KeyIter>
+  >;
+
+  template <typename, typename>
+  friend class LookupIterator;
+
+  using BaseType::_map;
+  // LookupType _map;
+  KeyIter _it;
+  
+  using typename BaseType::lookup_const_reference;
+
+public:
+
+  using key_iterator = KeyIter;
+  
+  using iterator_category = typename std::iterator_traits<KeyIter>::iterator_category;
+  using difference_type = typename std::iterator_traits<KeyIter>::difference_type;
+
+  using key_type = typename std::iterator_traits<KeyIter>::value_type;
+  using key_reference = typename std::iterator_traits<KeyIter>::reference;
+  using key_pointer = typename std::iterator_traits<KeyIter>::pointer;
+
+  // using typename BaseType::lookup_type;
+  // using typename BaseType::value_type;
+  // using typename BaseType::reference;
+  // using typename BaseType::pointer;
+
+  using lookup_type = LookupType;
+  // using reference = decltype(std::declval<LookupType>()[std::declval<key_type>()]);
+  using typename BaseType::reference;
+  using value_type = std::remove_reference_t<reference>;
+  using pointer = value_type*;
+
+
+  // template <typename MT>
+  // LookupIterator(MT&& map, const KeyIter& key_it)
+  // : BaseType(std::forward<MT>(map)), _it(key_it) {}
+  
+  LookupIterator(lookup_const_reference map, const KeyIter& key_it)
+  : BaseType(map), _it(key_it) {}
+
+  template <typename LT, typename KI>
+  LookupIterator(const LookupIterator<LT, KI>& other)
+  : BaseType(other._map), _it(other._it) {}
+
+  // Only key assignment (preserves the previous MapType)
+  template <typename KI = KeyIter, typename = std::enable_if_t<is_iterator_v<KI>>>
+  ThisType& operator=(const KI& key_it) {
+	// static_assert(is_iterator_v<KI>);
+    _it = key_it;
+    return *this;
+  }
+
+  const LookupType& lookup() const { return _map; }
+  const KeyIter& key_it() const { return _it; }
+  key_reference key() const { return *_it; }
+
+  // NOTE:
+  // We need this if constexpr to choose op[] or at()
+  //  because if we only use op[], then const std::map
+  //  and const std::unordered_map would not work,
+  //  because their op[] is not const, so we have to
+  //  use the at() method instead
+
+  reference operator*() const {
+    if constexpr (is_iterator_v<LookupType>)
+      return _map[*_it];
+    else
+      return _map.at(*_it); // const unordered_map would work !
+  }
+  
+  pointer operator->() const {
+    if constexpr (is_iterator_v<LookupType>)
+      return &_map[*_it];
+    else
+      return &_map.at(*_it);
+  }
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  reference operator[](difference_type i) const {
+    auto temp(_it);
+    if constexpr (is_iterator_v<LookupType>)
+      return _map[*(temp += i)];
+    else
+      return _map.at(*(temp += i));
+  }
+
+  bool operator==(const ThisType& rhs) const { return _it == rhs._it; }
+  bool operator!=(const ThisType& rhs) const { return _it != rhs._it; }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>(const ThisType& rhs) const { return _it > rhs._it; }
+ 
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>=(const ThisType& rhs) const { return _it >= rhs._it; }
+ 
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<(const ThisType& rhs) const { return _it < rhs._it; }
+ 
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<=(const ThisType& rhs) const { return _it <= rhs._it; }
+
+
+  ThisType& operator++() { ++_it; return *this; }
+  ThisType& operator++(int) { auto temp(*this); ++(*this); return temp; }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  ThisType operator--() { --_it; return *this; }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  ThisType operator--(int) { auto temp(*this); --(*this); return temp; }
+
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType& operator+=(difference_type i) { _it += i; return *this; }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType operator+(difference_type i) { auto temp(*this); return temp += i; }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  friend ThisType operator+(difference_type i, ThisType rhs) {
+    return rhs += i;
+  }
+
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType& operator-=(difference_type i) { _it -= i; return *this; }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  ThisType operator-(difference_type i) { auto temp(*this); return temp -= i; }
+  
+  template <typename IC = iterator_category, typename =
+  std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  friend difference_type operator-(const ThisType& lhs, const ThisType& rhs) {
+    return lhs._it - rhs._it;
+  }
+
+};
+
+
+// template <typename LookupType, typename KeyIter>
+// LookupIterator(
+//   LookupType&,
+//   const KeyIter&
+// ) ->
+// LookupIterator<
+//   _if_t<
+//     is_container_v<LookupType>,
+//     LookupType,
+//     std::remove_const_t<LookupType>
+//   >,
+//   KeyIter
+// >;
+
+template <typename LookupType, typename KeyIter>
+LookupIterator(
+  const LookupType&,
+  const KeyIter&
+) ->
+LookupIterator<
+  _if_t<
+    is_container_v<LookupType>,
+    const LookupType,
+    LookupType
+  >,
+  KeyIter
+>;
+
+
+template <typename LookupType, typename KeyIter>
+LookupIterator(
+  LookupType&,
+  const KeyIter&
+) ->
+LookupIterator<
+  LookupType,
+  KeyIter
+>;
+

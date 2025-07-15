@@ -1,0 +1,238 @@
+#pragma once
+
+#include "key_traits.hpp"
+#include "unordered_vector.hpp"
+#include "../utilities.hpp"
+
+// NOTE: This makes it possible for a map container with index keys
+// to follow the elements positions after insert or erase
+// operations of another vector container
+// (for whom the map is storing properties per each element)
+
+struct VectorOrdering {
+
+	// template <typename Cont>
+	// using TR = key_cont_traits<Cont>;
+
+	/*template <typename ContType>
+	static typename ContType::iterator insert(
+		ContType& cont,
+		typename ContType::const_iterator where,
+		const typename ContType::value_type& val
+	) {
+		static_assert(std::is_base_of_v<
+			std::bidirectional_iterator_tag,
+			typename std::iterator_traits<typename ContType::iterator>::iterator_category
+		>);
+
+		auto it = cont.insert(cont.end(), cont.back());
+		auto next = --it;
+
+		while(it != where) {
+			*it = *next;
+			it = next;
+			--next;
+		}
+
+		// return where;
+	}*/
+
+
+	template <typename ContType>
+	static typename key_cont_traits<ContType>::key_iterator insert(
+		ContType& cont,
+		typename key_cont_traits<ContType>::key_iterator where,
+		const typename key_cont_traits<ContType>::value_type& val
+	) {
+		using Traits = key_cont_traits<ContType>;
+
+		static_assert(std::is_default_constructible_v<typename Traits::value_type>);
+
+		static_assert(std::is_base_of_v<
+			std::bidirectional_iterator_tag,
+			typename std::iterator_traits<typename Traits::key_iterator>::iterator_category
+		>);
+
+		auto end = Traits::end(cont);
+		// auto key_it = Traits::insert(cont, end, Traits::at(cont, *std::prev(end)));
+		auto key_it = Traits::insert(cont, end, typename Traits::value_type());
+		// NOTE: Or use .resize(size + 1)
+
+		auto next = key_it;
+		--next;
+
+		while (key_it != where) {
+			Traits::at(cont, *key_it) = Traits::at(cont, *next);
+			key_it = next;
+			--next;
+		}
+
+		Traits::at(cont, where) = val;
+
+		return where;
+	}
+
+	template <typename ContType>
+	static typename key_cont_traits<ContType>::key_iterator insert(
+		ContType& cont,
+		typename key_cont_traits<ContType>::key_iterator where,
+		typename key_cont_traits<ContType>::difference_type n,
+		const typename key_cont_traits<ContType>::value_type& val
+	) {
+		using Traits = key_cont_traits<ContType>;
+
+		static_assert(std::is_base_of_v<
+			std::bidirectional_iterator_tag,
+			typename std::iterator_traits<typename Traits::key_iterator>::iterator_category
+		>);
+
+		auto end = Traits::end(cont);
+		// auto key_it = Traits::insert(cont, end, Traits::at(cont, *std::prev(end)));
+		auto key_it = Traits::insert(cont, end, typename key_cont_traits<ContType>::value_type());
+
+		auto next = key_it;
+		--next;
+
+		while (key_it != where) {
+			Traits::at(cont, *key_it) = Traits::at(cont, *next);
+			key_it = next;
+			--next;
+		}
+
+		Traits::at(cont, where) = val;
+
+		return where;
+	}
+
+};
+
+
+// No need for update (std::list's iterators and pointers)
+struct stable_order_category {
+	
+	template <typename KeyIter>
+	static void inserted(
+		KeyIter first,
+		KeyIter last,
+		typename std::iterator_traits<KeyIter>::value_type key,
+		typename std::iterator_traits<KeyIter>::difference_type n = 1
+	) {}
+	
+	template <typename KeyIter>
+	static void erased(
+		KeyIter first,
+		KeyIter last,
+		typename std::iterator_traits<KeyIter>::value_type key,
+		typename std::iterator_traits<KeyIter>::difference_type n = 1
+	) {}
+
+};
+
+// Update relative to a vector (its indexes)
+struct vector_order_category {
+
+	template <typename KeyIter>
+	static void inserted(
+		KeyIter first,
+		KeyIter last,
+		typename std::iterator_traits<KeyIter>::value_type key,
+		typename std::iterator_traits<KeyIter>::difference_type n = 1
+	) {
+		while(first != last) {
+			*first += n * (*first >= key);
+			++first;
+		}
+	}
+	
+	template <typename KeyIter>
+	static void erased(
+		KeyIter first,
+		KeyIter last,
+		typename std::iterator_traits<KeyIter>::value_type key,
+		typename std::iterator_traits<KeyIter>::difference_type n = 1
+	) {
+		while(first != last) {
+			// *first -= n * (*first > key);
+			*first -= n * (*first >= key + n);
+			++first;
+		}
+	}
+
+};
+
+// Update relative to UnorderedVector<ContType> (its keys)
+struct unordered_vector_order_category {
+
+	template <typename KeyIter>
+	static void inserted(
+		KeyIter first,
+		KeyIter last,
+		typename std::iterator_traits<KeyIter>::value_type key,
+		typename std::iterator_traits<KeyIter>::difference_type size,
+		typename std::iterator_traits<KeyIter>::difference_type n = 1
+	) {
+		auto offset = size - key - n;
+		while(first != last) {
+			// if (*first >= key && *first < key + n)
+			// 	*first = *first + offset;
+				// *first = size - 1 - (*first - key);
+			*first += offset * (*first >= key && *first < key + n);
+			++first;
+		}
+	}
+	
+	template <typename KeyIter>
+	static void erased(
+		KeyIter first,
+		KeyIter last,
+		typename std::iterator_traits<KeyIter>::value_type key,
+		typename std::iterator_traits<KeyIter>::difference_type size,
+		typename std::iterator_traits<KeyIter>::difference_type n = 1
+	) {
+		auto offset = size - key - n;
+		while(first != last) {
+			*first -= offset * (*first >= size);
+			++first;
+		}
+	}
+
+};
+
+
+// NOTE: In the PropContainer all containers will follow the first one,
+// but for the MultContainer we need to have a hierarchy for those categories
+// so we choose the highest among all the containers
+// (if all are stable_order_category, it will chose that, but if there
+// is at least one vector_order, it will chose this higher one instead)
+// BUG: DONT DO THAT, the indexes may be different, but following the iterators
+// from start to end, gives you the right sequence elements, and if it happens that at least
+// one of the container iterators is not random acess, then you cant even use the index
+
+
+// NOTE: For each category (except stable_order) you can have a container adaptor that enforces it
+// So for example in PropContainer you
+
+template <typename Cont>
+struct get_ordering_category {
+	using type = _if_t<
+		is_vector_container_v<Cont>,
+		vector_order_category,
+		stable_order_category
+	>;
+};
+
+template <typename Cont>
+struct get_ordering_category<UnorderedVector<Cont>> {
+	using type = unordered_vector_order_category;
+};
+
+template <typename Cont>
+using get_ordering_category_t = typename get_ordering_category<Cont>::type;
+
+
+
+
+
+
+
+

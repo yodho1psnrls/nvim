@@ -1,0 +1,373 @@
+#pragma once
+
+// #include "../keys/keys.hpp"
+// #include "../key_cont/key_update_traits.hpp"
+
+#include "../iterators/lookup_iterator.hpp"
+#include "../iterators/tensor_iterator.hpp"
+
+#include "../iterators/index_iterator.hpp"
+#include "../iterators/iterator_iterator.hpp"
+
+
+template <typename IndexIter, int Index = 0>
+class CycleByIndexValue {
+// template <int Index, typename IndexIter>
+// class __JumpByIndexValue {
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+
+  static_assert(is_iterator_v<IndexIter>);
+  static_assert(std::is_integral_v<typename std::iterator_traits<IndexIter>::value_type>);
+
+  IndexIter _id_it;
+
+public:
+  
+  using difference_type = typename std::iterator_traits<IndexIter>::difference_type;
+  using iterator_category = base_t<IC<IndexIter>, std::forward_iterator_tag>;
+  using policy_category = nonfixed_jump_policy_tag;
+
+  template <int ID>
+  using indexed = CycleByIndexValue<IndexIter, ID>;
+
+  // JumpByIndexValue() = default;
+  CycleByIndexValue(const IndexIter& index_it) : _id_it(index_it) {}
+  // __JumpByIndexValue(const IndexIter& index_it) : _id_it(index_it) {}
+  
+  template <typename IT>
+  CycleByIndexValue(const CycleByIndexValue<IT, Index>& other) : _id_it(other.base()) {}
+
+  template <int ID>
+  operator JumpByIndexValue<IndexIter, ID>() const { return _id_it; }
+
+  const IndexIter& base() const { return _id_it; }
+  difference_type value() const { return *_id_it; }
+  // const JumpByIndexValue& policy() const { return *this; }
+  
+  //template <typename IT>
+  //JumpByIndexValue(const jump_iterator<IT, JumpByIndexValue>&) = delete;
+
+// protected:
+public:
+ 
+  void advance_alone() { _id_it += *_id_it; }
+
+  template <typename IT>
+  // template <typename IT, typename = std::enable_if_t<is_iterator_v<IT>>>
+  void advance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it += *_id_it;
+    _id_it += *_id_it;
+  }
+
+};
+
+// template <typename IterType>
+// CycleByIndexValue(IterType)
+// -> CycleByIndexValue<IterType>;
+
+
+// TODO:
+/*template <typename IndexIter, int Index = 0>
+class CycleByIndexDiff {
+// template <int Index, typename IndexIter>
+// class __JumpByIndexValue {
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+
+  static_assert(is_iterator_v<IndexIter>);
+  static_assert(std::is_integral_v<typename std::iterator_traits<IndexIter>::value_type>);
+
+  IndexIter _id_it;
+  // index_iterator
+  // lookup_iterator
+  // NOTE: You need to track the current index
+
+public:
+  
+  using difference_type = typename std::iterator_traits<IndexIter>::difference_type;
+  using iterator_category = base_t<IC<IndexIter>, std::forward_iterator_tag>;
+  using policy_category = nonfixed_jump_policy_tag;
+
+  template <int ID>
+  using indexed = CycleByIndexValue<IndexIter, ID>;
+
+  CycleByIndexDiff(const IndexIter& index_it) : _id_it(index_it) {}
+  
+  template <typename IT>
+  CycleByIndexDiff(const CycleByIndexDiff<IT, Index>& other) : _id_it(other.base()) {}
+
+  template <int ID>
+  operator CycleByIndexDiff<IndexIter, ID>() const { return _id_it; }
+
+  const IndexIter& base() const { return _id_it; }
+  difference_type value() const { return *_id_it; }
+
+public:
+ 
+  void advance_alone() { _id_it += *_id_it; }
+
+  template <typename IT>
+  // template <typename IT, typename = std::enable_if_t<is_iterator_v<IT>>>
+  void advance(IT& it) {
+    static_assert(std::is_base_of_v<std::random_access_iterator_tag, IC<IT>>);
+    it += *_id_it;
+    _id_it += *_id_it;
+  }
+
+};*/
+
+/*template <typename IndexIter, int Index = 0>
+class CycleByEqualNext {
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+
+  static_assert(is_iterator_v<IndexIter>);
+  static_assert(std::is_integral_v<typename std::iterator_traits<IndexIter>::value_type>);
+
+  IndexIter _id_it;
+  // index_iterator
+  // lookup_iterator
+  // NOTE: You need to track the current index
+
+public:
+  
+  using difference_type = typename std::iterator_traits<IndexIter>::difference_type;
+  using iterator_category = base_t<IC<IndexIter>, std::forward_iterator_tag>;
+  using policy_category = nonfixed_jump_policy_tag;
+
+  template <int ID>
+  using indexed = CycleByEqualNext<IndexIter, ID>;
+
+  CycleByEqualNext(const IndexIter& index_it) : _id_it(index_it) {}
+  
+  template <typename IT>
+  CycleByEqualNext(const CycleByEqualNext<IT, Index>& other) : _id_it(other.base()) {}
+
+  template <int ID>
+  operator CycleByEqualNext<IndexIter, ID>() const { return _id_it; }
+
+  const IndexIter& base() const { return _id_it; }
+  difference_type value() const { return *_id_it; }
+
+public:
+ 
+  // void advance_alone() { _id_it += *_id_it; }
+
+  template <typename T>
+  void advance(index_iterator<T>& it) {
+    // it += *_id_it;
+    // _id_it += *_id_it;
+   
+    auto it0 = it;
+    it = index_iterator(*_id_it);
+    _id_it += *_id_it - *it0;
+    
+  }
+
+};*/
+
+
+template <typename IndexIter>
+class JumpByLookup {
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+
+  static_assert(is_iterator_v<IndexIter>);
+  static_assert(std::is_base_of_v<std::random_access_iterator_tag, typename std::iterator_traits<IndexIter>::iterator_category>);
+  // static_assert(std::is_integral_v<typename std::iterator_traits<IndexIter>::value_type>);
+
+  IndexIter _id_it;
+
+public:
+  
+  using difference_type = typename std::iterator_traits<IndexIter>::difference_type;
+  // using iterator_category = base_t<IC<IndexIter>, std::forward_iterator_tag>;
+  using iterator_category_result = base_t<IC<IndexIter>, std::forward_iterator_tag>;
+  using required_iterator_category = void;
+  using policy_category = nonfixed_jump_policy_tag;
+
+  JumpByLookup(const IndexIter& index_it) : _id_it(index_it) {}
+  
+  // template <typename IT>
+  // JumpByLookup(const JumpByLookup<IT>& other) : _id_it(other.base()) {}
+
+  const IndexIter& base() const { return _id_it; }
+  difference_type value() const { return *_id_it; }
+
+public:
+ 
+  // void advance_alone() { _id_it += *_id_it; }
+
+  // template <typename T>
+  // void advance(index_iterator<T>& it) const {
+  //   it = index_iterator(_id_it[*it]);
+  // }
+ 
+	template <typename T>
+  void advance(index_iterator<T>& it) const {
+    it = _id_it[*it];
+    // it = IT(_id_it[*it]);
+  }
+	
+	// template <typename IT, typename LT>
+  // void advance(LookupIterator<IT, LT>& it) const {
+  //	 it = _id_it[*(it.base())];
+  //	 it = _id_it[it.key()];
+  //	 it = _id_it[*it.functor().lookup()];
+	// }
+
+};
+
+// template <std::ptrdiff_t EQUAL_ID>
+template <typename EQUAL_TYPE, EQUAL_TYPE EQUAL_VALUE>
+class JumpByEqualStatic {
+
+  template <typename IT>
+  using IC = typename std::iterator_traits<IT>::iterator_category;
+
+public:
+  
+  using difference_type = std::ptrdiff_t;
+  // using iterator_category = std::forward_iterator_tag;
+  using iterator_category_result = void;
+  using required_iterator_category = void;
+  using policy_category = static_jump_policy_tag;
+
+  JumpByEqualStatic() = default;
+
+  static constexpr EQUAL_TYPE value() { return EQUAL_VALUE; }
+
+public:
+
+  template <typename IterType>
+  static void advance(IterType& it) {
+    // static_assert(std::is_integral_v<T>);
+    // it = index_iterator<T>(EQUAL_VALUE);
+    it = IterType(EQUAL_VALUE);
+  }
+
+};
+
+
+// ================================================================== //
+
+
+template <typename ContType, bool Linear = true>
+class CyclicMatrix {
+
+  static_assert(is_container_v<ContType>);
+  
+  static_assert(std::is_base_of_v<std::random_access_iterator_tag,
+    typename std::iterator_traits<typename ContType::iterator>::iterator_category>);
+
+  using values_vec_type = ContType;
+  // using ranges_vec_type = std::vector<typename values_vec_type::iterator::difference_type>;
+  using ranges_vec_type = std::vector<index_iterator<typename values_vec_type::iterator::difference_type>>;
+
+  using T = typename ContType::value_type;
+
+public:
+
+  using size_type = typename values_vec_type::size_type;
+  using difference_type = typename values_vec_type::difference_type;
+  using allocator_type = typename ContType::allocator_type;
+
+  using flat_value_type = T;
+  using flat_reference = typename values_vec_type::reference;
+  using flat_const_reference = typename values_vec_type::const_reference;
+ 
+	// using flat_iterator = jump_iterator<typename values_vec_type::iterator, CycleByIndexValue<typename ranges_vec_type::const_iterator>>;
+  // using flat_const_iterator = jump_iterator<typename values_vec_type::const_iterator, CycleByIndexValue<typename ranges_vec_type::const_iterator>>;
+
+  // using key_flat_iterator = jump_iterator<index_iterator<difference_type>, JumpByLookup<typename ranges_vec_type::const_iterator>>;
+
+  // using flat_iterator = LookupIterator<typename values_vec_type::iterator, key_flat_iterator>;
+  // using flat_const_iterator = LookupIterator<typename values_vec_type::const_iterator, key_flat_iterator>;
+  // using flat_iterator = LookupIterator<key_flat_iterator, typename values_vec_type::iterator>;
+  // using flat_const_iterator = LookupIterator<key_flat_iterator, typename values_vec_type::const_iterator>;
+  using flat_iterator = jump_iterator<LookupIterator<index_iterator<difference_type>, typename ContType::iterator>, JumpByLookup<typename ranges_vec_type::const_iterator>>;
+  using flat_const_iterator = jump_iterator<LookupIterator<index_iterator<difference_type>, typename ContType::const_iterator>, JumpByLookup<typename ranges_vec_type::const_iterator>>;
+
+  using value_type = values_vec_type;
+
+  // using reference = TensorView<flat_iterator, JumpByEqualStatic<index_iterator<difference_type>, index_iterator(difference_type(-1))>>;
+  // using const_reference = TensorView<flat_const_iterator, JumpByEqualStatic<index_iterator<difference_type>, index_iterator(difference_type(-1))>>;
+  using reference = TensorView<flat_iterator, JumpByEqualStatic<difference_type, -1>, false>;
+  using const_reference = TensorView<flat_const_iterator, JumpByEqualStatic<difference_type, -1>, false>;
+
+  using pointer = reference*;
+  using const_pointer = const_reference*;
+
+  using iterator = jump_iterator<ViewToIterator<reference>, JumpByEqualNext<typename ranges_vec_type::const_iterator>>;
+  using const_iterator = jump_iterator<ViewToIterator<const_reference>, JumpByEqualNext<typename ranges_vec_type::const_iterator>>;
+
+public:
+
+  iterator _get_iter(difference_type row_id, difference_type flat_id) {
+
+    flat_iterator fit(
+			make_lookup_iterator(
+				index_iterator(flat_id),
+				_vec.begin()
+			),
+			_next_vec_in_row.cbegin()
+		);
+
+    return iterator(reference(fit), _row_to_vec.cbegin() + row_id);
+  }
+  
+  const_iterator _get_iter(difference_type row_id, difference_type flat_id) const {
+
+    flat_const_iterator fit(
+			make_lookup_iterator(
+				index_iterator(flat_id),
+				_vec.begin()
+			),
+			_next_vec_in_row.cbegin()
+		);
+
+    return const_iterator(const_reference(fit), _row_to_vec.cbegin() + row_id);
+  }
+
+private:
+
+  values_vec_type _vec;
+  ranges_vec_type _row_to_vec;
+  ranges_vec_type _next_vec_in_row;
+
+  // static auto END_INDEX = jump_iterator(index_iterator(-1LL), CycleByIndexValue(_next_vec_in_row.begin() - 1LL));
+
+  // iterator get_end_iter() {
+  //
+  // }
+
+public:
+
+  CyclicMatrix(
+    difference_type num_of_rows,
+    difference_type num_of_cols,
+    const flat_value_type& val = flat_value_type()
+  ) : _vec(num_of_rows * num_of_cols, val) {
+    for(difference_type i = 0; i < num_of_rows; ++i) {
+      _row_to_vec.push_back(index_iterator(i * num_of_cols));
+      _next_vec_in_row.insert(
+				_next_vec_in_row.end(),
+				iterator_iterator(index_iterator(i * num_of_cols)),
+				iterator_iterator(index_iterator((i + 1) * num_of_cols))
+			);
+      _next_vec_in_row.back() = index_iterator(-1);
+    }
+  }
+
+  iterator begin() { return _get_iter(0, 0); }
+  iterator end() { return _get_iter(_vec.size(), _row_to_vec.size()); }
+  const_iterator begin() const { return _get_iter(0, 0); }
+  const_iterator end() const { return _get_iter(_vec.size(), _row_to_vec.size()); }
+
+  // iterator
+
+};
+
+

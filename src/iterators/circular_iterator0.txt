@@ -1,0 +1,205 @@
+#pragma once
+
+#include "view.hpp"
+#include <iterator>
+
+
+// Converts a circular iterator to a linear one
+template <typename IterType>
+class linear_iterator;
+
+// Converts a linear iterator to a circular one
+template <typename IterType>
+class circular_iterator;
+
+
+
+// Converts a circular iterator, to one that can be used with begin and end in a for loop,
+//  instead of always requiring to use a do-while loop.
+template <typename IterType>
+class linear_iterator : public IterType {
+public:
+
+  linear_iterator() : IterType(), _first_visit(true) {}
+  using IterType::IterType;
+
+  using iterator_category = typename std::iterator_traits<IterType>::iterator_category;
+  using difference_type = typename std::iterator_traits<IterType>::difference_type;
+  using value_type = typename std::iterator_traits<IterType>::value_type;
+  using pointer = typename std::iterator_traits<IterType>::pointer;
+  using reference = typename std::iterator_traits<IterType>::reference;
+
+  linear_iterator<IterType>& operator++() {
+    IterType::operator++();
+    _first_visit = false;
+    return *this;
+  }
+
+  linear_iterator<IterType> operator++(int) { auto temp(*this); ++(*this); return temp; }
+  
+
+  template <typename IT = IterType>
+  typename std::enable_if<
+    std::is_base_of_v<std::bidirectional_iterator_tag, typename std::iterator_traits<IT>::iterator_category>,
+    linear_iterator<IT>&>::type
+  operator--() {
+    IterType::operator--();
+    _first_visit = false;
+    return *this;
+  }
+
+  template <typename IT = IterType>
+  typename std::enable_if<
+    std::is_base_of_v<std::bidirectional_iterator_tag, typename std::iterator_traits<IT>::iterator_category>,
+    linear_iterator<IT>&>::type
+  operator--(int) { auto temp(*this); --(*this); return temp; }
+
+
+protected:
+
+  bool _first_visit;
+
+};
+
+
+
+template <typename IterType>
+class circular_iterator {
+  
+  // We need to store both of those, so if we reach one of them,
+  //  we can loop to the other
+  IterType _begin;
+  IterType _end;
+
+  IterType _curr;
+
+public:
+
+
+
+
+};
+
+
+// ================================================================== //
+
+
+// Those specializations optimize the conversion of already
+// converted types, to go back to the original, because logically
+// it will behave the same, we save memory space by doing this
+
+//template <typename IterType>
+//using IterType = linear_iterator<circular_iterator<IterType>>;
+
+//template <typename IterType>
+//using IterType = circular_iterator<linear_iterator<IterType>>;
+
+//template <typename IterType>
+//using linear_iterator<circular_iterator<IterType>> = IterType;
+
+//template <typename IterType>
+//using linear_iterator<linear_iterator<IterType>> = linear_iterator<IterType>;
+
+
+template <typename IterType>
+class linear_iterator<linear_iterator<IterType>>
+: public linear_iterator<IterType> {
+
+  using iter_type = linear_iterator<IterType>;
+public:
+
+  // Constructors
+  using iter_type::iter_type;
+
+  // Iterator Traits
+  using iterator_category = typename std::iterator_traits<iter_type>::iterator_category;
+  using difference_type = typename std::iterator_traits<iter_type>::difference_type;
+  using value_type = typename std::iterator_traits<iter_type>::value_type;
+  using pointer = typename std::iterator_traits<iter_type>::pointer;
+  using reference = typename std::iterator_traits<iter_type>::reference;
+};
+
+
+template <typename IterType>
+class circular_iterator<circular_iterator<IterType>>
+: public circular_iterator<IterType> {
+  
+  using iter_type = circular_iterator<IterType>;
+public:
+
+  // Constructors
+  using iter_type::iter_type;
+
+  // Iterator Traits
+  using iterator_category = typename std::iterator_traits<iter_type>::iterator_category;
+  using difference_type = typename std::iterator_traits<iter_type>::difference_type;
+  using value_type = typename std::iterator_traits<iter_type>::value_type;
+  using pointer = typename std::iterator_traits<iter_type>::pointer;
+  using reference = typename std::iterator_traits<iter_type>::reference;
+};
+
+
+template <typename IterType>
+class linear_iterator<circular_iterator<IterType>>
+: public IterType {
+  
+  using iter_type = IterType;
+public:
+
+  // Constructors
+  using iter_type::iter_type;
+
+  // Iterator Traits
+  using iterator_category = typename std::iterator_traits<iter_type>::iterator_category;
+  using difference_type = typename std::iterator_traits<iter_type>::difference_type;
+  using value_type = typename std::iterator_traits<iter_type>::value_type;
+  using pointer = typename std::iterator_traits<iter_type>::pointer;
+  using reference = typename std::iterator_traits<iter_type>::reference;
+};
+
+template <typename IterType>
+class circular_iterator<linear_iterator<IterType>>
+: public IterType {
+  
+  using iter_type = IterType;
+public:
+
+  // Constructors
+  using iter_type::iter_type;
+
+  // Iterator Traits
+  using iterator_category = typename std::iterator_traits<iter_type>::iterator_category;
+  using difference_type = typename std::iterator_traits<iter_type>::difference_type;
+  using value_type = typename std::iterator_traits<iter_type>::value_type;
+  using pointer = typename std::iterator_traits<iter_type>::pointer;
+  using reference = typename std::iterator_traits<iter_type>::reference;
+};
+
+
+// ================================================================== //
+
+
+template <typename IterType>
+class BaseView<linear_iterator<IterType>> {
+public:
+
+  using iter_type = linear_iterator<IterType>;
+
+protected:
+
+  iter_type begin_iter;
+
+public:
+
+  using size_type = typename std::iterator_traits<IterType>::size_type;
+  using difference_type = typename std::iterator_traits<IterType>::difference_type;
+
+  const iter_type& begin() const { return iter_type(begin_iter); }
+  iter_type end() const { return iter_type(begin_iter, false); }
+
+  // void clear() { begin() = end(); };
+  bool empty() const { return begin() == end(); }
+  difference_type size() const { return std::distance(begin(), end()); }
+  
+  
+};

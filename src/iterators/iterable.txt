@@ -1,0 +1,732 @@
+#pragma once
+
+#include "../meta_func.hpp"
+
+#include <iterator> // iterator traits
+#include <type_traits>
+
+#include <initializer_list>
+#include <algorithm>  // std::swap
+#include <ostream>    // operator<<
+
+#include <stdexcept>
+// #include "../utilities.hpp" // advance
+
+
+// TODO: !!!!!!!!!!!
+// LookUpIterator, Iterable<LookUpIterator>
+// and ResizableIterable<LookUpIterator>(diamond problem)
+
+// It turns out that for all of those i need to also define
+//  a copy constructor, even if the base InputIterable has one
+//  because of the overloaded operator= in the subclasses
+
+//#include "default_assign_iterator.hpp"
+
+// If you dont use the std::iterator_traits interface, you can still use this class with iterator types,
+//  but if it is a pointer for example, then you would have problems, because the pointer doesnt hold
+//  the necessary typedefs for an iterator interface to work with this class
+
+// An Iterable in the case here, is similar to std::range, std::view, std::span
+
+
+template <typename IterType>
+class BaseIterable {
+public:
+	static_assert(is_iterator_v<IterType>);
+  
+  using iterator = IterType;
+  using difference_type = typename std::iterator_traits<iterator>::difference_type;
+
+  BaseIterable(const iterator& first, const iterator& last)
+		: _begin_it(first), _end_it(last) {}
+  
+  // BUG:
+  // If you use a integral type to convert it explicitly to
+  //  IterType of index_iterator, then it would use this constructor
+  //  instead of the above one, with two index_iterators
+  //  and you would get unexpected results
+  // BaseIterable(const iterator& first, difference_type size)
+		// : _begin_it(first), _end_it(first) { std::advance(_end_it, size); }
+  
+  // BaseIterable() : _begin_it(), _end_it(_begin_it){}
+ 
+  /*template <typename Container>
+  BaseIterable(Container& cont)
+  : _begin_it(cont.begin())
+  , _end_it(cont.end()) {}
+  
+  template <typename Container>
+  BaseIterable(const Container& cont)
+  : _begin_it(cont.begin())
+  , _end_it(cont.end()) {}*/
+
+  // BaseIterable(const BaseIterable& other) = default;
+
+  template <typename IT>
+  BaseIterable(const BaseIterable<IT>& other)
+    : BaseIterable(IterType(other.begin()), IterType(other.end())) {}
+    // : BaseIterable(other.begin(), other.end()) {}
+
+  // template <typename Container, typename = 
+  //   std::enable_if_t<is_container_v<Container>>>
+  // BaseIterable(const Container& cont)
+  //   : _begin_it(cont.begin()), _end_it(cont.end()) {}
+  
+  /*explicit Iterable(const Iterable& other) */
+    /*: _begin_it(other.begin()), _end_it(other.end()) {}*/
+ 
+  const iterator& begin() const { return this->_begin_it; }
+	const iterator& end() const { return this->_end_it; }
+  
+  //iterator& begin() { return this->_begin_it; }
+	//iterator& end() { return this->_end_it; }
+
+  // void set_begin(const iterator& new_beg) { _begin_it = new_beg; }
+  // void set_end(const iterator& new_end) { _end_it = new_end; }
+
+
+  difference_type size() const { return std::distance(this->_begin_it, this->_end_it); }
+  bool empty() const { return this->_begin_it == this->_end_it; }
+ 
+
+  void reconstruct(const IterType& first, const IterType& last) {
+    _begin_it = first;
+    _end_it = last;
+  }
+  
+  void reconstruct(const IterType& first, difference_type size) {
+    _begin_it = first;
+    _end_it = first;
+    std::advance(_end_it, size);
+  }
+
+  template <typename IT>
+  void reconstruct(const BaseIterable<IT>& other) {
+    _begin_it = other.begin();
+    _end_it = other.end();
+  }
+
+
+// protected:
+private:
+
+  /*template <typename IT>
+  BaseIterable<IT> reconstructed() const {
+    return BaseIterable<IT>(
+      _begin_it, 
+      _end_it
+    );
+  }*/
+  
+  /*template <typename IT>
+  static constexpr BaseIterable<IT> reconstructed(const BaseIterable<IT>& itb) {
+    return BaseIterable<IT>(itb.begin(), itb.end());
+  }*/
+
+  iterator _begin_it;
+  iterator _end_it;
+
+};
+
+
+
+template <typename BaseIterableType>
+class InputIterableLayer : public BaseIterableType {
+protected:
+
+  template <typename>
+  friend class InputIterablePolicy;
+	
+	// BUG: Dont use publicly iterator_category type alias,
+	// because is_iterator_v thinks that its an iterator !
+  using iterator_category = typename std::iterator_traits<
+		typename BaseIterableType::iterator>::iterator_category;
+
+public:
+
+  using typename BaseIterableType::iterator;
+  //using reverse_iterator = std::reverse_iterator<iterator>;
+
+  using difference_type = typename std::iterator_traits<iterator>::difference_type;
+  using value_type = typename std::iterator_traits<iterator>::value_type;
+  using reference = typename std::iterator_traits<iterator>::reference;
+  using pointer = typename std::iterator_traits<iterator>::pointer;
+
+  using BaseIterableType::BaseIterableType;
+  InputIterableLayer& operator=(const InputIterableLayer&) = delete;
+  
+  // NOTE: Every class inheriting from InputIterable is 
+  // succeptible to Ambiguity, if not handled with SFINAE !!!
+  template <typename Container, typename = 
+    std::enable_if_t<is_container_v<Container>>>
+  // explicit operator Container() const {
+  operator Container() const {
+		static_assert(std::is_convertible_v<value_type, typename Container::value_type>);
+    return Container(this->begin(), this->end());
+  }
+
+  template <typename IT = iterator>
+  typename std::enable_if<
+    std::is_base_of_v<
+      std::bidirectional_iterator_tag,
+      typename std::iterator_traits<IT>::iterator_category>
+  , std::reverse_iterator<IT>>::type
+  rbegin() const {
+    return std::reverse_iterator<iterator>(this->end());
+  }
+  
+  template <typename IT = iterator>
+  typename std::enable_if<
+    std::is_base_of_v<
+      std::bidirectional_iterator_tag,
+      typename std::iterator_traits<IT>::iterator_category>
+  , std::reverse_iterator<IT>>::type
+  rend() const {
+    return std::reverse_iterator<iterator>(this->begin());
+  }
+
+
+  // The only difference between operator[] and at() is that
+  //  operator[] doesnt perform boundary checking and at() does
+
+  template <typename IC = std::iterator_traits<iterator>::iterator_category,
+  typename = typename std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  reference operator[](difference_type i) const {
+    return *(this->begin() + i);
+  }
+
+  template <typename IC = iterator_category,
+  typename = typename std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  reference at(difference_type index) const {
+    if (index < 0 || this->begin() + index >= this->end())
+      throw std::out_of_range("Out of range Iterable");
+   
+    return *(this->begin() + index);
+  }
+
+  reference front() const {
+    return *(this->begin());
+  }
+  
+  template <typename IC = iterator_category,
+  typename = typename std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  reference back() const {
+    auto temp(this->end());
+    return *(--temp);
+  }
+
+};
+
+
+// ================================================================== //
+
+
+template <typename BaseIterableType>	// Iterator Type
+//class IterableInterface : public BaseIterableType {
+class OutputIterableLayer : public BaseIterableType {
+protected:
+
+  template <typename IterType>
+  void copy_from(IterType first, const IterType& last) const {
+    // static_assert(!is_const_iterator_v<IterType>);
+    // using other_value_type = typename OtherContainer::value_type;
+    // NOTE: Consider this
+    // if (this->begin() == first)
+    //   return;
+
+    auto curr_iter = this->begin();
+    
+    while(first != last) {
+      // *curr_iter = other_value_type(*other_iter);
+      *curr_iter = *first;
+
+      ++curr_iter;
+      ++first;
+    }
+  }
+
+  template <typename OtherContainer>
+  void copy_from(const OtherContainer& other) const {
+    // if(this->size() != other.size())
+    //   throw std::out_of_range("Cannot Copy a Container into Non Resizable Iterable with different size");
+    if(this->size() < other.size())
+      throw std::out_of_range("Cannot Copy Bigger Container into Non Resizable Iterable");
+    
+    this->copy_from(other.begin(), other.end());
+  }
+
+  template <typename OtherContainer>
+  void move_from(OtherContainer&& other) const {
+    // if(this->size() != other.size())
+    //   throw std::out_of_range("Cannot Move a Container into Non Resizable Iterable with different size");
+    if(this->size() < other.size())
+      throw std::out_of_range("Cannot Copy Bigger Container into Non Resizable Iterable");
+    
+    this->copy_from(
+      std::make_move_iterator(other.begin()),
+      std::make_move_iterator(other.end()));
+
+    // std::move(other.begin(), other.end(), this->begin());
+    //other.clear();
+  }
+
+public:
+  
+  using typename BaseIterableType::iterator;
+  using value_type = typename std::iterator_traits<iterator>::value_type;
+
+  using BaseIterableType::BaseIterableType;
+  
+  /*template <typename IT = iterator>*/
+  /*explicit OutputIterablePolicy(const OutputIterablePolicy<IT>& other) */
+  /*  : BaseIterableType(other.begin(), other.end()) {}*/
+
+  OutputIterableLayer(const OutputIterableLayer& other) = default;
+  
+
+  //template <typename ITB>
+  //OutputIterablePolicy(const OutputIterablePolicy<ITB>& other)
+  //  : BaseIterableType(other) {}
+
+
+  const OutputIterableLayer& operator=(const OutputIterableLayer& other) const {
+    this->copy_from(other);
+    return *this;
+  }
+  
+  typename std::enable_if<!std::is_lvalue_reference_v<OutputIterableLayer>,
+    const OutputIterableLayer&>::type
+  operator=(OutputIterableLayer&& other) const {
+    this->move_from(std::move(other));
+    return *this;
+  }
+
+
+  template <typename OtherContainer = std::initializer_list<value_type>>
+  const OutputIterableLayer& operator=(const OtherContainer& other) const {
+    this->copy_from(other);
+    return *this;
+  }
+
+  // Only invokes, when std::move is explicitly called
+  // The Move Assignment Operator from Iterable<IterType>
+  // should behave the same, but without the need of this enable_if
+  template <typename OtherContainer>
+  typename std::enable_if<!std::is_lvalue_reference_v<OtherContainer>,
+    const OutputIterableLayer&>::type
+  operator=(OtherContainer&& other) const {
+    this->move_from(std::move(other));
+    return *this;
+  }
+
+
+};
+
+
+
+template <typename BaseIterableType, typename Container>	// Iterator Type
+//class IterableInterface : public BaseIterableType {
+class ResizableIterableLayer : public BaseIterableType {
+
+  Container& _cont;
+
+protected:
+
+  template <typename OtherIter>
+  void copy_from(const OtherIter& first, const OtherIter& last) const {
+//    if constexpr (std::is_same_v<Container, std::vector<typename Container::value_type, typename Container::allocator_type>>) { }
+    auto beg = _cont.erase(this->begin(), this->end());
+    beg = _cont.insert(this->begin(), first, last);
+    auto end = beg;
+    // advance(end, first, last); // BUG:
+    std::advance(end, std::distance(first, last));
+    this->reconstruct(beg, end);
+  }
+
+  template <typename OtherContainer>
+  void copy_from(const OtherContainer& cont) const {
+    copy_from(cont.begin(), cont.end());
+  }
+  
+  template <typename OtherContainer>
+  void move_from(OtherContainer&& cont) const {
+    copy_from(std::make_move_iterator(cont.begin()), std::make_move_iterator(cont.end()));
+    cont.clear();
+  }
+
+public:
+  
+  using typename BaseIterableType::iterator;
+  using value_type = typename std::iterator_traits<iterator>::value_type;
+  using difference_type = typename std::iterator_traits<iterator>::difference_type;
+
+  // using BaseIterableType::BaseIterableType;
+  
+  /*template <typename IT = iterator>*/
+  /*explicit ResizableIterablePolicy(const ResizableIterablePolicy<IT>& other) */
+  /*  : BaseIterableType(other.begin(), other.end()) {}*/
+
+  // ResizableIterablePolicy(const ResizableIterablePolicy& other) = default;
+
+  template <typename ...Args>
+  ResizableIterableLayer(Container& cont, Args&&... args)
+    : BaseIterableType(std::forward<Args>(args)...)
+    , _cont(cont) {}
+  
+
+  //template <typename ITB>
+  //ResizableIterablePolicy(const ResizableIterablePolicy<ITB>& other)
+  //  : BaseIterableType(other) {}
+
+
+  // ResizableIterablePolicy& operator=(const ResizableIterablePolicy& other) {
+  //   this->copy_from(other);
+  //   return *this;
+  // }
+  // 
+  // ResizableIterablePolicy& operator=(const BaseIterableType& other) {
+  //   this->copy_from(other);
+  //   return *this;
+  // }
+  // 
+  // typename std::enable_if<!std::is_lvalue_reference_v<ResizableIterablePolicy>,
+  //   ResizableIterablePolicy&>::type
+  // operator=(ResizableIterablePolicy&& other) {
+  //   this->move_from(std::move(other));
+  //   return *this;
+  // }
+
+  // template <typename OtherContainer = std::initializer_list<value_type>>
+  // ResizableIterablePolicy& operator=(const OtherContainer& other) {
+  //   this->copy_from(other);
+  //   return *this;
+  // }
+
+  // Only invokes, when std::move is explicitly called
+  // The Move Assignment Operator from Iterable<IterType>
+  // should behave the same, but without the need of this enable_if
+  // template <typename OtherContainer>
+  // typename std::enable_if<
+  //   !std::is_lvalue_reference_v<OtherContainer>,
+  //   // && !std::is_const_v<std::remove_reference_t<OtherContainer>>,
+  //   ResizableIterablePolicy&>::type
+  // operator=(OtherContainer&& other) {
+  //   // static_assert(std::is_const_v<std::remove_reference_t<OtherContainer>>);
+  //   static_assert(false);
+  //   this->move_from(std::move(other));
+  //   return *this;
+  // }
+
+
+  ResizableIterableLayer& operator=(std::initializer_list<value_type> l) {
+    this->copy_from(l);
+    return *this;
+  }
+
+  template <typename OtherContainer>
+  ResizableIterableLayer& operator=(OtherContainer&& other) {
+    // static_assert(std::is_const_v<std::remove_reference_t<OtherContainer>>);
+    // static_assert(false);
+
+    if constexpr (
+      std::is_lvalue_reference_v<OtherContainer>
+      // && !std::is_const_v<std::remove_reference_t<OtherContainer>>
+    )
+      // this->move_from(std::move(other));
+      this->move_from(std::forward<OtherContainer>(other));
+    else
+      this->copy_from(std::forward<OtherContainer>(other));
+
+    return *this;
+  }
+
+
+  // ----------------------------------------------------------------- //
+
+  void clear() {
+    auto beg = _cont.erase(this->begin(), this->end());
+    this->reconstruct(beg, beg);
+  }
+
+  // TODO:
+  // void resize(difference_type i) {}
+
+  // No !!! (it will behave differently for std::vector and std::list, considering
+  // the update for the _begin_iter and _end_iter)
+  // typename Container::iterator insert(typename Container::const_iterator where, const value_type& val) {
+  //   auto new_it = _cont.insert(where, val);
+  // }
+  // void push_back(const value_type& val) {
+  //   _cont.insert(this->end(), val);
+  // }
+
+
+};
+
+
+// template <typename BaseIterableType>
+// class ResizableIterablePolicy 
+// : public OutputIterablePolicy<BaseIterableType> {
+//
+//   using BaseType = OutputIterablePolicy<BaseIterableType>;
+//
+// public:
+//
+//
+//
+// };
+
+
+// ===================================================================== //
+
+
+// Iterable View Only
+template <typename IterType>
+using InputIterable = InputIterableLayer<BaseIterable<IterType>>;
+
+// Iterable with assignment of same size containers
+template <typename IterType>
+using Iterable = OutputIterableLayer<InputIterableLayer<BaseIterable<IterType>>>;
+// template <typename IterType>
+// using Iterable = _if_t<
+//   is_const_iterator_v<IterType>,
+//   InputIterable<IterType>,
+//   OutputIterablePolicy<InputIterable<IterType>>
+// >;
+
+template <typename IterType, typename Container>
+using ResizableIterable = ResizableIterableLayer<InputIterableLayer<BaseIterable<IterType>>, Container>;
+
+
+/*template <typename Container>
+using cont_iter_type = _if_t<
+  std::is_const_v<std::remove_reference_t<Container>>,
+  typename Container::iterator,
+  typename Container::const_iterator
+>;
+
+
+template <typename Container>
+InputIterablePolicy(
+  const Container
+)*/
+
+
+template <typename IterType>
+InputIterableLayer(const IterType&, const IterType&)
+-> InputIterableLayer<BaseIterable<IterType>>;
+
+// template <typename IterType>
+// InputIterablePolicy(
+//   const IterType&,
+//   typename std::iterator_traits<IterType>::difference_type)
+// -> InputIterablePolicy<BaseIterable<IterType>>;
+
+
+template <typename IterType>
+OutputIterableLayer(const IterType&, const IterType&)
+-> OutputIterableLayer<InputIterableLayer<BaseIterable<IterType>>>;
+
+// template <typename IterType>
+// OutputIterablePolicy(
+//   const IterType&,
+//   typename std::iterator_traits<IterType>::difference_type)
+// -> OutputIterablePolicy<InputIterablePolicy<BaseIterable<IterType>>>;
+
+
+template <typename IterType, typename Container>
+ResizableIterableLayer(Container&, const IterType&, const IterType&)
+-> ResizableIterableLayer<InputIterableLayer<BaseIterable<IterType>>, Container>;
+
+// template <typename IterType, typename Container>
+// ResizableIterablePolicy(
+//   Container&,
+//   const IterType&,
+//   typename std::iterator_traits<IterType>::difference_type)
+// -> ResizableIterablePolicy<InputIterablePolicy<BaseIterable<IterType>>, Container>;
+
+
+namespace std {
+
+
+template <typename IterableType,
+typename = typename std::enable_if_t<std::is_base_of_v<InputIterable<typename IterableType::value_type>, IterableType>>>
+inline void swap(const IterableType& lhs, const IterableType& rhs) {
+// template <typename IterType>
+// inline void swap(const Iterable<IterType>& lhs, const Iterable<IterType>& rhs) {
+//inline void swap(Iterable<IterType> lhs, Iterable<IterType> rhs) {
+  if (lhs.size() != rhs.size())
+    throw std::out_of_range("Cannot swap the values of two different sized Iterables");
+
+  std::swap_ranges(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+
+// template <typename IterType>
+// inline std::ostream& operator<<(std::ostream& stream, const InputIterable<IterType>& iterable) {
+// template <typename IterableType, typename = std::enable_if_t<
+//   std::is_base_of_v<
+//     BaseIterable<typename IterableType::iterator>,
+//     IterableType
+//   >
+// >>
+// inline std::ostream& operator<<(std::ostream& stream, const IterableType& iterable) {
+template <typename IterType>
+inline std::ostream& operator<<(std::ostream& stream, const BaseIterable<IterType>& iterable) {
+  stream << "{";
+  for(auto it = iterable.begin(); it != iterable.end();) {
+    stream << *it;
+    if (++it != iterable.end())
+      stream << ", ";
+  }
+  stream << "}";
+
+  return stream;
+}
+
+
+} // namespace std
+
+
+// template <typename IterType>
+// Iterable<std::reverse_iterator<IterType>> reversed(
+//   const InputIterable<IterType>& itb
+// ) {
+//   // return Iterable(itb.end(), itb.begin());
+//   // return Iterable(itb.rbegin(), itb.rend());
+//   return Iterable(
+//     std::reverse_iterator(itb.end()),
+//     std::reverse_iterator(itb.begin())
+//   );
+// }
+
+
+template <typename Container>
+Iterable<
+  std::reverse_iterator<
+    // _if_t<
+    //   std::is_const_v<Container>,
+    //   typename Container::const_iterator,
+    //   typename Container::iterator
+    // >
+    decltype(std::declval<Container>().begin())
+  >
+> reversed(
+  Container& cont
+) {
+  return Iterable(
+    std::reverse_iterator(cont.end()),
+    std::reverse_iterator(cont.begin())
+  );
+}
+
+
+// ================================================================================= //
+
+
+// Extention of any IterableType to behave as a single iterator
+// and perform all operations on both iterators
+/*template <typename IterableType>
+class IterableIterator{
+public:
+
+  using iterable = IterableType;
+  using iterator = typename IterableType::iterator;
+  
+  using iterator_category = typename std::iterator_traits<iterator>::iterator_category;
+  using difference_type = typename std::iterator_traits<iterator>::difference_type ;
+  using value_type = IterableType;
+  using reference = IterableType&;
+  using pointer = IterableType*;
+
+
+  //using IterableType::IterableType;
+
+  template <typename... Args>
+  IterableIterator(Args&&... args) : _itb(std::forward<Args>(args)...) {}
+
+  IterableIterator(const IterableType& itb) : _itb(itb.begin(), itb.end()) {}
+ 
+  IterableIterator(const IterableIterator& other) = default;
+
+
+  //reference operator*() const { return static_cast<iterable>(*this); }
+  reference operator*() const { return _itb; }
+ 
+  pointer operator->() const { return &_itb; }
+
+  bool operator==(const IterableIterator& other) const {
+    return _itb.begin() == other._itb.begin() && _itb.end() == other._itb.end();
+  }
+ 
+  bool operator!=(const IterableIterator& other) const {
+    return _itb.begin() != other._itb.begin() && _itb.end() != other._itb.end();
+  }
+
+  IterableIterator& operator++() { ++_itb.begin(); ++_itb.end(); return *this; }
+  
+  IterableIterator operator++(int) { auto temp(*this); ++(*this); return temp; }
+
+// ------------------------------------------------------------------------- //
+  
+  
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  IterableIterator& operator--() { --_itb.begin(); --_itb.end(); return *this; }
+  
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, IC>>>
+  IterableIterator operator--(int) { auto temp(*this); --(*this); return temp; }
+
+
+// ------------------------------------------------------------------------- //
+
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  IterableIterator& operator+=(difference_type n) { _itb.begin() += n; _itb.end() += n; return *this; }
+
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  IterableIterator& operator-=(difference_type n) { _itb.begin() -= n; _itb.end() -= n; return *this; }
+
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  IterableIterator operator+(const IterableIterator& other) { auto temp(*this); return temp += other; }
+  
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  IterableIterator operator-(const IterableIterator& other) { auto temp(*this); return temp -= other; }
+
+
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<(const IterableIterator& other) const {
+    return _itb.begin() < other._itb.begin() && _itb.end() < other._itb.end();
+  }
+
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>(const IterableIterator& other) const {
+    return _itb.begin() > other._itb.begin() && _itb.end() > other._itb.end();
+  }
+
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator<=(const IterableIterator& other) const {
+    return _itb.begin() <= other._itb.begin() && _itb.end() <= other._itb.end();
+  }
+
+  template <typename IC = iterator_category, 
+  typename = std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, IC>>>
+  bool operator>=(const IterableIterator& other) const {
+    return _itb.begin() >= other._itb.begin() && _itb.end() >= other._itb.end();
+  }
+
+protected:
+
+  iterable _itb;
+
+};*/
+
+
