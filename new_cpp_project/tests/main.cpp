@@ -1,4 +1,4 @@
-#include "example_test.h"
+#include "example.h"
 #include <gtest/gtest.h>
 
 int main() {

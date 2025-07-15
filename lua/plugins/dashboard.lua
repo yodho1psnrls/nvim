@@ -67,7 +67,7 @@ return {
             desc = 'Config',
             group = '@property', -- Highlight group for the text
             -- group = 'DiagnosticHint',
-            action = 'cd ~/AppData/Local/nvim | edit .', -- Action to open the config folder
+            action = 'Config', -- Action to open the config folder
             key = 'c', -- Shortcut key (in this case, 'c')
           },
 
@@ -77,7 +77,8 @@ return {
             -- desc = '➕ New',
             desc = "New",
             group = 'DashboardPureWhite',       -- Highlight group
-            action = ':lua CreateNewProject()', -- Lua function to handle project creation
+            -- action = ':lua CreateNewProject()', -- Lua function to handle project creation
+            action = 'NewCppProject',
             key = 'n',                          -- Shortcut key for the action
           },
 

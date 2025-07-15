@@ -124,14 +124,11 @@ return {
       -- [NvimTree] Could not start the fs_event watcher for path \c\Users\Todor\AppData\Local\nvim\.git : ENOENT
       -- git = {
       --   enable = true,
-      --   ignore = false,
+      --   ignore = true, -- hide files listed in .gitignore file
       -- },
 
       filters = {
-
-        -- dotfiles = true,
-        dotfiles = false,
-
+        dotfiles = true, -- hide files starting with a dot
         custom = {
           "compile_commands.json",
           -- ".git",
@@ -166,8 +163,7 @@ return {
     --map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
     -- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
     vim.keymap.set("n", "<leader>n", function()
-        require('nvim-tree.api').tree.toggle({ find_file = true, focus = true })
-        --require('nvim-tree.api').tree.toggle({ find_file = true, focus = false })
+        require('nvim-tree.api').tree.toggle({ find_file = true, focus = false })
         -- if util.is_loaded("symbols-outline") then
         --   vim.cmd("SymbolsOutlineClose")
         -- end
@@ -371,23 +367,23 @@ return {
 
 -----------------------------------------------------------------------------
 
--- Auto command to open nvim-tree when Neovim starts
---vim.api.nvim_create_autocmd('VimEnter', {
---  callback = function()
--- Open nvim-tree using the Vim command
---    vim.cmd('NvimTreeOpen')
---  end,
---  once = true,  -- Ensure it runs only once on startup
---})
+  -- Auto command to open nvim-tree when Neovim starts
+  --vim.api.nvim_create_autocmd('VimEnter', {
+  --  callback = function()
+  -- Open nvim-tree using the Vim command
+  --    vim.cmd('NvimTreeOpen')
+  --  end,
+  --  once = true,  -- Ensure it runs only once on startup
+  --})
 
 
---vim.api.nvim_create_autocmd('BufWinEnter', {
---  pattern = 'NvimTree_*',
---  callback = function()
---    vim.cmd('cd D:/')  -- Change D:/ to your desired default directory
---    vim.cmd('NvimTreeRefresh')
---  end,
---})
+  --vim.api.nvim_create_autocmd('BufWinEnter', {
+  --  pattern = 'NvimTree_*',
+  --  callback = function()
+  --    vim.cmd('cd D:/')  -- Change D:/ to your desired default directory
+  --    vim.cmd('NvimTreeRefresh')
+  --  end,
+  --})
 
 
   -- OPPEN NVIMTREE ON STARTUP

@@ -11,7 +11,7 @@ return {
     'lewis6991/gitsigns.nvim',
 
     -- The actual lazy load logic is in lua/config/autocmds.lua
-    -- lazy = true,
+    lazy = true,
     -- event = { "BufReadPre", "BufNewFile" },  -- load before buffer opens
 
     -- Lazy load it, when you change directories and it happens
@@ -130,10 +130,6 @@ return {
     config = function(_, opts)
      require('gitsigns').setup(opts)
     end,
-
-    -- config = function()
-    --   require('gitsigns').setup()
-    -- end,
 
   },
 

@@ -19,21 +19,21 @@ map({"n", "v"}, "<S-k>", "<S-Up>", { noremap = true, silent = true })
 
 
 map('n', '<leader>ss', function()
-	-- TODO:
-	-- -- local nvim_tree = util.safe_require("nvim-tree.view")
-	-- local nvim_tree = util.safe_require("nvim-tree")
-	-- local is_nvim_tree_open = false
-	-- if nvim_tree then
-	-- 	-- is_nvim_tree_open = nvim_tree.is_visible()
-	-- 	is_nvim_tree_open = nvim_tree.view.is_visible()
-	-- end
-	--
-	-- if is_nvim_tree_open then nvim_tree.toggle() end
+  -- TODO:
+  -- -- local nvim_tree = util.safe_require("nvim-tree.view")
+  -- local nvim_tree = util.safe_require("nvim-tree")
+  -- local is_nvim_tree_open = false
+  -- if nvim_tree then
+  --  -- is_nvim_tree_open = nvim_tree.is_visible()
+  --  is_nvim_tree_open = nvim_tree.view.is_visible()
+  -- end
+  --
+  -- if is_nvim_tree_open then nvim_tree.toggle() end
 
   vim.cmd("Lazy load auto-session")
   vim.cmd("SessionSave")
 
-	-- if is_nvim_tree_open then nvim_tree.toggle() end
+  -- if is_nvim_tree_open then nvim_tree.toggle() end
 end, { desc = "SessionSave", noremap = true, silent = true })
 
 map('n', '<leader>rt', function ()
@@ -47,7 +47,7 @@ map('n', '<leader>oo', util.move_current_fold_contents_after,
 -- map('n', '<leader>on', function ()
 --   vim.cmd("edit " .. util.get_project_root() .. "/notes.txt")
 -- end, { desc = "Open [N]otes", noremap = true, silent = true })
-
+vim.keymap.set("n", "<leader>j", "<cmd>Notes<CR>", { desc = "Open Notes" })
 
 map("n", "<leader>fe", function()
     local path = vim.fn.expand("%:p:h") -- Get the current file's directory
@@ -68,19 +68,19 @@ end, { noremap = true, silent = true, desc = "File [E]xplorer" })
 
 
 --[[-- Keymap Modes:
-Normal	n
-Visual	v
-Visual Line	V
-Visual Block	 (Ctrl-V)
-Select	s
-Select Line	S
-Select Block	 (Ctrl-S)
-Insert	i
-Replace	R
-Virtual Replace	Rv
-Command-line	c
-Terminal	t
-Ex-Mode	!
+Normal  n
+Visual  v
+Visual Line V
+Visual Block   (Ctrl-V)
+Select  s
+Select Line S
+Select Block   (Ctrl-S)
+Insert  i
+Replace R
+Virtual Replace Rv
+Command-line  c
+Terminal  t
+Ex-Mode !
 ]]--
 
 -- print("KeyMaps are Loaded !") -- dubug message
@@ -114,6 +114,25 @@ map("n", "<leader>m", function () -- <leader>wm
   vim.keymap.set('n', '<leader>m', util.close_messages_buffer
     , { buffer = 0, noremap = true, silent = true })
 end, { desc = "[M]essages in buffer", noremap = true, silent = true })
+
+
+map("n", "<leader>co", "<cmd>copen<CR>",
+  { desc = "[O]pen cmake qflist", noremap = true, silent = true })
+
+--[[map("n", "<leader>co", function ()
+  local qf_list = vim.fn.getqflist()
+  if vim.tbl_isempty(qf_list) then
+    vim.notify("Quickfix list is empty", vim.log.levels.INFO, { title = "Quickfix" })
+    return
+  end
+
+  -- Toggle, doesnt work properly
+  if util.is_qf_open() then
+    vim.cmd("cclose")
+  else
+    vim.cmd("copen")
+  end
+end, { desc = "[O]pen cmake qflist", noremap = true, silent = true })]]--
 
 
 --map('n', '<Tab>', '<C-o>', { noremap = true, silent = true, desc = "Go to next jump" })

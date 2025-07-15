@@ -1,4 +1,3 @@
-
 local util = require("utilities")
 
 
@@ -78,6 +77,7 @@ function NewCppProject()
   vim.cmd('cd ' .. destination_dir)
   --vim.cmd('edit ' .. destination_dir .. '/src/main.cpp')
   vim.cmd('edit src/main.cpp')
+  vim.cmd('SessionSave')
 
   -- Notify user
   print('New project created at: ' .. destination_dir)
@@ -121,7 +121,8 @@ end
 -- Function to list and select folders using Telescope
 function ClearCache()
   -- List of folders to choose from
-  local cache_folders = { "shada", "swap", "sessions", "undo", "notes" }
+  local cache_folders = { "shada", "swap", "sessions", "undo"}
+  -- local cache_folders = { "shada", "swap", "sessions", "undo", "notes" }
 
   -- Telescope entry maker for the cache folders
   local make_entry = require('telescope.make_entry')
@@ -157,5 +158,115 @@ end
 vim.api.nvim_create_user_command('ClearCache', ClearCache, {})
 
 
+
+-- vim.api.nvim_set_hl(0, "NotesBorderSaved", { fg = "#555555", bg = "NONE" })
+-- vim.api.nvim_set_hl(0, "NotesBorderModified", { fg = "#ff8800", bg = "NONE" })
+vim.api.nvim_set_hl(0, "NotesBorderModified", { fg = "#888888", bg = "NONE" })
+-- vim.api.nvim_set_hl(0, "NotesBorderModified", { fg = "#FFFFA5", bg = "NONE" })
+vim.api.nvim_set_hl(0, "NotesBorderSaved", { fg = "#ffffff", bg = "NONE" }) -- White
+
+function OpenNotes()
+  -- local file = "notes.txt"
+  -- local file = "./notes.txt"
+  local file = util.get_project_root() .. "/notes.txt"
+
+  local width = math.floor(vim.o.columns * 0.8)
+  local height = math.floor(vim.o.lines * 0.8)
+  local row = math.floor((vim.o.lines - height) * 0.5) - 1
+  local col = math.floor((vim.o.columns - width) * 0.5) - 1
+
+  local buf = vim.fn.bufadd(file)
+  vim.fn.bufload(buf)
+  -- vim.bo[buf].bufhidden = "hide" -- hide instead of unload/delete on close | Why its already hidden ?
+
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    width = width,
+    height = height,
+    row = row,
+    col = col,
+    style = "minimal",
+    border = "rounded",
+  })
+
+  -- Disable quick-scope plugin
+  vim.api.nvim_buf_set_var(buf, 'qs_local_disable', 1)
+
+  vim.api.nvim_win_set_option(win, "winhighlight", "FloatBorder:NotesBorderSaved")
+
+  vim.api.nvim_win_set_option(win, "winblend", 20) -- transparency
+  vim.wo[win].wrap = true -- line wrap
+  vim.wo[win].number = false  -- hide line numbers
+  vim.wo[win].relativenumber = false
+
+  local close_cmd = function()
+    -- if vim.api.nvim_buf_get_option(buf, "modified") then
+    --   vim.api.nvim_buf_call(buf, function() vim.cmd("write") end)
+    -- end
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+
+  -- Closes the window, if you close the buffer
+  vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout", "BufLeave" }, {
+    buffer = buf,
+    callback = close_cmd
+  })
+
+  -- Prevent leaving the notes window
+  -- Doesnt work, when "BufLeave" is used in the close window autocmd above
+  -- vim.api.nvim_create_autocmd("WinLeave", {
+  --   callback = function()
+  --     vim.defer_fn(function()
+  --       if vim.api.nvim_win_is_valid(win) then
+  --           vim.api.nvim_set_current_win(win)
+  --       end
+  --     end, 1)
+  --   end,
+  --   buffer = buf,
+  -- })
+
+  -- vim.api.nvim_create_autocmd("BufLeave", {
+  --   buffer = buf,
+  --   callback = function()
+  --     vim.defer_fn(function()
+  --       if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
+  --         vim.api.nvim_set_current_buf(buf)
+  --       end
+  --     end, 1)
+  --   end,
+  -- })
+
+  local function update_border()
+    if not vim.api.nvim_win_is_valid(win) then return end
+    if vim.api.nvim_buf_get_option(buf, "modified") then
+      vim.api.nvim_win_set_option(win, "winhighlight", "FloatBorder:NotesBorderModified")
+    else
+      vim.api.nvim_win_set_option(win, "winhighlight", "FloatBorder:NotesBorderSaved")
+    end
+  end
+
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufWritePost" }, {
+    buffer = buf,
+    callback = update_border,
+  })
+
+  -- Set color of the text
+  -- vim.opt_local.syntax = "OFF" -- optional: disable syntax
+  -- vim.opt_local.ft = "notes"   -- optional: custom filetype to avoid syntax groups
+  -- vim.cmd("highlight Normal guifg=#ddddaa guibg=NONE") -- apply to default text
+  -- vim.cmd("setlocal winhighlight=Normal:CustomMessagesHighlight")
+
+  vim.keymap.set("n", "<Esc>", close_cmd, { buffer = buf, nowait = true, desc = "Close Notes" })
+  vim.keymap.set("n", "<C-c>", close_cmd, { buffer = buf, nowait = true, desc = "Close Notes" })
+  vim.keymap.set("n", "<leader>j", close_cmd, { buffer = buf, desc = "Close Notes"})
+
+  -- vim.keymap.set("n", "<leader>q", close_cmd, { buffer = buf, desc = "Close Notes" })
+  -- vim.keymap.set("n", "<leader>Q", close_cmd, { buffer = buf, desc = "Close Notes" })
+
+end
+
+vim.api.nvim_create_user_command('Notes', OpenNotes, {})
 
 

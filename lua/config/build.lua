@@ -116,46 +116,51 @@ function BuildCmakeConfig(config_name, on_success_callback)
   local root = util.get_project_root()
   if last_cwd ~= root then vim.cmd('cd ' .. root) end
 
-  vim.fn.jobstart('cmake --build "' .. config_name .. '" --config ' .. config_name, {
-  stdout_buffered = true,
-  stderr_buffered = true,
-  on_stdout = function(_, data)
-    if data and #data > 0 then
-      -- Print standard output messages
-      print(table.concat(data, "\n"))
-      -- vim.notify(table.concat(data, "\n"), vim.log.levels.OFF)
-      -- vim.cmd("normal! <CR>")
-    end
-  end,
-
-  on_stderr = function(_, data)
-    if data and #data > 1 then
-      print("Error during build:\n" .. table.concat(data, "\n"))
-      -- vim.notify("Error during build:\n" .. table.concat(data, "\n"), vim.log.levels.OFF)
-      -- vim.cmd("normal! <CR>")
-    end
-  end,
-
-  on_exit = function(_, exit_code)
-    local msg = ""
-    if exit_code ~= 0 then
-      msg = "Build failed with exit code: " .. exit_code
-      -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ??? (IT IS BECAUSE THE KEYMAP THAT CALLS THIS FUNCTION IS SILENT !!!)
-      util.open_messages_in_buffer()
-    else
-      if on_success_callback then
-        msg = "Build exited with code: " .. exit_code
-        on_success_callback()
+  vim.fn.jobstart(
+    'cmake --build "' .. config_name .. '" --config ' .. config_name, {
+    stdout_buffered = true,
+    stderr_buffered = true,
+    on_stdout = function(_, data)
+      if data and #data > 0 then
+        -- print(table.concat(data, "\n"))
+        vim.fn.setqflist({}, ' ', {
+          title = 'CMake Build',
+          lines = data,
+        })
       end
-    end
-    -- on_exit_callback(exit_code)
-    print(prepend_time(msg));
+    end,
 
-    if last_cwd ~= root then vim.cmd('cd ' .. last_cwd) end
-    -- vim.defer_fn(function() vim.cmd('messages') end, 5000) -- same as above, but with delay
-    -- vim.cmd(echo execute('messages'))
+    on_stderr = function(_, data)
+      -- NOTE: Even on error, the data is empty, so this mes doesnt show up
+      -- this suggests that on_stderr is called always, not only on error
+      if data and #data > 1 then
+        print("Error during build:\n" .. table.concat(data, "\n"))
+        -- vim.cmd("copen")
+      end
+    end,
 
-  end,
+    on_exit = function(_, exit_code)
+      local msg = ""
+      if exit_code ~= 0 then
+        msg = "Build failed with exit code: " .. exit_code
+        -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ??? (IT IS BECAUSE THE KEYMAP THAT CALLS THIS FUNCTION IS SILENT !!!)
+        -- util.open_messages_in_buffer()
+        vim.cmd("copen")
+      else
+        if on_success_callback then
+          msg = "Build exited with code: " .. exit_code
+          on_success_callback()
+        end
+      end
+      -- on_exit_callback(exit_code)
+      print(prepend_time(msg));
+
+
+      if last_cwd ~= root then vim.cmd('cd ' .. last_cwd) end
+      -- vim.defer_fn(function() vim.cmd('messages') end, 5000) -- same as above, but with delay
+      -- vim.cmd(echo execute('messages'))
+
+    end,
   })
 end
 

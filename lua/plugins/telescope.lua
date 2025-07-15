@@ -318,9 +318,11 @@ return {
       --vim.keymap.set("n", "<leader>ma", "<cmd>Telescope marks<CR>", { desc = "telescope find marks" })
       vim.keymap.set("n", "<leader>fm", "<cmd>Telescope marks<CR>", { desc = "telescope [M]arks" })
       vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "telescope [O]ldfiles" })
-      vim.keymap.set("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>",
-        { desc = "telescope fu[Z]zy find" })
-        -- { desc = "telescope find in current buffer" })
+
+      -- vim.keymap.set("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>",
+      --   { desc = "telescope fu[Z]zy find" })
+      vim.keymap.set("n", "<leader>fi", "<cmd>Telescope current_buffer_fuzzy_find<CR>",
+        { desc = "telescope [I]n file" })
 
       vim.keymap.set("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "telescope git commits" })
       vim.keymap.set("n", "<leader>gs", "<cmd>Telescope git_status<CR>", { desc = "telescope git status" })

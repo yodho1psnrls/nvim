@@ -34,7 +34,7 @@ return {
 
   -- NOTE: In options.lua set o.expandtab = true !!!
   -- for files, that had previously used unexpanded tabs
-  -- use :retab
+  -- use :retab (or use gg=G, to reindent the whole file)
   -- if you load a previous session, the files will use the previous
   -- expandtab setting, so you would need to remove them from buffers and open again
 
@@ -66,6 +66,15 @@ return {
   },
   config = function (_, opts)
     require("ibl").setup(opts)
+
+    -- Disable the plugin for .txt files
+    -- vim.api.nvim_create_autocmd("FileType", {
+    --   pattern = "txt",
+    --   callback = function()
+    --     vim.b.indent_blankline_enabled = false
+    --   end,
+    -- })
+
   end
 }
 

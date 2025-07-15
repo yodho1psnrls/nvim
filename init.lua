@@ -4,6 +4,12 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Using :lua vim.fn.system('git --version') does nothing
+-- so it looks like vim's api cannot recognize my sys vars on PATH
+-- Hope this fixes the issue with gitsigns not recognizing i have git
+-- , even though i have it installed with pacman and its on PATH
+-- vim.env.PATH = 'C:/msys64/usr/bin;' .. vim.env.PATH
+-- Use :lua print(vim.env.Path) and you will see that this is already there
 
 -- auto-seesion option
 --vim.o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,localoptions"

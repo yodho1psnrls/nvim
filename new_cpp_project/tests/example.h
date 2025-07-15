@@ -1,3 +1,4 @@
+#pragma once
 #include <gtest/gtest.h>
 
 TEST(ExampleTest, WhatWeTestFor) {
