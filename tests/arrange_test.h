@@ -70,6 +70,11 @@ TEST(ArrangeTraits, ArrangeUnorderedVectorErase) {
   const key_type changed(3);
   const size_t count = 2;
   
+  // std::vector<key_type> expected = {2, 4, 3, 4, 3};
+  std::vector<key_type> expected = keys;
+  expected[1] = changed + (count - vals.size() + expected[1]);
+  expected[4] = changed + (count - vals.size() + expected[4]);
+  
   auto it = KT::find(vals, changed);
   it = KT::erase(vals, it, it + count);
 
@@ -77,9 +82,6 @@ TEST(ArrangeTraits, ArrangeUnorderedVectorErase) {
     AT::was_erased(k, vals, changed, count);
   });
 
-  // std::vector<key_type> expected = {2, 4, vals.size() - 1};
-  // std::vector<key_type> expected = {2, 6, vals.size(), vals.size() + 1};
-  std::vector<key_type> expected = {2, 4, 3, 4, 3};
   EXPECT_EQ(keys, expected);
 }
 
