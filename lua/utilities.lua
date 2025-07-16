@@ -16,6 +16,7 @@ vim.api.nvim_create_user_command('ExitBuffer', function()
 end, { desc = 'Exit the current buffer based on listed buffers' })
 ]]
 
+-- BUG: Doesnt Work !
 function M.is_qf_open()
   for _, win in ipairs(vim.fn.getwininfo()) do
     if win.quickfix == 1 then

@@ -145,7 +145,8 @@ function BuildCmakeConfig(config_name, on_success_callback)
         msg = "Build failed with exit code: " .. exit_code
         -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ??? (IT IS BECAUSE THE KEYMAP THAT CALLS THIS FUNCTION IS SILENT !!!)
         -- util.open_messages_in_buffer()
-        vim.cmd("copen")
+        vim.cmd("copen | only") -- Open quickfix list
+        -- require('quicker').toggle()
       else
         if on_success_callback then
           msg = "Build exited with code: " .. exit_code

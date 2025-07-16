@@ -98,7 +98,22 @@ return {
         },
         sections = {
           lualine_a = { 'mode' },
-          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_b = {
+            'branch',
+            'diff',
+            -- 'diagnostics',
+            {
+              'diagnostics',
+              sources = { 'nvim_diagnostic' },
+              symbols = {
+                -- Copying the icons from the signcolumn diagnostics
+                error = ' ',
+                warn  = ' ',
+                info  = ' ',
+                hint  = ' ',
+              },
+            }
+          },
 
           -- 0: Show the absolute path to the file.
           -- 1: Show the relative path from the current working directory (CWD).

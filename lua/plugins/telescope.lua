@@ -243,7 +243,7 @@ return {
           buffers = {
             -- Set sorting strategy for buffers to prioritize recent ones (MRU)
             sort_lastused = true, -- similar to how :ls t shows sorted buffers
-           ignore_current_buffer = true, -- Optionally ignore the current buffer (you can toggle this)
+           ignore_current_buffer = false, -- Optionally ignore the current buffer (you can toggle this)
             --theme = "dropdown"  -- Adjust for a more compact look
 
             --initial_mode = "normal",  -- Pick buffers in normal mode

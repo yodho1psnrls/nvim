@@ -194,6 +194,9 @@ function OpenNotes()
 
   vim.api.nvim_win_set_option(win, "winhighlight", "FloatBorder:NotesBorderSaved")
 
+  -- vim.cmd("setlocal winhighlight=Normal:CustomMessagesHighlight")
+  -- vim.api.nvim_win_set_option(win, "winhighlight", "Normal:CustomMessagesHighlight")
+
   vim.api.nvim_win_set_option(win, "winblend", 20) -- transparency
   vim.wo[win].wrap = true -- line wrap
   vim.wo[win].number = false  -- hide line numbers

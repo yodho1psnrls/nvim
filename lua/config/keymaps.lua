@@ -116,10 +116,18 @@ map("n", "<leader>m", function () -- <leader>wm
 end, { desc = "[M]essages in buffer", noremap = true, silent = true })
 
 
-map("n", "<leader>co", "<cmd>copen<CR>",
-  { desc = "[O]pen cmake qflist", noremap = true, silent = true })
+-- Mainly used for Compiler error messages
+-- vim.keymap.set("n", "<leader>k", function() require("quicker").toggle() end,
+--   { desc = "[O]pen Quickfix list", noremap = true, silent = true })
 
---[[map("n", "<leader>co", function ()
+-- Mainly used for Compiler error messages
+map("n", "<leader>k", "<cmd>copen<CR>",
+  { desc = "[O]pen Quickfix list", noremap = true, silent = true })
+
+map("n", "<leader>K", "<cmd>copen | only<CR>",
+  { desc = "[O]pen Quickfix list", noremap = true, silent = true })
+
+--[[map("n", "<leader>k", function ()
   local qf_list = vim.fn.getqflist()
   if vim.tbl_isempty(qf_list) then
     vim.notify("Quickfix list is empty", vim.log.levels.INFO, { title = "Quickfix" })
@@ -132,7 +140,19 @@ map("n", "<leader>co", "<cmd>copen<CR>",
   else
     vim.cmd("copen")
   end
-end, { desc = "[O]pen cmake qflist", noremap = true, silent = true })]]--
+end, { desc = "[O]pen quickfix list", noremap = true, silent = true })]]--
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "qf",
+  callback = function()
+    -- Set undo and redo to act as :colder and :cnewer when in the quickfix lists
+    vim.keymap.set('n', 'u', ':colder<CR>', { buffer = true, silent = true })
+    vim.keymap.set('n', '<C-r>', ':cnewer<CR>', { buffer = true, silent = true })
+
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+  end,
+})
 
 
 --map('n', '<Tab>', '<C-o>', { noremap = true, silent = true, desc = "Go to next jump" })

@@ -148,9 +148,9 @@ return {
       -- https://neovim.io/doc/user/diagnostic.html
       -- https://neovim.io/doc/user/quickfix.html#quickfix
 
-      vim.keymap.set('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open diagno[S]tic list' })
+      vim.keymap.set('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open LSP diagno[S]tic' })
       --vim.keymap.set('n', '<leader>dq', vim.diagnostic.setqflist, { desc = 'Open diagnostic [Q]uickfix list' })
-      vim.keymap.set('n', '<leader>da', vim.diagnostic.setqflist, { desc = 'Open [A]ll diagnostic lists' })
+      vim.keymap.set('n', '<leader>da', vim.diagnostic.setqflist, { desc = 'Open [A]ll LSP diagnostic' })
 
       --vim.keymap.set('n', '<S-CR>', vim.diagnostic.open_float, { desc = 'Go to diagnostic'})
       vim.keymap.set('n', '<leader>dg', vim.lsp.util.jump_to_location, { desc = '[G]o to diagnostic'})
