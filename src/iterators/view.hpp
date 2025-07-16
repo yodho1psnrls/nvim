@@ -199,6 +199,19 @@ public:
     return Container(this->begin(), this->end());
   }
 
+  // NOTE: std::array only has init-list constructor, so there is no constructor
+  //  from pair of iterators, so we need to specialize it
+  template<typename T, size_t N>
+  operator std::array<T, N>() const {
+    static_assert(std::is_convertible_v<value_type, T>);
+    if (this->size() != N)
+      throw std::out_of_range("The array size should be equal to the view size that its created from");
+
+    std::array<T, N> arr;
+    std::copy(this->begin(), this->end(), arr.data());
+    return arr;
+  }
+
   template <typename IT = iterator>
   typename std::enable_if<
     std::is_base_of_v<
@@ -594,18 +607,19 @@ inline void swap(const OutputViewLayer<ViewType>& lhs, const OutputViewLayer<Vie
 //  return stream << View(cont.begin(), cont.end());
 // }
 
-template <typename ViewType>
-inline std::ostream& operator<<(std::ostream& stream, const InputViewLayer<ViewType>& view) {
-  stream << "{";
-  for(auto it = view.begin(); it != view.end();) {
-    stream << *it;
-    if (++it != view.end())
-      stream << ", ";
-  }
-  stream << "}";
-
-  return stream;
-}
+// NOTE: Moved in utilities.hpp
+// template <typename ViewType>
+// inline std::ostream& operator<<(std::ostream& stream, const InputViewLayer<ViewType>& view) {
+//   stream << "{";
+//   for(auto it = view.begin(); it != view.end();) {
+//     stream << *it;
+//     if (++it != view.end())
+//       stream << ", ";
+//   }
+//   stream << "}";
+//
+//   return stream;
+// }
 
 
 // Given a range of iterators, it returns a view of std::move_iterator<the iterator of the range>

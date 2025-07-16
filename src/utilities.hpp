@@ -361,6 +361,19 @@ inline std::ostream& operator<<(std::ostream& os, const std::tuple<Ts...>& tup) 
   return os;
 }
 
+template <typename Range, typename = std::enable_if_t<is_range_v<Range>>>
+inline std::ostream& operator<<(std::ostream& stream, const Range& range) {
+  stream << "{";
+  for(auto it = range.begin(); it != range.end();) {
+    stream << *it;
+    if (++it != range.end())
+      stream << ", ";
+  }
+  stream << "}";
+
+  return stream;
+}
+
 
 template <typename Cont>
 void print_cont(const Cont& cont) {

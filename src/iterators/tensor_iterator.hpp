@@ -371,16 +371,23 @@ inline auto make_tensor_iterator(const ViewType& first, StrideArg&& stride) {
 }
 
 // FIX:
-// template <bool STACKABLE = true, typename IterType, typename SizeArg, typename StrideArg = UseViewSize,
-//  typename = std::enable_if_t<is_iterator_v<IterType>>>
-// inline auto make_tensor_iterator(const IterType& first, SizeArg&& size, StrideArg&& stride = UseViewSize()) {
-//  return make_tensor_iterator<STACKABLE>(
-//    make_tensor_view<STACKABLE>(
-//      first,
-//      std::forward<SizeArg>(size)
-//    ),
-//    std::forward<StrideArg>(stride));
-// }
+template <bool STACKABLE = true, typename IterType, typename SizeArg, typename StrideArg = UseViewSize,
+ typename = std::enable_if_t<is_iterator_v<IterType>>>
+inline auto make_tensor_iterator(const IterType& first, SizeArg&& size, StrideArg&& stride = UseViewSize()) {
+  if constexpr (std::is_same_v<arg_to_jump_policy_t<StrideArg>, UseViewSize>)
+    return make_tensor_iterator<STACKABLE>(
+      make_tensor_view<STACKABLE>(
+        first,
+        std::forward<SizeArg>(size)
+      ));
+  else
+    return make_tensor_iterator<STACKABLE>(
+      make_tensor_view<STACKABLE>(
+        first,
+        std::forward<SizeArg>(size)
+      ),
+      std::forward<StrideArg>(stride));
+}
 
 // Overload for TensorIterator to give directly the underlying iterator
 // because we are sure that the underlying range is contiguous

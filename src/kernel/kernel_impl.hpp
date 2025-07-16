@@ -505,6 +505,10 @@ public:
       typename std::iterator_traits<ValIter>::value_type,
       tag_to_value_type<KeyIter>>
     );
+    // static_assert(std::is_convertible_v<
+    //   typename std::iterator_traits<ValIter>::reference,
+    //   tag_to_reference<KeyIter>>
+    // );
     
     static_assert(is_iterator_v<KeyIter>);
     static_assert(is_tagged_type_v<KeyIter>);

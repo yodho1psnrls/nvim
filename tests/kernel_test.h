@@ -7,6 +7,7 @@
 #include "../src/matrices/jagged_matrix.hpp"
 
 #include "../src/iterators/zip_iterator.hpp"
+#include "../src/iterators/tensor_iterator.hpp"
 #include "../src/containers/property_container.hpp"
 
 #include <vector>
@@ -77,7 +78,7 @@ TEST(Kernel, KernelAreKeysUpdatedOnErase) {
 }
 
 
-TEST(Kernel, KernelAreKeysUpdatedWithMatrix) {
+/*TEST(Kernel, KernelAreKeysUpdatedWithMatrix) {
   // EXPECT_EQ(5, 5);
 
   using vert_cont = PropertyContainer<std::vector<char>>;
@@ -129,5 +130,85 @@ TEST(Kernel, KernelAreKeysUpdatedWithMatrix) {
   // print_cont(ker.values<face_key, std::vector<vert_key>>());
   // print_cont(ker.values<face_key>());
   // print_cont(ker.values<face_key, std::vector<vert_key>>());
+}*/
+
+
+TEST(Kernel, ValuesMethodWithIntermediateKeyLookup) {
+  using vert_key = TaggedType<size_t, vert_handle_tag>;
+  using hedge_key = TaggedType<size_t, hedge_handle_tag>;
+
+  using vert_key_iter = TaggedIterator<IndexIterator<size_t>, vert_handle_tag>;
+  using hedge_key_iter = TaggedIterator<IndexIterator<size_t>, hedge_handle_tag>;
+
+  using kernel_type = KeyKernelImpl<
+    TaggedType<PropertyContainer<
+      std::vector<char>
+    >, vert_handle_tag>,
+    TaggedType<PropertyContainer<
+      std::vector<vert_key>
+    >, hedge_handle_tag>
+  >;
+
+  kernel_type ker;
+
+  const size_t n = 7;
+  ZipIterator vals_zip_it(IndexIterator('A'));
+  ZipIterator keys_zip_it(vert_key_iter(0ULL));
+
+  ker.insert(ker.end<vert_handle_tag>(), vals_zip_it, vals_zip_it + n);
+  ker.insert(ker.end<hedge_handle_tag>(), keys_zip_it, keys_zip_it + n);
+
+  View hkeys = ker.keys<hedge_key>();
+  View expected_hkeys(hedge_key_iter(0), hedge_key_iter(n));
+  EXPECT_EQ(hkeys, expected_hkeys);
+
+  View hvkeys = ker.values<hedge_key, vert_key>();
+  View expected_hvkeys(vert_key_iter(0), vert_key_iter(n));
+  EXPECT_EQ(hvkeys, expected_hvkeys);
+
+  View hvvals = ker.values<hedge_key, vert_key, char>();
+  View expected_hvvals(IndexIterator('A'), IndexIterator('A') + n);
+  EXPECT_EQ(hvvals, expected_hvvals);
 }
+
+
+TEST(Kernel, ValuesWithMatrixIntermediateKeyLookup) {
+  using vert_key = TaggedType<size_t, vert_handle_tag>;
+  using face_key = TaggedType<size_t, face_handle_tag>;
+
+  using vert_key_iter = TaggedIterator<IndexIterator<size_t>, vert_handle_tag>;
+  using face_key_iter = TaggedIterator<IndexIterator<size_t>, face_handle_tag>;
+
+  using kernel_type = KeyKernelImpl<
+    TaggedType<PropertyContainer<
+      std::vector<char>
+    >, vert_handle_tag>,
+    TaggedType<PropertyContainer<
+      std::vector<std::array<vert_key, 3>>
+    >, face_handle_tag>
+  >;
+
+  kernel_type ker;
+
+  ZipIterator vals_zip_it(IndexIterator('A'));
+  auto key_it = make_tensor_iterator(vert_key_iter(0), 3);
+  ZipIterator keys_zip_it(key_it);
+
+  ker.insert(ker.end<vert_key>(), vals_zip_it, vals_zip_it + 12);
+  ker.insert(ker.end<face_key>(), keys_zip_it, keys_zip_it + 4);
+
+  // View faces = ker.values<face_key, std::array<vert_key, 3>>();
+  // for(auto face : faces) {
+  //   for(auto vi : face)
+  //     std::cout << vi << ", ";
+  //   std::cout << "\n";
+  // }
+  
+  View faces = ker.values<face_key, std::array<vert_key, 3>>();
+  View faces_expected(key_it, key_it + 4);
+  EXPECT_EQ(faces, faces_expected);
+
+}
+
+
 
