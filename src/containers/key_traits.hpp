@@ -184,15 +184,21 @@ public:
     return cont.begin() + *key_it;
   }
 
-  template <typename KeyIter>
+  template <typename KeyIter, typename = std::enable_if_t<
+    is_iterator_v<KeyIter> &&
+    std::is_convertible_v<std::iter_reference_t<KeyIter>, key_type>>
+  >
   static LookupIterator<KeyIter, const container>
-  find(const container& cont, KeyIter key_it) {
+  find(const container& cont, const KeyIter& key_it) {
     return make_lookup_iterator(key_it, cont);
   }
 
-  template <typename KeyIter>
+  template <typename KeyIter, typename = std::enable_if_t<
+    is_iterator_v<KeyIter> &&
+    std::is_convertible_v<std::iter_reference_t<KeyIter>, key_type>>
+  >
   static LookupIterator<KeyIter, container>
-  find(container& cont, KeyIter key_it) {
+  find(container& cont, const KeyIter& key_it) {
     return make_lookup_iterator(key_it, cont);
   }
 

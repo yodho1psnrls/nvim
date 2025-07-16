@@ -8,6 +8,7 @@
 // mapping to arrange_traits
 
 // NOTE: We wont touch the exact erased key value !!
+// TODO: Maybe it would be better if we invalidate the erased values
 
 // TODO: Make them also not branchless if they happen to be
 //  non-random-access iterators
@@ -47,6 +48,8 @@ struct ShiftArrange {
 };
 
 
+// TODO: Implement it correctly when count != 1
+
 struct ChainArrange {
 
   // NOTE: You will need to know the size of the container
@@ -62,8 +65,11 @@ struct ChainArrange {
     const Key& inserted_key,
     std::ptrdiff_t count = 1
   ) {
+    // key_to_update +=
+    //   (key_to_update == inserted_key) * (cont.size() - key_to_update);
     key_to_update +=
-      (key_to_update == inserted_key) * (cont.size() - key_to_update);
+      (key_to_update >= inserted_key && key_to_update < inserted_key + count)
+      * (cont.size() - inserted_key);
   }
 
   template <
@@ -76,8 +82,11 @@ struct ChainArrange {
     const Key& erased_key,
     std::ptrdiff_t count = 1
   ) {
+    // key_to_update +=
+    //   (key_to_update == cont.size()) * (erased_key - key_to_update);
     key_to_update +=
-      (key_to_update == cont.size()) * (erased_key - key_to_update);
+      (key_to_update >= cont.size() && key_to_update < cont.size() + count)
+      * (erased_key - cont.size());
   }
   
 };
