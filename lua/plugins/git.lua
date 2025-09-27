@@ -133,6 +133,40 @@ return {
 
   },
 
+  {
+    "kdheepak/lazygit.nvim",
+    lazy = true,
+    keys = {
+      { '<leader>lg', '<cmd>LazyGit<cr>', desc = "Open LazyGit" },
+    },
+    cmd = {
+      "LazyGit",
+      "LazyGitConfig",
+      "LazyGitCurrentFile",
+      "LazyGitFilter",
+      "LazyGitFilterCurrentFile",
+    },
+    -- optional for floating window border decoration
+    dependencies = {
+      -- "nvim-telescope/telescope.nvim",
+      "nvim-lua/plenary.nvim",
+    },
+    config = function()
+      -- require("telescope").load_extension("lazygit")
+
+      --[[
+      -- vim.api.nvim_create_autocmd("TermOpen", {
+      vim.api.nvim_create_autocmd("TermClose", {
+        pattern = "term://*lazygit",
+        callback = function()
+          -- vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = true, silent = true })
+          vim.cmd("close")
+        end,
+      })
+      ]]--
+
+    end,
+  },
 
   --[[{
     -- https://neovimcraft.com/plugin/isak102/telescope-git-file-history.nvim/

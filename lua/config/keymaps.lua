@@ -2,6 +2,17 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+-- <C-k> used for window navigation
+-- map("n", "<C-k>", function()
+--   vim.lsp.buf.hover({
+--     border = 'rounded',
+--     -- focusable = true, -- Can you focus it with a mouse
+--     focusable = false, -- Can you focus it with a mouse
+--     focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+--     silent = true,
+--   })
+-- end, opts)
+
 map("n", "<leader>cm", "<cmd>OpenCMD<CR>", opts)
 
 -- NOTE: ALT == ESC
@@ -12,11 +23,23 @@ map("n", "<leader>lz", "<cmd>Lazy<CR>",
 
 -- map({"n", "v"}, "<S-h>", "20zh", { noremap = true, silent = true })
 -- map({"n", "v"}, "<S-l>", "20zl", { noremap = true, silent = true })
-map({"n", "v"}, "<S-h>", "zH", { noremap = true, silent = true })
-map({"n", "v"}, "<S-l>", "zL", { noremap = true, silent = true })
-map({"n", "v"}, "<S-j>", "<S-Down>", { noremap = true, silent = true })
-map({"n", "v"}, "<S-k>", "<S-Up>", { noremap = true, silent = true })
 
+-- NOTE: Use <C-U> and <C-D>
+-- map({"n", "v"}, "<S-h>", "zH", { noremap = true, silent = true })
+-- map({"n", "v"}, "<S-l>", "zL", { noremap = true, silent = true })
+-- map({"n", "v"}, "<S-j>", "<S-Down>", { noremap = true, silent = true })
+-- map({"n", "v"}, "<S-k>", "<S-Up>", { noremap = true, silent = true })
+
+-- NOTE: Overwriting the default one, because it has no borders
+map('n', '<S-k>', function()
+  vim.lsp.buf.hover({
+    border = 'rounded',
+    -- focusable = true, -- Can you focus it with a mouse
+    focusable = false, -- Can you focus it with a mouse
+    focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+    silent = true,
+  })
+end, opts)
 
 map('n', '<leader>ss', function()
   -- TODO:
@@ -30,8 +53,9 @@ map('n', '<leader>ss', function()
   --
   -- if is_nvim_tree_open then nvim_tree.toggle() end
 
-  vim.cmd("Lazy load auto-session")
-  vim.cmd("SessionSave")
+  -- vim.cmd("Lazy load auto-session") -- Its loaded from start
+  -- vim.cmd("SessionSave")
+  vim.cmd("AutoSession save")
 
   -- if is_nvim_tree_open then nvim_tree.toggle() end
 end, { desc = "SessionSave", noremap = true, silent = true })
@@ -94,6 +118,7 @@ map('n', '<leader>q', '<cmd>q<CR>', { desc = '[Q]uit Window', noremap = true, si
 map('n', '<leader>Q', '<cmd>qa<CR>', { desc = '[Q]uit All Windows', noremap = true, silent = true })
 -- map('n', '<leader>x', '<cmd>Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
 map('n', '<leader>x', function ()
+-- map('n', '<C-w>', function () -- NOTE: In most apps Ctrl + W closes the tab
   if vim.bo.buftype == 'terminal' then
     require("bufdelete").bufdelete(0, true) -- Force close of terminal buffers
   else

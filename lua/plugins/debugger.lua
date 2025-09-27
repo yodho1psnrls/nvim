@@ -426,9 +426,9 @@ return {
 --    dependencies = { "mfussenegger/nvim-dap" },
     lazy = true,
     config = function()
+      --[[
       local set_exception_breakpoints = require("nvim-dap-exception-breakpoints")
 
-      --[[
       vim.api.nvim_set_keymap(
         "n",
         "<leader>dc",
@@ -610,6 +610,22 @@ return {
     lazy = true,
     config = function()
       require("dap-python").setup("python")
+      table.insert(require('dap').configurations.python, {
+        type = 'python',
+        request = 'launch',
+        name = 'custom',
+
+        -- `program` is what you'd use in `python <program>` in a shell
+        -- If you need to run the equivalent of `python -m <module>`, replace
+        -- `program = '${file}` entry with `module = "modulename"
+        -- program = '${file}',
+        program = util.find_python_exec(),
+
+        console = "integratedTerminal",
+
+        -- Other options:
+        -- See https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+      })
     end,
   },
 

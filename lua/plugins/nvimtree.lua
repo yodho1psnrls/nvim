@@ -163,7 +163,7 @@ return {
     --map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
     -- map("n", "<leader>n", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
     vim.keymap.set("n", "<leader>n", function()
-        require('nvim-tree.api').tree.toggle({ find_file = true, focus = false })
+        require('nvim-tree.api').tree.toggle({ find_file = true, focus = true })
         -- if util.is_loaded("symbols-outline") then
         --   vim.cmd("SymbolsOutlineClose")
         -- end

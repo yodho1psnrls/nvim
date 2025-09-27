@@ -145,7 +145,8 @@ function BuildCmakeConfig(config_name, on_success_callback)
         msg = "Build failed with exit code: " .. exit_code
         -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ??? (IT IS BECAUSE THE KEYMAP THAT CALLS THIS FUNCTION IS SILENT !!!)
         -- util.open_messages_in_buffer()
-        vim.cmd("copen | only") -- Open quickfix list
+        -- vim.cmd("copen | only") -- Open quickfix list
+        vim.cmd("copen") -- Open quickfix list
         -- require('quicker').toggle()
       else
         if on_success_callback then
@@ -257,12 +258,12 @@ end
   })
 end]]--
 
-
 function BuildAndRunPython()
   print(prepend_time("Running Python ..."))
   --local file = vim.fn.expand('%') -- Get the current file name
   --vim.cmd('!python ' .. file)
-  vim.cmd('10split | term python %') -- 12split
+  -- vim.cmd('10split | term python %') -- 12split
+  vim.cmd('10split | term python ' .. util.find_python_exec()) -- 12split
   vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
   -- vim.cmd("setlocal nobuflisted") -- Exclude the buffer from the buffer list
   --vim.cmd('term python %')
@@ -277,7 +278,8 @@ end
 function BuildAndDebugPython()
   print(prepend_time("Debugging Python ..."))
   -- require('dap').continue()
-  LaunchDapConfig('python', 'file')
+  -- LaunchDapConfig('python', 'file')
+  LaunchDapConfig('python', 'custom')
 end
 
 
@@ -407,6 +409,23 @@ local filetype_to_run_table = {
 -- But it runs the debugger
 -- This makes no sense
 
+local function SaveUnavedFiletype(type)
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(bufnr) then
+      local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
+      local modified = vim.api.nvim_buf_get_option(bufnr, "modified")
+      local name = vim.api.nvim_buf_get_name(bufnr)
+
+      if filetype == type and modified and name ~= "" then
+        -- Save the buffer
+        vim.api.nvim_buf_call(bufnr, function()
+          vim.cmd("write")
+        end)
+      end
+    end
+  end
+end
+
 local function Start(type, what, mode)
   -- local type = vim.bo[0].filetype
   type = type or vim.bo.filetype
@@ -444,9 +463,12 @@ local function Start(type, what, mode)
   -- last_run_filetype = type
   local conf = filetype_to_run_table
 
-  vim.cmd('messages clear')
+  -- NOTE:
+  -- vim.cmd('messages clear')
+
   -- vim.cmd('echo string(repeat("=", winwidth(0)))')
-  if vim.bo.modified then vim.cmd('w') end
+  -- if vim.bo.modified then vim.cmd('w') end
+  SaveUnavedFiletype(type)
 
   if not conf[type] or not conf[type][what] or not conf[type][what][mode] then
     print("No ".. mode .. " " .. what  .. " configuration for file type " .. type)

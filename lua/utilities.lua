@@ -192,6 +192,7 @@ function M.open_messages_in_buffer()
   vim.cmd("call matchadd('TodoBgFIX', 'error:')")
 
   -- vim.cmd('normal /error:')
+  vim.cmd('normal! G')
 
 end
 
@@ -275,6 +276,24 @@ function M.outline_cpp_inline_methods()
   vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
 end
 
+
+function M.file_exists(file_path)
+  local stat = vim.loop.fs_stat(file_path)
+  return stat and stat.type == 'file'
+end
+
+function M.find_python_exec()
+  local root_main = M.get_project_root() .. '/' .. "__main__.py"
+  local cwd_main = vim.fn.getcwd() .. '/' .. "__main__.py"
+  if M.file_exists(root_main) then
+    -- return vim.fn.fnamemodify(main_path, ':p')
+    return root_main
+  elseif M.file_exists(cwd_main) then
+    return cwd_main
+  else
+    return '%'
+  end
+end
 
 
 -- Create a user command to call the function

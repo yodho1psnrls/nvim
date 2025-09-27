@@ -7,6 +7,8 @@
 --       For now, i just made it to pre_restore_cmds = {"wa"}
 -- https://www.reddit.com/r/neovim/comments/14yhn1f/autosession_removes_modified_buffers/
 
+-- local was_nvim_tree_closed_by_autosession = false
+
 local util = require("utilities")
 
 local function get_session_shada_path()
@@ -262,12 +264,24 @@ return {
             -- end
             if package.loaded['nvim-tree'] then
               vim.cmd('NvimTreeClose')
+              -- was_nvim_tree_closed_by_autosession = true
             end
           end,
 
           "RemoveUnsavableBuffers"
 
         },
+
+        -- post_save_cmds = {
+        --   function ()
+        --     if was_nvim_tree_closed_by_autosession then
+        --       -- vim.cmd('NvimTreeOpen')
+        --       -- vim.cmd('normal <leader>n')
+        --       require('nvim-tree.api').tree.toggle({ find_file = true, focus = false })
+        --       was_nvim_tree_closed_by_autosession = false
+        --     end
+        --   end,
+        -- },
 
         post_restore_cmds = {
           "rshada",

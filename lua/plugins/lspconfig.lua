@@ -186,6 +186,8 @@ return {
 
       -- Custom on_attach function for key mappings
       M.on_attach = function(_, bufnr)
+      -- M.on_attach = function(client, bufnr)
+        -- client.offset_encoding = "utf-16"
         local map = vim.keymap.set
         local function opts(desc)
           return { buffer = bufnr, desc = "LSP " .. desc }
@@ -258,6 +260,7 @@ return {
 
       -- Setup the language servers
       local lspconfig = require("lspconfig")
+      -- local lspconfig = vim.lsp.config
       local util = require("lspconfig.util")
 
 

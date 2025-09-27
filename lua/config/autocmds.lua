@@ -36,6 +36,22 @@ local util = require("utilities")
 -- vim.cmd([[autocmd BufWinEnter * set nocursorline nocursorcolumn]])
 
 
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern = "qf",
+--   callback = function()
+--     vim.cmd("setlocal linebreak")
+--   end,
+-- })
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+  callback = function()
+    if vim.bo.filetype == "qf" then
+      vim.cmd("setlocal linebreak")
+    end
+  end,
+})
+
+
 -----------------------------------------------------------------------------
 
 --7AA62C --BD5637
@@ -249,10 +265,10 @@ end
 -- function signatures, or other useful info) when hovering over a symbol.
 --map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
 
---hover documentation to appear automatically after hovering
---the cursor over a variable or function for a brief time
--- vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
-vim.api.nvim_create_autocmd({'CursorHold'}, {
+-- NOTE: Hover documentation to appear automatically after hovering
+--  the cursor over a variable or function for a brief time
+--  vim.cmd [[ autocmd CursorHold * lua vim.lsp.buf.hover() ]]
+--[[vim.api.nvim_create_autocmd({'CursorHold'}, {
   pattern = '*',
   callback = function()
     vim.lsp.buf.hover({
@@ -263,7 +279,7 @@ vim.api.nvim_create_autocmd({'CursorHold'}, {
       silent = true,
     })
   end,
-})
+})]]--
 
 
 --[[
