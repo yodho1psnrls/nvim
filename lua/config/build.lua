@@ -120,6 +120,25 @@ local function has_qf_diagnostics()
   return false
 end
 
+local function build_has_work(lines)
+  for _, line in ipairs(lines) do
+    -- skip empty lines
+    if line:match("%S") then
+      -- check if it is a generic “nothing to do” phrase
+      if line:match("[Nn]othing to be done") or
+         line:match("no work to do") or
+         line:match("0 succeeded, 0 failed") then
+        return false
+      else
+        -- any other non-empty line likely indicates work
+        return true
+      end
+    end
+  end
+  -- all lines empty
+  return false
+end
+
 -- TODO: WHY I CANT MAKE THIS TO OPEN MESSAGES AFTER ERROR
 function BuildCmakeConfig(config_name, on_success_callback)
 -- function BuildCmakeConfig(config_name, on_exit_callback)
@@ -140,13 +159,17 @@ function BuildCmakeConfig(config_name, on_success_callback)
     stdout_buffered = true,
     stderr_buffered = true,
     on_stdout = function(_, data)
-      if data and #data > 0 then
+      -- local has_work = not util.does_end_with(data[1].text, "ninja: no work to do.\r")
+      local has_work = build_has_work(data)
+      if data and #data > 0 and has_work then
         -- print(table.concat(data, "\n"))
         vim.fn.setqflist({}, ' ', {
           title = 'CMake Build',
           -- lines = data,
           lines = util.remove_carriage_returns(data),
-          -- nr=1, -- you can maintain multiple qflists, by setting each one a number
+
+          -- You can maintain multiple qflists, by setting each one a number
+          -- nr=1, -- (Default: -1)
           -- Use :cgetexpr getqflist(nr=2) to switch between qflists
         })
       end

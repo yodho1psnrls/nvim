@@ -312,5 +312,9 @@ function M.remove_carriage_returns(lines)
   -- return lines:gsub("\r$", "")
 end
 
+function M.does_end_with(text, ending)
+  return text:sub(-#ending) == ending
+end
+
 
 return M

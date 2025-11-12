@@ -73,7 +73,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -----------------------------------------------------------------------------
 
--- QuickFixList highlights
+-- QuickFixList highlights -- But this does not appear to change anything
 -- vim.cmd([[highlight QuickFixLine guibg=#222222 guifg=#FFD700]])
 
 -- Automatically open quickfix list after its populated/updated
