@@ -148,9 +148,10 @@ end, { desc = "[M]essages in buffer", noremap = true, silent = true })
 -- Mainly used for Compiler error messages
 map("n", "<leader>k", "<cmd>copen<CR>",
   { desc = "[O]pen Quickfix list", noremap = true, silent = true })
-
 map("n", "<leader>K", "<cmd>copen | only<CR>",
   { desc = "[O]pen Quickfix list", noremap = true, silent = true })
+-- map("n", "<leader>k", "<cmd>copen | only<CR>",
+--   { desc = "[O]pen Quickfix list", noremap = true, silent = true })
 
 --[[map("n", "<leader>k", function ()
   local qf_list = vim.fn.getqflist()

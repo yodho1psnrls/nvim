@@ -10,7 +10,17 @@ Installation:
 1) Install lua-language-server (so you can easily confige nvim)
 
 2) Install python, which should come with pip
-  - install pylsp with pip
+  - install pylsp with pip (pip install python-lsp-server)
+  - install required linter flake8 (pip install flake8)
+  - to configure flake8:
+
+# Ignore formatting-related rules
+# To test it:
+#   On PowerShell: flake8 --config $env:USERPROFILE\AppData\Roaming\flake8 --version
+#   On CMD:        flake8 --config %USERPROFILE%\AppData\Roaming\flake8 --version
+[flake8]
+ignore = E121, E123, E126, E226, E24, E704, E501, W291, W293, W391
+
   - install debugpy with pip (nvim-dap-python works with debugpy)
 
 3) Install CMake from the official website

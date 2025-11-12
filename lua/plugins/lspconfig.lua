@@ -287,7 +287,8 @@ return {
         root_dir = function(fname)
           -- return lspconfig.util.find_git_ancestor(fname) or lspconfig.util.path.dirname(fname)
           -- return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fn.getcwd()
-          return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fs.dirname(fname)
+          -- return vim.fs.dirname(vim.fs.find('.git', { path = fname, upward = true })[1]) or vim.fs.dirname(fname)
+          return vim.fs.dirname(vim.fs.find({'__main__.py', '.git'}, { path = fname, upward = true })[1]) or vim.fs.dirname(fname)
           -- return vim.fs.dirname(vim.fs.find('.git', { path = vim.fn.getcwd(), upward = true })[1])
         end,
         settings = {
@@ -303,6 +304,14 @@ return {
           --   plugins = {
           --     pylsp_inlay_hints = {
           --       enabled = true,
+          --     },
+          --   },
+          -- },
+          -- pylsp = {
+          --   plugins = {
+          --     flake8 = {
+          --       enabled = true,
+          --       config = vim.fn.expand('~\\AppData\\Roaming\\flake8')
           --     },
           --   },
           -- },

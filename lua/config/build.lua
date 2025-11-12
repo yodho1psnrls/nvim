@@ -108,10 +108,29 @@ function GenerateCMake()
   if last_cwd ~= root then vim.cmd('cd ' .. last_cwd) end
 end
 
+local function has_qf_diagnostics()
+  local qf = vim.fn.getqflist()
+  for _, item in ipairs(qf) do
+    -- Mostly warning and error items are marked as valid,
+    -- because they map to a line and col and bufnr that exists
+    if item.valid == 1 then
+      return true
+    end
+  end
+  return false
+end
 
 -- TODO: WHY I CANT MAKE THIS TO OPEN MESSAGES AFTER ERROR
 function BuildCmakeConfig(config_name, on_success_callback)
 -- function BuildCmakeConfig(config_name, on_exit_callback)
+
+  -- Another way to execute it on external shell is using systemlist
+  -- This is an alternative for the vim.fn.jobstart below
+  -- local output = vim.fn.system("ninja -C build") -- single string with all the lines separated with \n
+  -- local output = vim.fn.systemlist("ninja -C build") -- lines of strings without \n at end
+  -- local clean = vim.tbl_map(function(line) return line:gsub("\r$", "") end, output)
+  -- vim.fn.setqflist({}, "r", {lines = clean})
+
   local last_cwd = vim.fn.getcwd()
   local root = util.get_project_root()
   if last_cwd ~= root then vim.cmd('cd ' .. root) end
@@ -125,7 +144,10 @@ function BuildCmakeConfig(config_name, on_success_callback)
         -- print(table.concat(data, "\n"))
         vim.fn.setqflist({}, ' ', {
           title = 'CMake Build',
-          lines = data,
+          -- lines = data,
+          lines = util.remove_carriage_returns(data),
+          -- nr=1, -- you can maintain multiple qflists, by setting each one a number
+          -- Use :cgetexpr getqflist(nr=2) to switch between qflists
         })
       end
     end,
@@ -145,9 +167,6 @@ function BuildCmakeConfig(config_name, on_success_callback)
         msg = "Build failed with exit code: " .. exit_code
         -- vim.cmd('messages') -- WHY THIS DOESNT TRIGGER ??? (IT IS BECAUSE THE KEYMAP THAT CALLS THIS FUNCTION IS SILENT !!!)
         -- util.open_messages_in_buffer()
-        -- vim.cmd("copen | only") -- Open quickfix list
-        vim.cmd("copen") -- Open quickfix list
-        -- require('quicker').toggle()
       else
         if on_success_callback then
           msg = "Build exited with code: " .. exit_code
@@ -157,6 +176,11 @@ function BuildCmakeConfig(config_name, on_success_callback)
       -- on_exit_callback(exit_code)
       print(prepend_time(msg));
 
+      if has_qf_diagnostics() then
+        -- vim.cmd("copen | only") -- Open quickfix list
+        vim.cmd("copen") -- Open quickfix list
+        -- require('quicker').toggle()
+      end
 
       if last_cwd ~= root then vim.cmd('cd ' .. last_cwd) end
       -- vim.defer_fn(function() vim.cmd('messages') end, 5000) -- same as above, but with delay
@@ -264,13 +288,28 @@ function BuildAndRunPython()
   --vim.cmd('!python ' .. file)
   -- vim.cmd('10split | term python %') -- 12split
   vim.cmd('10split | term python ' .. util.find_python_exec()) -- 12split
+  -- vim.cmd("<cmd>!uv run " .. util.find_python_exec() .. "<CR>")
+
+  -- Fix weird error that input is not received (Have to focus it with mouse)
+  -- vim.cmd('stopinsert')
+  vim.cmd('startinsert')
+  -- vim.cmd('redraw')
+  -- local new_win_id = vim.api.nvim_get_current_win()
+  -- vim.api.nvim_set_current_win(new_win_id)
+
   vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
   -- vim.cmd("setlocal nobuflisted") -- Exclude the buffer from the buffer list
   --vim.cmd('term python %')
 
-  if vim.api.nvim_get_mode().mode ~= 't' then
-    vim.api.nvim_input('i')
-  end
+  -- NOTE:
+  -- if vim.api.nvim_get_mode().mode ~= 't' then
+  --   vim.api.nvim_input('i')
+  -- end
+  -- vim.cmd('<C-\\>')
+  -- vim.cmd('normal! <C-\\><C-n>')
+  -- vim.cmd('startinsert')
+  -- vim.cmd('redraw!')
+  -- vim.cmd('suspend')
 
   -- print("Exit Code is: " .. get_exit_code())
 end

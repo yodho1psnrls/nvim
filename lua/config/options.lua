@@ -263,5 +263,116 @@ g.loaded_ruby_provider = 0
 --vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 --vim.o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,localoptions"
 
+-------------------------- Quick Fix List -------------------------------
+
+-- When Cmake runs a build tool like make, ninja or msbuild
+-- They print lines like /path/to/file.cpp:42:10: error: 'x' was not declared in this scope
+-- Then when you use setqflist, it parses them with regex based rules
+-- With the default error format, the diagnostic type in the quickfixlist
+-- is not parsed correctly and instead, is put in the beginning of the text
+
+-- Check current one with :verbose set errorformat?
+-- Check the quickfixlist table :lua print(vim.inspect(vim.fn.getqflist()))
+
+-- vim.opt.errorformat = "%f:%l:%c:%m,%f:%l:%m,%f  %l:%m,%f:%l%m,%f  %l%m" -- Default
+-- vim.opt.errorformat = "%f:%l:%c: %t%*[^:]: %m" -- Clang and GCC error formats
+
+--[[vim.opt.errorformat = table.concat({
+  "%f:%l:%c:%t%*[^:]:%m",
+  "%-G%f:%l:%c: note:%m",
+  "%f:%l:%m",
+  "%f(%l):%m",
+  "%f:%l%m",
+}, ",")]]--
+
+--[[vim.opt.makeprg = "ninja -C build"
+vim.opt.errorformat = table.concat({
+  "%f:%l:%c: %t%*[^:]: %m",   -- clang/gcc style
+  "%-G%f:%l:%c: note: %m",    -- skip notes
+  "%f:%l:%m",                 -- fallback
+}, ",")]]--
+
+-- vim.opt.makeprg = "cmake --build build -- -k 0"
+--[[vim.opt.errorformat = table.concat({
+  -- ✅ Clang/GCC/Ninja output
+  "%f:%l:%c: %t%*[^:]: %m",   -- matches: file:line:col: error/warning: message
+  "%f:%l:%c: %m",             -- fallback: file:line:col: message
+  "%f:%l:%m",                 -- fallback: file:line: message
+  "%f(%l): %m",               -- MSVC-style fallback
+
+  -- ⚙️ CMake status/info lines
+  "%-G-- %m",                 -- ignore “-- …” messages (optional)
+  "%-G%[%d/%d%]% %m",         -- ignore Ninja progress lines like [1/10] Building…
+  "%E-- %m",                  -- treat “-- …” as success/info if you want them included
+}, ",")]]--
+
+-- vim.opt.errorformat = table.concat({
+--   "%f:%l:%c: %t%*[^:]: %m",   -- clang/gcc style
+--   "%f:%l:%c: %m",             -- fallback
+--   "%f:%l:%m",
+--   "%f(%l): %m",
+--
+--   -- "%-G%[%*[^]]%]% %m",        -- ignore [n/m] ninja progress
+--   "%-G%*[^]] %m",
+--
+--   "%-G-- %m",                 -- ignore cmake status
+--   "%E-- %m",                  -- optional: include cmake info as entries
+-- }, ",")
+
+--[[vim.opt.errorformat = table.concat({
+  -- ✅ Clang/GCC style errors & warnings
+  "%f:%l:%c: %t%*[^:]: %m",   -- file:line:col: error|warning: message
+  "%f:%l:%c: %m",             -- fallback with no type
+  "%f:%l:%m",                 -- fallback with no col
+  "%f(%l): %m",               -- MSVC-style fallback
+
+  -- ⚙️ Ninja progress lines like [1/10] … (ignored)
+  "%-G%*[^:]: Building%*[^:]",
+
+  -- ⚙️ Generic Ninja/CMake info lines (ignored)
+  "%-G-- %m",                 -- CMake status lines
+  "%-G%*[^:]: Linking%*[^:]", -- linker progress
+
+  -- 🏗️ Optional: include CMake “done” messages as quickfix entries
+  "%E-- %m",                  -- CMake entries if you want them in qf
+
+  -- "%-G%*[^:]: note%*[^:]",     -- Clang notes
+}, ",")]]--
+
+vim.opt.errorformat = table.concat({
+  -- ✅ Clang/GCC style errors & warnings
+  "%f:%l:%c: %t%*[^:]: %m",   -- file:line:col: error|warning: message
+  "%f:%l:%c: %m",             -- fallback with no type
+  "%f:%l:%m",                 -- fallback with no col
+  "%f(%l): %m",               -- MSVC-style fallback
+  "%-G%*[^:]: note%*[^:]",     -- Clang notes (ignored for type but preserved)
+
+  -- ⚙️ Ninja progress lines
+  "%-G%*[^:]: Building%*[^:]", -- [n/m] Building…
+  "%-G%*[^:]: Linking%*[^:]",  -- Linking…
+
+  -- ⚙️ CMake informational lines
+  "%-G-- %m",                  -- CMake status lines like -- Configuring done
+  "%-G-- Build files have been written", -- explicit CMake completion line
+  "%-G-- Generating done",      -- optional
+  "%E-- %m",                   -- include as quickfix entry if desired
+
+  -- 🏗️ Optional: everything else fallback
+  "%f:%l%m",                   -- generic fallback
+}, ",")
+
+
+-- Display the quickfix list in a floating window:
+--[[vim.fn.setqflist({}, "r", {lines = vim.fn.getqflist()})
+vim.api.nvim_open_win(vim.fn.getqflist(), true, {
+  relative = "editor",
+  width = 80,
+  height = 15,
+  row = 3,
+  col = 10,
+  style = "minimal",
+  border = "single"
+})]]--
+
 
 

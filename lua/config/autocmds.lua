@@ -36,23 +36,55 @@ local util = require("utilities")
 -- vim.cmd([[autocmd BufWinEnter * set nocursorline nocursorcolumn]])
 
 
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "qf",
---   callback = function()
---     vim.cmd("setlocal linebreak")
---   end,
--- })
+--[[vim.api.nvim_create_autocmd("FileType", {
+  pattern = "qf",
+  callback = function()
+    vim.cmd("setlocal linebreak")
+  end,
+})]]--
 
-vim.api.nvim_create_autocmd("BufWinEnter", {
+--[[vim.api.nvim_create_autocmd("BufWinEnter", {
   callback = function()
     if vim.bo.filetype == "qf" then
       vim.cmd("setlocal linebreak")
     end
   end,
+})]]--
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "qf",
+  callback = function()
+    vim.opt_local.wrap = true          -- enable line wrapping
+    vim.opt_local.linebreak = true     -- wraps at word boundaries
+    vim.opt_local.list = false         -- disable listchars like ^M
+    vim.opt_local.showbreak = "↪ "     -- continuation marker
+
+    -- Indents wrapped lines to visually align with the start of the text.
+    -- vim.opt_local.breakindent = true
+
+    -- Fine-tune the indentation of wrapped lines
+    -- shift:N → extra spaces to indent wrapped lines
+    -- min:N → minimum indentation of wrapped lines
+    -- sbr → take showbreak into account
+    -- vim.opt_local.breakindentopt = "shift:2,min:20,sbr"
+  end
 })
 
 
 -----------------------------------------------------------------------------
+
+-- QuickFixList highlights
+-- vim.cmd([[highlight QuickFixLine guibg=#222222 guifg=#FFD700]])
+
+-- Automatically open quickfix list after its populated/updated
+-- vim.cmd [[
+--   augroup QC
+--     autocmd!
+--     autocmd QuickFixCmdPost * cwindow
+--   augroup END
+-- ]]
+
+
 
 --7AA62C --BD5637
 vim.cmd [[

@@ -299,5 +299,18 @@ end
 -- Create a user command to call the function
 -- vim.api.nvim_create_user_command('CloseEmptyBuffers', function() M.close_empty_buffers end, { desc = 'Close all empty buffers' })
 
+-- Removes the carriage return character "\r" or shown as "^M"
+function M.remove_carriage_returns(lines)
+  -- local clean = {}
+  -- for _, line in ipairs(lines) do
+  --   table.insert(clean, line:gsub("\r$", ""))
+  -- end
+  local clean = vim.tbl_map(function(line)
+    return line:gsub("\r$", "")
+  end, lines)
+  return clean
+  -- return lines:gsub("\r$", "")
+end
+
 
 return M
