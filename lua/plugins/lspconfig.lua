@@ -148,6 +148,12 @@ return {
       -- https://neovim.io/doc/user/diagnostic.html
       -- https://neovim.io/doc/user/quickfix.html#quickfix
 
+      -- vim.diagnostic.setqflist({
+      --   diagnostics = vim.diagnostic.get(0),
+      --   open = true,
+      --   title = "Current Buffer Diagnostics"
+      -- })
+
       vim.keymap.set('n', '<leader>ds', vim.diagnostic.setloclist, { desc = 'Open LSP diagno[S]tic' })
       --vim.keymap.set('n', '<leader>dq', vim.diagnostic.setqflist, { desc = 'Open diagnostic [Q]uickfix list' })
       vim.keymap.set('n', '<leader>da', vim.diagnostic.setqflist, { desc = 'Open [A]ll LSP diagnostic' })

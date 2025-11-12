@@ -2,6 +2,12 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+-- NOTE: The local(location) list can be opened with :lopen
+-- While the global(quickfix) list can be opened with :copen
+-- You can navigate it quickly with
+-- :cnext, :cprev, :lnext, :lprev
+-- ]q      [q      ]l      [l
+
 -- <C-k> used for window navigation
 -- map("n", "<C-k>", function()
 --   vim.lsp.buf.hover({

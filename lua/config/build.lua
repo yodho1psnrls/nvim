@@ -120,6 +120,10 @@ local function has_qf_diagnostics()
   return false
 end
 
+-- This is very important to check, because if you have an important warning
+-- and compile again, the next qflist will populate with no work to do,
+-- which will leave the warning shown in the previous qflist entry,
+-- which will not trigger has_qf_diagnostics, and you may not notice the warning
 local function build_has_work(lines)
   for _, line in ipairs(lines) do
     -- skip empty lines
