@@ -62,6 +62,7 @@ vim.schedule(function()
   require "config.build"
   require "config.whichwrap"
   --require "config.recent_buffers"
+  require "config.compiler_profiling"
 end)
 
 

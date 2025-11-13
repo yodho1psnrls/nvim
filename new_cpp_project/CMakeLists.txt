@@ -37,6 +37,20 @@ project(MyProject)
 #endif()
 
 
+# Generates json files which you can view in the browser
+# to profile what takes most time to compile for heavy template code
+# It is generated in Root\Release\src\CMakeFiles\proj.dir\main.cpp.json
+# Then in the browser go to either chrome://tracing or edge://tracing
+# Then from there on the top left press the Load button and find the file
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-trace") # json file output (Clang)
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-report") # txt file output (GCC and Clang)
+
+# Or you can manually run it with
+# cmake -DCMAKE_CXX_FLAGS="-ftime-trace" .
+# ninja
+# ClangBuildAnalyzer --analyze .  # combines all cpp files jsons into one ranked list
+
+
 # Set compiler flags for Debug builds
 set(CMAKE_C_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
