@@ -7,6 +7,14 @@ REM SpeedScope Launcher Usage:
 REM   - Without arguments: just open Speedscope index.html
 REM   - With JSON file: visualize it
 REM --------------------------------------
+REM set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-trace") # json file output (Clang)
+REM set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-report") # txt file output (GCC and Clang)
+REM Generates json files which you can view in the browser
+REM to profile what takes most time to compile for heavy template code
+REM It is generated in Root\Release\src\CMakeFiles\proj.dir\main.cpp.json
+REM Then in the browser go to either chrome://tracing or edge://tracing
+REM Then from there on the top left press the Load button and find the file
+REM --------------------------------------
 
 REM SETLOCAL
 
@@ -51,14 +59,15 @@ REM Start Python HTTP server in background
 REM Using python opens new console, Using pythonw runs it hidden
 REM start "" python -m http.server 8000
 REM start "" pythonw -m http.server 8000
-REM start "" python -m http.server 8000 --bind 127.0.0.1
-start "" pythonw -m http.server 8000 --bind localhost
+start "" pythonw -m http.server 8000 --bind 127.0.0.1
+REM start "" pythonw -m http.server 8000 --bind localhost
 
 REM Give the server a moment to start
 REM timeout /t 2 /nobreak >nul
 
 REM Launch Edge in InPrivate with the profile
-start "" "msedge" "--inprivate" "http://localhost:8000/index.html#profileURL=http://localhost:8000/to_visualize.json"
+REM start "" "msedge" "--inprivate" "http://localhost:8000/index.html#profileURL=http://localhost:8000/to_visualize.json"
+start "" "msedge" "--inprivate" "http://127.0.0.1:8000/index.html#profileURL=http://127.0.0.1:8000/to_visualize.json"
 
 POPD
 REM ENDLOCAL
