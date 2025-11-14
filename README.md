@@ -1,6 +1,8 @@
 # nvim-config
 my nvim config, enhanced for c++, shaders, and python development
 
+Run :checkhealth vim.deprecated regularly
+
 Links that may come in handy:
 https://www.reddit.com/r/neovim/comments/1crdv93/neovim_on_windows_using_windows_terminal_and/
 

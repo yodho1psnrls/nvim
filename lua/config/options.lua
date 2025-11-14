@@ -8,7 +8,7 @@
 -- BUG:
 -- This places a second border on top of windows that already have a border
 --  like Telescope and Lazy windows
--- vim.o.winborder = 'rounded'
+-- vim.o.winborder = 'rounded' -- doesnt affect much
 
 -- Folding options
 -- zc folds by method, h or l on the folded line, unfolds it
@@ -58,7 +58,7 @@ vim.opt.fillchars:append({fold = " "})
 
 -- vim.o.signcolumn = 'no' -- Hide the sign column
 vim.o.signcolumn = 'auto' -- Hide the sign column, when not needed
--- vim.o.signcolumn = 'yes'
+-- vim.o.signcolumn = 'yes' -- Keep signcolumn on by default
 -- vim.o.signcolumn = 'number' -- Draw Signs in the number column
 
 
@@ -117,8 +117,6 @@ vim.opt.undofile = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
--- Keep signcolumn on by default
--- vim.opt.signcolumn = 'yes'
 
 -- Decrease update time
 vim.opt.updatetime = 250
@@ -245,7 +243,7 @@ o.updatetime = 250
 -- when cursor reaches end/beginning of line
 -- you need to feed it all the keys appended one after another
 opt.whichwrap:append "<>[]hl"
-
+--opt.whichwrap:append "<C-h><C-l>" -- Illegal to have <C-*> here
 
 
 -- disable some default providers

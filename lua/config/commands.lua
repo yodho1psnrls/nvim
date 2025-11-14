@@ -165,6 +165,7 @@ vim.api.nvim_set_hl(0, "NotesBorderModified", { fg = "#888888", bg = "NONE" })
 -- vim.api.nvim_set_hl(0, "NotesBorderModified", { fg = "#FFFFA5", bg = "NONE" })
 vim.api.nvim_set_hl(0, "NotesBorderSaved", { fg = "#ffffff", bg = "NONE" }) -- White
 
+-- NOTE: This replaces the 'forest-nvim/maple.nvim' completely
 function OpenNotes()
   -- local file = "notes.txt"
   -- local file = "./notes.txt"
@@ -272,4 +273,28 @@ end
 
 vim.api.nvim_create_user_command('Notes', OpenNotes, {})
 
+------------------------------------------------------------------
+
+-- NOTE: This replaces the nvim-conform plugin
+local function format_buffer(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  local clients = vim.lsp.get_clients({ bufnr = bufnr })
+  if #clients == 0 then return end
+
+  -- Format using the first attached client that supports formatting
+  for _, client in ipairs(clients) do
+    if client:supports_method("textDocument/formatting") then
+      vim.lsp.buf.format({
+        bufnr = bufnr,
+        async = false,  -- wait for format before saving
+        filter = function(c) return c.id == client.id end,  -- only this client
+      })
+      return
+    end
+  end
+end
+
+vim.api.nvim_create_user_command('Format', format_buffer, {})
+vim.keymap.set('n', "<leader>f", format_buffer,
+  {desc = "Format Current Buffer", silent = true, noremap = true})
 

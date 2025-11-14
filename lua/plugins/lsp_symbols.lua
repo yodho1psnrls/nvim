@@ -1,11 +1,13 @@
 -- Alternatives:
 --  https://neovimcraft.com/plugin/Wansmer/symbol-usage.nvim/
+--  NOTE: This is a plugin which shows a window which gives you
+--  all lsp-based symbols in the current file like functions and classes
 
 return {
   {
     "simrat39/symbols-outline.nvim",
     dependencies = {
-      "neovim/nvim-lspconfig"
+      -- "neovim/nvim-lspconfig"
     },
     lazy = true,
     keys = {

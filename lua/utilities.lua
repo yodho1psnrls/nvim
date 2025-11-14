@@ -44,7 +44,7 @@ function M.close_empty_buffers()
 end
 
 
-function M.get_project_root()
+--[[function M.get_project_root()
   -- Get all LSP clients for the current buffer
   -- https://stackoverflow.com/questions/76518562/looking-for-current-buffer-lsp-clients
   -- local bufnr = vim.api.nvim_get_current_buf()
@@ -64,8 +64,21 @@ function M.get_project_root()
 
   --return nil
   return vim.fn.getcwd()
-end
+end]]--
 
+function M.get_project_root(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  local clients = vim.lsp.get_clients({ bufnr = bufnr })
+
+  -- pick the first client that has a root_dir
+  for _, client in ipairs(clients) do
+    if client.config.root_dir then
+      return client.config.root_dir
+    end
+  end
+
+  return vim.fn.getcwd() -- fallback to cwd
+end
 
 function M.safe_require(module_name)
   if not package.loaded[module_name] then

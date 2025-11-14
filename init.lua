@@ -27,6 +27,17 @@ require "config.options"
 require("config.lazy")
 require("lazy").setup("plugins")
 
+require("config.lsp_settings")
+-- require("lsp")
+vim.lsp.enable({
+  'lua_ls',
+  'clangd',
+  'pylsp',
+  'ts_ls',
+  'cssls',
+  'html',
+  'eslint'
+})
 
 --opts.rocks.enabled = false
 
@@ -37,8 +48,6 @@ require("lazy").setup("plugins")
 })]]--
 
 
-
-
 -- Load additional configurations
  -- require "config.options"
 require "config.autocmds"
@@ -46,15 +55,11 @@ require "config.commands"
 --require "config.mappings"
 require "config.border"
 
-
-
 -- load theme (if necessary for your setup)
 --dofile(vim.g.base46_cache .. "defaults")
 --dofile(vim.g.base46_cache .. "statusline")
 
-
 ---------------------------------
-
 
 -- Schedule mappings to be loaded after all configurations
 vim.schedule(function()

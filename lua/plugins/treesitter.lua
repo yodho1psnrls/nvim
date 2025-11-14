@@ -8,12 +8,12 @@ return {
     lazy = true,
     event = "LspAttach",
 
-    -- Make the sticky headers load, when treesitter is loaded
+    -- NOTE: Make the sticky headers load, when treesitter is loaded
     -- These are not dependencies, but just plugins which are lazy loaded
     -- when treesitter gets loaded
     dependencies = {
       "nvim-treesitter/nvim-treesitter-context",
-      "lukas-reineke/indent-blankline.nvim",
+      -- "lukas-reineke/indent-blankline.nvim",
     },
 
     build = ':TSUpdate',
