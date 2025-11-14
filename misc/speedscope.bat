@@ -53,21 +53,47 @@ IF ERRORLEVEL 1 (
 )
 
 REM Change directory to Speedscope folder
-PUSHD "%SCOPE_DIR%"
+REM PUSHD "%SCOPE_DIR%"
 
 REM Start Python HTTP server in background
 REM Using python opens new console, Using pythonw runs it hidden
 REM start "" python -m http.server 8000
 REM start "" pythonw -m http.server 8000
-start "" pythonw -m http.server 8000 --bind 127.0.0.1
 REM start "" pythonw -m http.server 8000 --bind localhost
+REM start "" python -m http.server 8000 --bind 127.0.0.1
 
-REM Give the server a moment to start
+REM You can check all processes on a specific port with "netstat -ano | findstr :8000"
+REM Kill any existing python launched server on that port
+REM for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8080') do taskkill /PID %%a /F
+REM Silent Version
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8080') do taskkill /PID %%a /F >nul 2>&1
+
+REM echo Serving from "%~dp0\.."
+start "" /B pythonw -m http.server 8080 --bind 127.0.0.1 --directory "%~dp0\.."
+
+
+REM Wait a moment for the process to start
+REM timeout /t 1 >nul
+REM Get the most recent pythonw PID
+REM for /f "tokens=2 delims=," %%p in ('tasklist /FI "IMAGENAME eq pythonw.exe" /FO CSV /NH') do (
+REM     set "PY_PID=%%~p"
+REM )
+REM Strip quotes
+REM set "PY_PID=%PY_PID:"=%"
+REM echo [INFO] PID of pythonw server: %PY_PID%
+
+
+REM Give the server a moment to start, before launching the browser
 REM timeout /t 2 /nobreak >nul
 
 REM Launch Edge in InPrivate with the profile
 REM start "" "msedge" "--inprivate" "http://localhost:8000/index.html#profileURL=http://localhost:8000/to_visualize.json"
-start "" "msedge" "--inprivate" "http://127.0.0.1:8000/index.html#profileURL=http://127.0.0.1:8000/to_visualize.json"
+start "" "msedge" "--inprivate" "http://127.0.0.1:8080/index.html#profileURL=http://127.0.0.1:8080/to_visualize.json"
 
-POPD
+
+REM Optional: wait few seconds and then kill server
+REM timeout /t 2 >nul
+REM if defined PY_PID taskkill /PID %PY_PID% /F >nul 2>&1
+
+REM POPD
 REM ENDLOCAL
