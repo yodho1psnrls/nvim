@@ -316,7 +316,25 @@ vim.api.nvim_create_autocmd('LspAttach', {
       vim.lsp.completion.enable(true, client.id, ev.buf, {
         autotrigger = true,
         convert = function(item)
-          return { abbr = item.label:gsub('%b()', '') }
+          return {
+            -- abbr = item.label -- What appears in the popup
+            --   :gsub('%b()', ''), -- functionName(int x, int y)" → "functionName"
+            word = item.label -- What gets inserted
+              :gsub("^%s+", ""), -- trim leading spaces (Clangd gives such spaces in front)
+
+            dup = 0, -- duplication behavior (1 or 0)
+            -- detail = item.detail or "", -- rigth-side annotation (signature or type)
+            -- menu = "[" .. client.name .. "]", -- Optional (usually shows sources)
+
+            -- kind, -- the type icon
+            -- menu, -- right-side annotation
+            -- index -- ordering hint
+
+            -- filterText - What text filtering uses
+            -- sortText	- Custom sorting
+            -- insertText	- Override insertion behavior
+            -- textEdit	- Replace custom range
+          }
         end
       })
     end
@@ -340,6 +358,19 @@ vim.api.nvim_create_autocmd("InsertCharPre", {
     -- vim.fn.feedkeys("<C-x><C-o>") -- Also triggers omnifunc
   end,
 })
+
+
+-- Trim leading spaces (Clang adds on space in front of completion items)
+-- Hacky way of doing it, It is now replaced by the convert entry in vim.lsp.completion.enable
+--[[vim.lsp.handlers["textDocument/completion"] = function(err, result, ctx, config)
+  if result and result.items then
+    for _, item in ipairs(result.items) do
+      item.label = item.label:gsub("^%s+", "")  -- remove leading spaces
+    end
+  end
+
+  return vim.lsp.handlers["textDocument/completion"](err, result, ctx, config)
+end]]--
 
 
 -- NOTE:
