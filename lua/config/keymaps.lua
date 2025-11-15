@@ -2,6 +2,9 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+-- NOTE:
+-- vim.cmd("wincmd p")  -- bounce back to previous window
+
 -- NOTE: The local(location) list can be opened with :lopen
 -- While the global(quickfix) list can be opened with :copen
 -- You can navigate it quickly with

@@ -8,6 +8,19 @@
 -- https://www.reddit.com/r/neovim/comments/1l4d2dg/how_to_use_the_new_approach_to_lsp_configs_in_011x/
 -- https://www.reddit.com/r/neovim/comments/1d9gzud/lsp_and_semantic_tokens_yay_or_nay/
 
+-- NOTE: vim.lsp.with is deprecated
+-- vim.lsp.handlers["..."] = ... is also deprecated for client to server responses !
+-- Thats why vim.lsp.handlers[textDocument/signatureHelp] = vim.lsp.with(vim.lsp.handlers.signature_help, { list of options }
+-- and vim.lsp.handlers["textDocument/hover"] = function(err, result, ctx, config) or { list of options }
+-- no longer work, and instead you should give those options in the function that calls them explicitly
+-- Thats the reason why after updating to nvim 0.11 there were no borders on some pop-up windows
+-- See:
+-- https://github.com/neovim/neovim/issues/33269#issuecomment-2771417429
+-- https://www.reddit.com/r/neovim/comments/1jcjg6v/how_to_override_lsp_handlers_in_011/
+-- https://www.reddit.com/r/neovim/comments/1jbegzo/comment/mhtsy98/?utm_source=share&utm_medium=mweb3x&utm_name=mweb3xcss&utm_term=1&utm_content=share_button
+-- https://www.reddit.com/r/neovim/comments/1jmsl3j/switch_to_011_now_not_showing_borders_on/
+
+
 local util = require("utilities")
 
 local M = {}
@@ -16,7 +29,12 @@ local M = {}
 --   triggerCharacters = {"(", ","},  -- override or add triggers
 -- }
 
-M.flags = { debounce_text_changes = 150 }
+-- M.flags = { debounce_text_changes = 150 }
+
+-- M.handlers = {
+--   -- Same usage as vim.lsp.handlers["textDocument/signatureHelp"] = ...
+--   ["textDocument/signatureHelp"] = ...
+-- }
 
 M.on_attach = function(_, bufnr)
   local map = vim.keymap.set
@@ -82,6 +100,9 @@ M.capabilities.textDocument.foldingRange = {
 
 M.capabilities.textDocument.semanticTokens.multilineTokenSupport = true
 
+-- Since we register and trigger it manually, we dont want the lsp to override it
+-- M.capabilities.textDocument.signatureHelp.dynamicRegistration = false
+
 vim.lsp.config('*', {
   root_markers = { '.git' },
   -- capabilities = {
@@ -94,6 +115,7 @@ vim.lsp.config('*', {
   on_attach = M.on_attach,
   on_init = M.on_init,
   capabilities = M.capabilities,
+  -- handlers = M.handlers,
 })
 
 
@@ -409,6 +431,7 @@ end]]--
 -- Configuration for the command line autocompletion setting
 -- https://www.reddit.com/r/vim/comments/qltep/what_is_your_wildmode_setting_and_why/
 vim.o.wildmode = "list:longest,list:full"
+-- vim.o.wildoptions
 
 -- https://www.reddit.com/r/neovim/comments/1mglgn4/simple_native_autocompletion_with_autocomplete/
 
@@ -475,6 +498,7 @@ end, { expr = true })
 -- noinsert - do not insert until confirmation
 -- nearest - sorts completion results by distance to cursor -- https://github.com/neovim/neovim/blob/nightly/runtime/doc/news.txt#L297
 vim.o.completeopt = "menu,menuone,noselect,fuzzy,nearest"
+-- vim.o.showmatch = true -- Default is true (Show the selected word)
 
 vim.o.complete = ".,o" -- use buffer and omnifunc
 -- Omnifunc is part of neovim's native omnicompletion
@@ -499,18 +523,55 @@ vim.api.nvim_set_hl(0, 'PmenuBorder', { fg = 'White' })
 ----------------------------- SIGNATURE_HELP ------------------------------------
 -- https://www.reddit.com/r/neovim/comments/ocup0d/how_can_i_make_nvimlsp_signaturehelp_to_stick/
 -- https://neovim.discourse.group/t/show-signature-help-on-insert-mode/2007/5
+-- NOTE: :help lsp-handler
 
 -- https://www.reddit.com/r/neovim/comments/vbsryc/show_lsp_signature_help_window_above_cursor/
-vim.lsp.handlers["textDocument/signatureHelp"] =
+-- https://github.com/askfiy/nvim/commit/395fb842ea3441fd69d6cb1e96c6f78d9bc19edb
+--[[local function lsp_signature_help(_, result, ctx, config)
+  -- Add file type for LSP signature help
+  local bufnr, winner = vim.lsp.handlers.signature_help(_, result, ctx, config)
+
+  -- Put the signature floating window above the cursor
+  vim.api.nvim_win_set_config(winner, {
+    anchor = "SW",
+    relative = "cursor",
+    row = 0,
+    col = 0
+  })
+
+  if bufnr and winner then
+    vim.api.nvim_buf_set_option(bufnr, "filetype", config.filetype)
+    return bufnr, winner
+  end
+end
+
+-- 🔥 Register your custom handler globally
+vim.lsp.handlers["textDocument/signatureHelp"] = lsp_signature_help]]--
+
+-- https://www.reddit.com/r/neovim/comments/vbsryc/show_lsp_signature_help_window_above_cursor/
+--[[vim.lsp.handlers["textDocument/signatureHelp"] =
 vim.lsp.with(vim.lsp.handlers.signature_help, {
   -- border = "single",
   border = "rounded",
   silent = true,
   focusable = false, -- Enable focusing the window
-  focus = false, -- Does it focus on show
+  -- focus = false, -- Does it focus on show
   -- max_width = 80,
   -- max_height = 15,
-})
+  -- reuse_win = true, -- Doesnt exist such option
+})]]--
+
+-- NOTE: Debugging
+--[[vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    if client and client.server_capabilities.signatureHelpProvider then
+      -- vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+      print("Has Signature Help Provider")
+      print(vim.inspect(debug.getinfo(vim.lsp.handlers["textDocument/signatureHelp"])))
+    end
+  end,
+})]]--
 
 -- NOTE: Now it gets triggered by treesitter, see its config file !
 
@@ -567,26 +628,6 @@ vim.lsp.with(vim.lsp.handlers.signature_help, {
 
   end
 })]]--
-
--- https://www.reddit.com/r/neovim/comments/vbsryc/show_lsp_signature_help_window_above_cursor/
--- https://github.com/askfiy/nvim/commit/395fb842ea3441fd69d6cb1e96c6f78d9bc19edb
---[[local function lsp_signature_help(_, result, ctx, config)
-  -- Add file type for LSP signature help
-  local bufnr, winner = vim.lsp.handlers.signature_help(_, result, ctx, config)
-
-  -- Put the signature floating window above the cursor
-  vim.api.nvim_win_set_config(winner, {
-    anchor = "SW",
-    relative = "cursor",
-    row = 0,
-    col = 0
-  })
-
-  if bufnr and winner then
-    vim.api.nvim_buf_set_option(bufnr, "filetype", config.filetype)
-    return bufnr, winner
-  end
-end]]--
 
 ----------------------------- INLAY-HINTS ------------------------------------
 

@@ -119,7 +119,7 @@ vim.opt.smartcase = true
 
 
 -- Decrease update time
-vim.opt.updatetime = 250
+vim.opt.updatetime = 250 -- Default is 4000
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner

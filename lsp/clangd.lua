@@ -22,9 +22,10 @@ return {
 
     -- To support Inlay Hints
     -- "--inlay-hints",            -- enables hints globally (Obsolete and Ignored !)
-    "--header-insertion=never", -- (Optional) Disable Unused Header Warning, But for some reason, it has no effect
+    -- "--header-insertion=never", -- iwyu, never, always (Optional) Disable Unused Header Warning, But for some reason, it has no effect
     "--completion-style=detailed", -- nicer completion + hints
-    "--function-arg-placeholders=true",  -- more useful hints
+    "--function-arg-placeholders=false",  -- Set to true for Inlay Hints
+    -- "--fallback-style=none", -- Controls clang-format style fallback. Other options: LLVM, Google, Mozilla, WebKit, ...
 
     -- Disable all clang-tidy checks, enabling only this specific check, which warns about deprecated c headers
     -- "--clang-tidy-checks=-*,modernize-deprecated-headers",

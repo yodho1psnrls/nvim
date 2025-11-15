@@ -51,7 +51,8 @@ return {
       -- local ts = vim.treesitter
       local ts_utils = require("nvim-treesitter.ts_utils")
       -- NOTE: Trigger signature_help automatc trigger when inside a function call
-      vim.api.nvim_create_autocmd("CursorMovedI", {
+      vim.api.nvim_create_autocmd("CursorHoldI", {
+      -- vim.api.nvim_create_autocmd({"CursorMovedI", "TextChangedI"}, {
         callback = function()
           -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
           -- if not ts_utils then return end
@@ -62,7 +63,14 @@ return {
           -- Traverse up the tree to see if we are inside an argument list of a call
           while node do
             if node:type() == "argument_list" or node:type() == "call_expression" then
-              vim.lsp.buf.signature_help()
+              vim.lsp.buf.signature_help({
+                border = 'rounded',
+                focusable = false, -- Can you focus it with a mouse
+                focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+                silent = true,
+                max_height = 3,
+              })
+              -- vim.schedule(function() vim.lsp.buf.signature_help() end)
               return
             end
             node = node:parent()
