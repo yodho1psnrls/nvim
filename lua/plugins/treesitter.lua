@@ -40,34 +40,37 @@ return {
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 
-
-    -- Lazy load it on LspAttach
-    --[[
     config = function(_, opts)
+      require('nvim-treesitter.configs').setup(opts)
+      -- require('nvim-treesitter').setup(opts)
+      -- vim.g.indent_blankline_use_treesitter = true
+      -- vim.g.indent_blankline_show_current_context = true
 
-      local function on_attach(_, _)
-        require('nvim-treesitter.configs').setup(opts)
-      end
+      -- NOTE: LSP Signature Help Autotrigger Logic based on treesitter
 
-      vim.api.nvim_create_autocmd("LspAttach", {
-        callback = on_attach,
+      -- local ts = vim.treesitter
+      local ts_utils = require("nvim-treesitter.ts_utils")
+      -- NOTE: Trigger signature_help automatc trigger when inside a function call
+      vim.api.nvim_create_autocmd("CursorMovedI", {
+        callback = function()
+          -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
+          -- if not ts_utils then return end
+
+          local node = ts_utils.get_node_at_cursor()
+          if not node then return end
+
+          -- Traverse up the tree to see if we are inside an argument list of a call
+          while node do
+            if node:type() == "argument_list" or node:type() == "call_expression" then
+              vim.lsp.buf.signature_help()
+              return
+            end
+            node = node:parent()
+          end
+        end,
       })
 
-    end,
-    ]]--
-
-    --[[-- config = function()
-    config = function(_, opts)
-      require('nvim-treesitter').setup(opts)
-      require('nvim-treesitter.configs').setup {
-        indent = {
-          enable = true
-        }
-      }
-      vim.g.indent_blankline_use_treesitter = true
-      vim.g.indent_blankline_show_current_context = true
-    end]]--
-
+    end
   },
 
 --[[

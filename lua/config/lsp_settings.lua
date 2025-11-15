@@ -8,8 +8,15 @@
 -- https://www.reddit.com/r/neovim/comments/1l4d2dg/how_to_use_the_new_approach_to_lsp_configs_in_011x/
 -- https://www.reddit.com/r/neovim/comments/1d9gzud/lsp_and_semantic_tokens_yay_or_nay/
 
+local util = require("utilities")
 
 local M = {}
+
+-- M.signatureHelpProvider = { -- Most LSPs already define it that way
+--   triggerCharacters = {"(", ","},  -- override or add triggers
+-- }
+
+M.flags = { debounce_text_changes = 150 }
 
 M.on_attach = function(_, bufnr)
   local map = vim.keymap.set
@@ -133,7 +140,7 @@ vim.diagnostic.config({
   },]]--
 
   underline = true,
-  update_in_insert = true,
+  update_in_insert = false,
   severity_sort = true,
   -- signs = true, -- true
   signs = {
@@ -304,23 +311,26 @@ set_rounded_border("textDocument/signatureHelp")
 set_rounded_border("textDocument/codeAction")]]--
 
 ----------------------------- COMPLETION ------------------------------------
+-- https://vi.stackexchange.com/questions/46700/is-the-new-built-in-neovim-autocompletion-replacing-completion-plugins-like-nvim
 
 -- Completion and SignatureHelp
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(ev)
     local client = vim.lsp.get_client_by_id(ev.data.client_id)
     if client == nil then return end
+    -- local kinds = vim.lsp.protocol.CompletionItemKind
 
     -- Autocompletion from the lsp
     if client:supports_method('textDocument/completion') then
       vim.lsp.completion.enable(true, client.id, ev.buf, {
-        autotrigger = true,
+        -- autotrigger = true,
         convert = function(item)
           return {
             -- abbr = item.label -- What appears in the popup
             --   :gsub('%b()', ''), -- functionName(int x, int y)" → "functionName"
             word = item.label -- What gets inserted
               :gsub("^%s+", ""), -- trim leading spaces (Clangd gives such spaces in front)
+              -- .. ((item.kind == kinds.Function or item.kind == kinds.Method) and "(" or ""),
 
             dup = 0, -- duplication behavior (1 or 0)
             -- detail = item.detail or "", -- rigth-side annotation (signature or type)
@@ -351,11 +361,33 @@ vim.api.nvim_create_autocmd('LspAttach', {
 })
 
 -- NOTE: Forse trigger autocompletion on every character insert
+-- vim.api.nvim_create_autocmd("InsertCharPre", {
+--   callback = function()
+--     vim.lsp.completion.get()
+--     -- BUG: TRIGGERS A FREEZE !!!
+--     -- vim.fn.feedkeys("<C-x><C-o>") -- Also triggers omnifunc
+--   end,
+-- })
+
+-- NOTE: Trigger autocompletion on every character insert
+-- Only if a certain number of characters are inserted
 vim.api.nvim_create_autocmd("InsertCharPre", {
   callback = function()
-    vim.lsp.completion.get()
-	-- BUG: TRIGGERS A FREEZE !!!
-    -- vim.fn.feedkeys("<C-x><C-o>") -- Also triggers omnifunc
+    local min_chars = 3 - 1
+    local col = vim.fn.col(".") - 1  -- current column (0-based)
+    if col < min_chars then return end        -- require at least 3 characters
+
+    local line = vim.api.nvim_get_current_line()
+    local prefix = line:sub(1, col) -- text before cursor
+
+    -- local prefix = "foo.bar."
+    -- print(prefix:match("%W+$")) -- prints "."
+
+    local last_char = prefix:sub(-1)
+    local word = prefix:match("%w+$") or ""
+    if #word >= min_chars or last_char == "." then
+      vim.lsp.completion.get()
+    end
   end,
 })
 
@@ -373,10 +405,9 @@ vim.api.nvim_create_autocmd("InsertCharPre", {
 end]]--
 
 
--- NOTE:
--- https://www.reddit.com/r/vim/comments/qltep/what_is_your_wildmode_setting_and_why/
--- Configuration for the command line autocompletion setting
 --[[
+-- Configuration for the command line autocompletion setting
+-- https://www.reddit.com/r/vim/comments/qltep/what_is_your_wildmode_setting_and_why/
 vim.o.wildmode = "list:longest,list:full"
 
 -- https://www.reddit.com/r/neovim/comments/1mglgn4/simple_native_autocompletion_with_autocomplete/
@@ -442,7 +473,8 @@ end, { expr = true })
 -- noselect - do not select first item
 -- fuzzy - fuzzy find sugestions
 -- noinsert - do not insert until confirmation
-vim.o.completeopt = "menu,menuone,noselect,fuzzy"
+-- nearest - sorts completion results by distance to cursor -- https://github.com/neovim/neovim/blob/nightly/runtime/doc/news.txt#L297
+vim.o.completeopt = "menu,menuone,noselect,fuzzy,nearest"
 
 vim.o.complete = ".,o" -- use buffer and omnifunc
 -- Omnifunc is part of neovim's native omnicompletion
@@ -457,7 +489,7 @@ vim.bo.omnifunc = "v:lua.vim.lsp.omnifunc"
 -- https://stackoverflow.com/questions/19580157/to-hide-user-defined-completion-message-at-vim
 vim.o.shortmess = vim.o.shortmess .. "c" -- Hide "User defined completion" messages at every completion selection
 
-vim.o.pumborder = 'rounded'
+vim.o.pumborder = 'rounded' -- Requires nvim 0.12
 vim.o.pumblend = 15 -- 0 fully opaque to 100 fully transparent
 vim.api.nvim_set_hl(0, "PmenuSel", { blend = 0 }) -- different opacity for selected item
 
@@ -465,8 +497,26 @@ vim.api.nvim_set_hl(0, "PmenuSel", { blend = 0 }) -- different opacity for selec
 vim.api.nvim_set_hl(0, 'PmenuBorder', { fg = 'White' })
 
 ----------------------------- SIGNATURE_HELP ------------------------------------
+-- https://www.reddit.com/r/neovim/comments/ocup0d/how_can_i_make_nvimlsp_signaturehelp_to_stick/
+-- https://neovim.discourse.group/t/show-signature-help-on-insert-mode/2007/5
 
-vim.api.nvim_create_autocmd('LspAttach', {
+-- https://www.reddit.com/r/neovim/comments/vbsryc/show_lsp_signature_help_window_above_cursor/
+vim.lsp.handlers["textDocument/signatureHelp"] =
+vim.lsp.with(vim.lsp.handlers.signature_help, {
+  -- border = "single",
+  border = "rounded",
+  silent = true,
+  focusable = false, -- Enable focusing the window
+  focus = false, -- Does it focus on show
+  -- max_width = 80,
+  -- max_height = 15,
+})
+
+-- NOTE: Now it gets triggered by treesitter, see its config file !
+
+-- BUG: LSP Signature Help Autotrigger Logic based on InsertChar AutoCmd
+-- , but it uses vim.keymap.set which interferes with other keybindings
+--[[vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(ev)
     -- local client = vim.lsp.get_client_by_id(ev.data.client_id)
     -- if client == nil then return end
@@ -475,20 +525,73 @@ vim.api.nvim_create_autocmd('LspAttach', {
     -- Signature help keymap
     -- vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts "Signature help")
     -- Signature help autotrigger
-    vim.keymap.set("i", "(", function()
+
+    -- vim.keymap.set("i", "(", function() -- BUG: autopairs dont trigger ()
+    --   vim.lsp.buf.signature_help()
+    --   return "(" -- needs expr=true to evaluate the return of the function
+    -- end, { buffer=bufnr, expr=true, silent=true, remap=true})
+    -- vim.keymap.set("i", ",", function()
+    --   vim.lsp.buf.signature_help()
+    --   return "," -- needs expr=true to evaluate the return of the function
+    -- end, { buffer=bufnr, expr=true, silent=true, remap=true})
+
+    local function show_signature()
       vim.lsp.buf.signature_help()
-      return "("
-    end, { buffer = bufnr, expr = true, silent=true, noremap=true})
-    vim.keymap.set("i", ",", function()
-      vim.lsp.buf.signature_help()
-      return ","
-    end, { buffer = bufnr, expr = true, silent=true, noremap=true})
+      -- vim.schedule(function()
+      --   vim.lsp.buf.signature_help()
+      -- end)
+      -- vim.lsp.buf.signature_help({
+      --   window = {
+      --     focusable = false,  -- cannot receive cursor focus
+      --     border = "rounded", -- optional styling
+      --     max_width = 80,     -- optional
+      --     max_height = 15,    -- optional
+      --   }
+      -- })
+    end
+    -- local function maybe_signature()
+    --   vim.schedule(function()
+    --     local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    --     local line = vim.api.nvim_buf_get_lines(0, row-1, row, true)[1]
+    --     local char_before = line:sub(col, col)
+    --     -- Only trigger inside a function call or after '('
+    --     if char_before:match("[%(%[,]") then
+    --       vim.lsp.buf.signature_help()
+    --     end
+    --   end)
+    -- end
+
+    -- Hook signature help without breaking existing keymaps
+    util.add_key_trigger('i', '(', show_signature)
+    util.add_key_trigger('i', ',', show_signature)
+
   end
-})
+})]]--
+
+-- https://www.reddit.com/r/neovim/comments/vbsryc/show_lsp_signature_help_window_above_cursor/
+-- https://github.com/askfiy/nvim/commit/395fb842ea3441fd69d6cb1e96c6f78d9bc19edb
+--[[local function lsp_signature_help(_, result, ctx, config)
+  -- Add file type for LSP signature help
+  local bufnr, winner = vim.lsp.handlers.signature_help(_, result, ctx, config)
+
+  -- Put the signature floating window above the cursor
+  vim.api.nvim_win_set_config(winner, {
+    anchor = "SW",
+    relative = "cursor",
+    row = 0,
+    col = 0
+  })
+
+  if bufnr and winner then
+    vim.api.nvim_buf_set_option(bufnr, "filetype", config.filetype)
+    return bufnr, winner
+  end
+end]]--
 
 ----------------------------- INLAY-HINTS ------------------------------------
 
-vim.lsp.inlay_hint.enable(true)
+--[[
+-- vim.lsp.inlay_hint.enable(true) -- Overriten by the LspAttach enabling
 
 -- vim.lsp.handlers["textDocument/inlayHint"] = function(err, result, ctx, config)
 --   print("Got inlay hints:", vim.inspect(result))
@@ -519,16 +622,20 @@ vim.api.nvim_set_hl(0, "LspInlayHint", {
 
 -- See :help vim.lsp.inlay_hint and :help vim.lsp.inline_completion(copilot lsp multiline completion support)
 
---[[vim.lsp.inlay_hint.set({
-  prefix = " » ", -- prefix used before the hint text
-  only_current_line = false, -- highlight for the prefix
-})]]--
+-- vim.lsp.inlay_hint.set({ -- Deprecated, doesnt work
+--   prefix = " » ", -- prefix used before the hint text
+--   only_current_line = false, -- highlight for the prefix
+-- })
 
 vim.keymap.set("n", "<leader>ih", function()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
-  vim.lsp.inlay_hint.enable(not enabled, { bufnr = bufnr })
-end, { desc = "Toggle LSP inlay hints" })
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+end, { desc = "Toggle LSP Inlay Hints" })
+-- vim.keymap.set("n", "<leader>ih", function()
+--   local bufnr = vim.api.nvim_get_current_buf()
+--   local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
+--   vim.lsp.inlay_hint.enable(not enabled, { bufnr = bufnr })
+-- end, { desc = "Toggle LSP Inlay Hints in Current Buffer" })
+]]--
 
 ----------------------------- CODE-LENS ------------------------------------
 

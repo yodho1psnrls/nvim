@@ -329,5 +329,82 @@ function M.does_end_with(text, ending)
   return text:sub(-#ending) == ending
 end
 
+-------------------------------------------------------------------------------
+
+-- NOTE: If you want to map a key and then have it do what
+-- it was originally mapped to, have a look at |maparg()|.
+
+-- Utility: hook a callback to a key while preserving existing behavior
+--[[function M.hook_to_keymap(mode, key, callback, opts)
+  opts = opts or {}
+  -- local bufnr = opts.buffer
+
+  -- Get existing mapping (returns table if last arg is true)
+  local existing = vim.fn.maparg(key, mode, false, true)
+
+  if existing == '' or existing == nil then
+    vim.keymap.set(mode, key, callback, opts)
+  else
+    -- Extract the RHS
+    local rhs = existing.rhs or ''
+
+    vim.keymap.set(mode, key, function()
+      -- Call original mapping
+      if rhs ~= '' then
+        vim.api.nvim_feedkeys(
+          vim.api.nvim_replace_termcodes(rhs, true, false, true),
+          'i',  -- feed in insert mode
+          true
+        )
+      end
+      -- Run additional callback
+      callback()
+    end, vim.tbl_extend("force", opts, { expr = true }))
+  end
+end]]--
+
+-- generate unique ID numbers
+local ID = 0
+local function generate_id()
+    ID = ID + 1
+    return ID
+end
+
+-- https://vi.stackexchange.com/questions/46849/is-there-any-way-to-call-a-function-when-a-key-is-pressed-without-overwriting-an
+function M.add_key_trigger(mode, key, callback, prepend)
+    -- get the current keymap for the key
+    local keymap = vim.fn.maparg(key, mode, false, true)
+
+    -- if there is no current keymap, create a new keymap with the new callback
+    if next(keymap) == nil then
+        vim.keymap.set(mode, key, callback)
+        return
+    end
+
+    -- generate an ID for the old callback
+    local id = generate_id()
+
+    -- assign the old callback to a <Plug> command with the generated ID
+    vim.keymap.set(
+        mode,
+        "<Plug>(" .. key .. "-" .. id .. ")",
+        keymap.callback,
+        { remap = true }
+    )
+
+    -- assign a new keymap which calls the old callback and the new one
+    vim.keymap.set(mode, key, function()
+        -- the ordering of the old and new callbacks can be chosen
+        if prepend then
+            callback()
+            vim.cmd('execute "normal \\<Plug>(' .. key .. "-" .. id .. ')"')
+        else
+            vim.cmd('execute "normal \\<Plug>(' .. key .. "-" .. id .. ')"')
+            callback()
+        end
+    end, { remap = true })
+end
+
+-------------------------------------------------------------------------------
 
 return M
