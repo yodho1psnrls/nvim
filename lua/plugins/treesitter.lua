@@ -57,6 +57,8 @@ return {
           -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
           -- if not ts_utils then return end
 
+          -- If you decide to use the native vim.treesitter, then
+          -- vim.treesitter.get_node_at_cursor() is deprecated, use vim.treesitter.get_node()
           local node = ts_utils.get_node_at_cursor()
           if not node then return end
 

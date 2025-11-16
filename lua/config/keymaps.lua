@@ -24,8 +24,8 @@ local util = require("utilities")
 
 map("n", "<leader>cm", "<cmd>OpenCMD<CR>", opts)
 
--- NOTE: ALT == ESC
-map({'i', 't', 'c'}, '<A-*>', '<Esc>', { noremap = true });
+-- NOTE: ALT == ESC -- BUG:
+-- map({'i', 't', 'c'}, '<A-*>', '<Esc>', { noremap = true });
 
 map("n", "<leader>lz", "<cmd>Lazy<CR>",
   {desc = "Open Lazy", noremap = true, silent = true})
@@ -38,6 +38,8 @@ map("n", "<leader>lz", "<cmd>Lazy<CR>",
 -- map({"n", "v"}, "<S-l>", "zL", { noremap = true, silent = true })
 -- map({"n", "v"}, "<S-j>", "<S-Down>", { noremap = true, silent = true })
 -- map({"n", "v"}, "<S-k>", "<S-Up>", { noremap = true, silent = true })
+map({'n', 'v'}, "<A-j>", "<C-d>zz", opts)
+map({'n', 'v'}, "<A-k>", "<C-u>zz", opts)
 
 -- NOTE: Overwriting the default one, because it has no borders
 map('n', '<S-k>', function()

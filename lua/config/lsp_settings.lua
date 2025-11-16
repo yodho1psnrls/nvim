@@ -14,6 +14,11 @@
 -- and vim.lsp.handlers["textDocument/hover"] = function(err, result, ctx, config) or { list of options }
 -- no longer work, and instead you should give those options in the function that calls them explicitly
 -- Thats the reason why after updating to nvim 0.11 there were no borders on some pop-up windows
+
+-- See the doc/deprecated.txt (opens when you enter :help vim.lsp)
+-- "vim.lsp.handlers Does not support client-to-server response handlers.
+-- Only supports server-to-client requests/notification handlers."
+
 -- See:
 -- https://github.com/neovim/neovim/issues/33269#issuecomment-2771417429
 -- https://www.reddit.com/r/neovim/comments/1jcjg6v/how_to_override_lsp_handlers_in_011/
@@ -21,7 +26,15 @@
 -- https://www.reddit.com/r/neovim/comments/1jmsl3j/switch_to_011_now_not_showing_borders_on/
 
 
-local util = require("utilities")
+-- e |vim.diagnostic.open_float()
+
+-- Enabling "paste mode" Resets 'autoindent' 'expandtab' 'revins' 'ruler'
+--   'showmatch' 'smartindent' 'smarttab' 'softtabstop'
+--   'textwidth' 'wrapmargin'.
+
+
+
+-- local util = require("utilities")
 
 local M = {}
 
@@ -67,11 +80,33 @@ M.on_attach = function(_, bufnr)
   map("n", "gr", vim.lsp.buf.references, opts "Show references")
 end
 
+-- NOTE: But better keep it on, because it is just better
+-- syntax highlighting that compliments treesitter well
 -- M.on_init = function(client, _)
 --   if client.supports_method "textDocument/semanticTokens" then
+--     -- Disable LSP Semantic Tokens (because they are ON by default if lsp supports them)
 --     client.server_capabilities.semanticTokensProvider = nil
 --   end
 -- end
+
+-- https://www.reddit.com/r/neovim/comments/1d9gzud/lsp_and_semantic_tokens_yay_or_nay/
+-- https://github.com/hendrikmi/dotfiles/blob/3c073c05712677b0839c309d756260191670eb81/nvim/lua/core/snippets.lua#L5C1-L5C46
+-- vim.highlight.priorities.semantic_tokens = 95 -- set their priority to less than Treesitter's to prevent the LSP from overwriting the syntax highlighting
+
+
+-- NOTE:
+-- dynamicRegistration = false (Always on) Means that the capability
+--  should be fully declared in the initialize response.
+--  The capability must be declared upfront, and can’t change while running.
+-- dynamicRegistration = true Means that the server is allowed to
+--  dynamically register this capability later, instead of having
+--  to declare it up-front when it connects.
+--  Server may enable/disable or modify it after the client connects
+--  using client/registerCapability and client/unregisterCapability
+-- This exists because some servers
+--  Only activate features for certain filetypes.
+--  Activate features after parsing project config files.
+--  Toggle capabilities depending on project state.
 
 M.capabilities = vim.lsp.protocol.make_client_capabilities()
 M.capabilities.textDocument.completion.completionItem = {
@@ -128,7 +163,7 @@ vim.lsp.config('*', {
 -- https://github.com/NvChad/NvChad/issues/1907
 -- vim.hl.priorities.semantic_tokens = 95 -- Or any number lower than 100, treesitter's priority level
 
-vim.lsp.log.set_level("ERROR") -- OFF | ERROR | WARN | INFO | DEBUG
+vim.lsp.log.set_level("OFF") -- OFF | ERROR | WARN | INFO | DEBUG
 
 local my_virtual_lines_config = {
   -- severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
@@ -335,6 +370,40 @@ set_rounded_border("textDocument/codeAction")]]--
 ----------------------------- COMPLETION ------------------------------------
 -- https://vi.stackexchange.com/questions/46700/is-the-new-built-in-neovim-autocompletion-replacing-completion-plugins-like-nvim
 
+-- NOTE: See :help complete-items
+-- Map LSP kinds to icons
+local cmp_icons = {
+  Text = "",
+  Method = "󰆧",
+  Function = "󰊕",
+  Constructor = "",
+  Field = "󰇽",
+  Variable = "󰂡",
+  Class = "󰠱",
+  Interface = "",
+  Module = "",
+  Property = "󰜢",
+  Unit = "",
+  Value = "󰎠",
+  Enum = "",
+  Keyword = "󰌋",
+  Snippet = "",
+  Color = "󰏘",
+  File = "󰈙",
+  Reference = "",
+  Folder = "󰉋",
+  EnumMember = "",
+  Constant = "󰏿",
+  Struct = "󰙅",
+  Event = "",
+  Operator = "󰆕",
+  TypeParameter = "",
+}
+
+local lsp_protocol = require("vim.lsp.protocol")
+local kind_names = lsp_protocol.CompletionItemKind
+-- print(vim.inspect(require("vim.lsp.protocol").CompletionItemKind))
+
 -- Completion and SignatureHelp
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(ev)
@@ -358,8 +427,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
             -- detail = item.detail or "", -- rigth-side annotation (signature or type)
             -- menu = "[" .. client.name .. "]", -- Optional (usually shows sources)
 
-            -- kind, -- the type icon
-            -- menu, -- right-side annotation
+            kind = string.format("%s %s", cmp_icons[kind_names[item.kind]] or "", kind_names[item.kind]), -- the type icon
+            -- kind = (cmp_icons[kind_names[item.kind]] or "") .. " " .. kind_names[item.kind], -- the type icon
+            menu = "", -- (Remove it) right-side annotation (Usually the return type of the function)
             -- index -- ordering hint
 
             -- filterText - What text filtering uses
@@ -382,18 +452,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end
 })
 
--- NOTE: Forse trigger autocompletion on every character insert
--- vim.api.nvim_create_autocmd("InsertCharPre", {
---   callback = function()
---     vim.lsp.completion.get()
---     -- BUG: TRIGGERS A FREEZE !!!
---     -- vim.fn.feedkeys("<C-x><C-o>") -- Also triggers omnifunc
---   end,
--- })
-
 -- NOTE: Trigger autocompletion on every character insert
 -- Only if a certain number of characters are inserted
-vim.api.nvim_create_autocmd("InsertCharPre", {
+--[[vim.api.nvim_create_autocmd("InsertCharPre", {
   callback = function()
     local min_chars = 3 - 1
     local col = vim.fn.col(".") - 1  -- current column (0-based)
@@ -411,21 +472,7 @@ vim.api.nvim_create_autocmd("InsertCharPre", {
       vim.lsp.completion.get()
     end
   end,
-})
-
-
--- Trim leading spaces (Clang adds on space in front of completion items)
--- Hacky way of doing it, It is now replaced by the convert entry in vim.lsp.completion.enable
---[[vim.lsp.handlers["textDocument/completion"] = function(err, result, ctx, config)
-  if result and result.items then
-    for _, item in ipairs(result.items) do
-      item.label = item.label:gsub("^%s+", "")  -- remove leading spaces
-    end
-  end
-
-  return vim.lsp.handlers["textDocument/completion"](err, result, ctx, config)
-end]]--
-
+})]]--
 
 --[[
 -- Configuration for the command line autocompletion setting
@@ -434,12 +481,6 @@ vim.o.wildmode = "list:longest,list:full"
 -- vim.o.wildoptions
 
 -- https://www.reddit.com/r/neovim/comments/1mglgn4/simple_native_autocompletion_with_autocomplete/
-
-vim.o.complete = ".,o" -- use buffer and omnifunc
-vim.o.completeopt = "fuzzy,menuone,noselect" -- add 'popup' for docs (sometimes)
--- vim.o.autocomplete = true
-vim.o.pumheight = 7 (PopUpMenu Height
-
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(ev)
@@ -490,14 +531,11 @@ vim.keymap.set("i", "<S-Tab>", function()
   return vim.fn.pumvisible() == 1 and "<C-p>" or "<S-Tab>"
 end, { expr = true })
 
+-- See :help options and then /complete
 
--- menu - show completion popup
--- menuone - show even if one match
--- noselect - do not select first item
--- fuzzy - fuzzy find sugestions
--- noinsert - do not insert until confirmation
--- nearest - sorts completion results by distance to cursor -- https://github.com/neovim/neovim/blob/nightly/runtime/doc/news.txt#L297
+-- See :help completeopt
 vim.o.completeopt = "menu,menuone,noselect,fuzzy,nearest"
+-- vim.o.completeopt = "menu,menuone,noselect,fuzzy,popup"
 -- vim.o.showmatch = true -- Default is true (Show the selected word)
 
 vim.o.complete = ".,o" -- use buffer and omnifunc
@@ -510,9 +548,35 @@ vim.bo.omnifunc = "v:lua.vim.lsp.omnifunc"
 -- vim.o.tags
 -- vim.o.path
 
+vim.o.autocomplete = true
+-- vim.o.autocompletedelay
+-- vim.o.autocompletetimeout
+-- vim.o.completefunc
+
+-- Show LSP hover doc when completion selection changes
+-- Similar to adding 'popup' in vim.o.completeopt
+--[[vim.api.nvim_create_autocmd("CompleteChanged", {
+  callback = function(ev)
+    local info = vim.fn.complete_info()
+    local selected = info["selected"] -- index of selected item
+    if selected >= 0 then
+      -- Trigger hover for the symbol under cursor
+      vim.lsp.buf.hover({
+        border = 'rounded',
+        -- focusable = true, -- Can you focus it with a mouse
+        focusable = false, -- Can you focus it with a mouse
+        focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+        silent = true,
+        anchor_bias = 'above',
+      })
+    end
+  end
+})]]--
+
 -- https://stackoverflow.com/questions/19580157/to-hide-user-defined-completion-message-at-vim
 vim.o.shortmess = vim.o.shortmess .. "c" -- Hide "User defined completion" messages at every completion selection
 
+vim.o.pumheight = 8 -- PopUpMenu Max Height
 vim.o.pumborder = 'rounded' -- Requires nvim 0.12
 vim.o.pumblend = 15 -- 0 fully opaque to 100 fully transparent
 vim.api.nvim_set_hl(0, "PmenuSel", { blend = 0 }) -- different opacity for selected item
@@ -595,32 +659,6 @@ vim.lsp.with(vim.lsp.handlers.signature_help, {
     --   vim.lsp.buf.signature_help()
     --   return "," -- needs expr=true to evaluate the return of the function
     -- end, { buffer=bufnr, expr=true, silent=true, remap=true})
-
-    local function show_signature()
-      vim.lsp.buf.signature_help()
-      -- vim.schedule(function()
-      --   vim.lsp.buf.signature_help()
-      -- end)
-      -- vim.lsp.buf.signature_help({
-      --   window = {
-      --     focusable = false,  -- cannot receive cursor focus
-      --     border = "rounded", -- optional styling
-      --     max_width = 80,     -- optional
-      --     max_height = 15,    -- optional
-      --   }
-      -- })
-    end
-    -- local function maybe_signature()
-    --   vim.schedule(function()
-    --     local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    --     local line = vim.api.nvim_buf_get_lines(0, row-1, row, true)[1]
-    --     local char_before = line:sub(col, col)
-    --     -- Only trigger inside a function call or after '('
-    --     if char_before:match("[%(%[,]") then
-    --       vim.lsp.buf.signature_help()
-    --     end
-    --   end)
-    -- end
 
     -- Hook signature help without breaking existing keymaps
     util.add_key_trigger('i', '(', show_signature)

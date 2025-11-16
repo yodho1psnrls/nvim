@@ -177,6 +177,8 @@ return {
 
               ["<C-j>"] = require('telescope.actions').move_selection_next,
               ["<C-k>"] = require('telescope.actions').move_selection_previous,
+              ["<A-j>"] = require('telescope.actions').move_selection_next,
+              ["<A-k>"] = require('telescope.actions').move_selection_previous,
 
               ["<S-Tab>"] = require('telescope.actions').move_selection_next,
               ["<Tab>"] = require('telescope.actions').move_selection_previous,
@@ -200,6 +202,8 @@ return {
 
               ["<C-j>"] = require('telescope.actions').move_selection_next,
               ["<C-k>"] = require('telescope.actions').move_selection_previous,
+              ["<A-j>"] = require('telescope.actions').move_selection_next,
+              ["<A-k>"] = require('telescope.actions').move_selection_previous,
 
               ["<S-Tab>"] = require('telescope.actions').move_selection_next,
               ["<Tab>"] = require('telescope.actions').move_selection_previous,
