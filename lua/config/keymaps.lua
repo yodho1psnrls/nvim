@@ -315,6 +315,11 @@ map('i', '<C-s>', '<Esc><cmd>w<CR>a', { noremap = true, silent = true, desc = "C
 -- your cursor will enter it to scroll the overloads, the completion window
 -- sometimes interferes with it.
 
+-- NOTE: From :h complete_CTRL-Y
+-- While completion is active Insert mode can't be used recursively and
+-- buffer text cannot be changed.  Mappings that somehow invoke ":normal i.."
+-- will generate an E565 error.
+
 -- map('n', '<C-b>', 'i<C-s>', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
 -- map('n', '<C-b>', '<cmd>insert! <C-s><CR>', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
 -- map('n', '<C-b>', '<Plug>(nvim.lsp.ctrl-s)', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })

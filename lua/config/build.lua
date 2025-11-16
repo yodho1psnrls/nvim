@@ -162,6 +162,8 @@ function BuildCmakeConfig(config_name, on_success_callback)
     'cmake --build "' .. config_name .. '" --config ' .. config_name, {
     stdout_buffered = true,
     stderr_buffered = true,
+    -- the data are the lines of diagnostics printed out by cmake
+    -- neovim then parses them into quickfix list items
     on_stdout = function(_, data)
       -- local has_work = not util.does_end_with(data[1].text, "ninja: no work to do.\r")
       local has_work = build_has_work(data)

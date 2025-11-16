@@ -413,23 +413,40 @@ local lsp_protocol = require("vim.lsp.protocol")
 local kind_names = lsp_protocol.CompletionItemKind
 -- print(vim.inspect(require("vim.lsp.protocol").CompletionItemKind))
 
--- Completion and SignatureHelp
+-- https://www.reddit.com/r/neovim/comments/1mglgn4/simple_native_autocompletion_with_autocomplete/
+-- See :help lsp-attach
 vim.api.nvim_create_autocmd('LspAttach', {
+  -- group = vim.api.nvim_create_augroup('my.lsp', {}),
   callback = function(ev)
     local client = vim.lsp.get_client_by_id(ev.data.client_id)
     if client == nil then return end
     -- local kinds = vim.lsp.protocol.CompletionItemKind
 
-    -- Autocompletion from the lsp
     if client:supports_method('textDocument/completion') then
+      -- Autotrigger setup (Trigger on every char). See :help lsp-autocompletion
+      -- NOTE: Extending the triggerCharacters field, should happen on LspAttach
+      -- before calling vim.lsp.completion.enable(... {autotrigger=true})
+      -- BUG: autotrigger=true in vim.lsp.completion.enable respects the
+      -- triggerCharacters, vim.o.autocomplete=true, does NOT !!
+      local chars = {} -- ASCII printable chars
+      for c = 33, 126 do chars[#chars + 1] = string.char(c) end -- 32 is space
+      client.server_capabilities.completionProvider.triggerCharacters = chars
+
       vim.lsp.completion.enable(true, client.id, ev.buf, {
-        -- autotrigger = true,
+        autotrigger = true,
         convert = function(item)
+          local trim_word = function(word, cap) -- Used for abbr
+            -- word:gsub("^%s+", "") -- trim leading spaces (Clangd gives such spaces in front)
+            word = word:gsub("%b()", ""):gsub("%b{}", "") -- remove brackets
+            word = word:match("[%w_.]+.*") or word -- remove leading misc chars
+            if cap then word = #word > cap and word:sub(1, cap-1) .. "…" or word end -- cap length
+            return word
+
+          end
           return {
             -- abbr = item.label -- What appears in the popup
-            --   :gsub('%b()', ''), -- functionName(int x, int y)" → "functionName"
-            word = item.label -- What gets inserted
-              :gsub("^%s+", ""), -- trim leading spaces (Clangd gives such spaces in front)
+            abbr = trim_word(item.label, 25),
+            word = trim_word(item.label), -- What gets inserted 
               -- .. ((item.kind == kinds.Function or item.kind == kinds.Method) and "(" or ""),
 
             dup = 0, -- duplication behavior (1 or 0)
@@ -439,6 +456,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
             kind = string.format("%s %s", cmp_icons[kind_names[item.kind]] or "", kind_names[item.kind]), -- the type icon
             -- kind = (cmp_icons[kind_names[item.kind]] or "") .. " " .. kind_names[item.kind], -- the type icon
             menu = "", -- (Remove it) right-side annotation (Usually the return type of the function)
+            -- menu = item.detail or "" -- default menu column (Shows return type)
             -- index -- ordering hint
 
             -- filterText - What text filtering uses
@@ -450,14 +468,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
       })
     end
 
-    -- Autotrigger setup (Trigger on every char)
-    -- if client.server_capabilities.completionProvider then
-    --   local chars = {}
-    --   for c = 32, 126 do -- ASCII printable chars
-    --     chars[#chars + 1] = string.char(c)
-    --   end
-    --   client.server_capabilities.completionProvider.triggerCharacters = chars
-    -- end
   end
 })
 
@@ -483,66 +493,34 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })]]--
 
---[[
--- Configuration for the command line autocompletion setting
--- https://www.reddit.com/r/vim/comments/qltep/what_is_your_wildmode_setting_and_why/
-vim.o.wildmode = "list:longest,list:full"
--- vim.o.wildoptions
-
--- https://www.reddit.com/r/neovim/comments/1mglgn4/simple_native_autocompletion_with_autocomplete/
-
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(ev)
-    vim.lsp.completion.enable(true, ev.data.client_id, ev.buf, {
-      -- Optional formating of items
-      convert = function(item)
-        -- Remove leading misc chars for abbr name,
-        -- and cap field to 25 chars
-        --local abbr = item.label
-        --abbr = abbr:match("[%w_.]+.*") or abbr
-        --abbr = #abbr > 25 and abbr:sub(1, 24) .. "…" or abbr
-        --
-        -- Remove return value
-        --local menu = ""
-
-        -- Only show abbr name, remove leading misc chars (bullets etc.),
-        -- and cap field to 15 chars
-        local abbr = item.label
-        abbr = abbr:gsub("%b()", ""):gsub("%b{}", "")
-        abbr = abbr:match("[%w_.]+.*") or abbr
-        abbr = #abbr > 15 and abbr:sub(1, 14) .. "…" or abbr
-
-        -- Cap return value field to 15 chars
-        local menu = item.detail or ""
-        menu = #menu > 15 and menu:sub(1, 14) .. "…" or menu
-
-        return { abbr = abbr, menu = menu }
-      end,
-    })
-  end,
-})
-]]--
-
+-- Try snippets expansion, by accepting a selection with :h complete_CTRL-Y
+-- https://github.com/neovim/neovim/issues/29695
+-- See :h complete_CTRL-Y
+-- Use enter to accept a selection (expands the snippets properly)
 
 -- NOTE: Completion Keybindings
--- Defaults are: <C-n> and <C-p> for navigation
--- And <CR> or <Tab> for selection
-
--- vim.keymap.set('i', '<Tab>', '<C-n>',
---   {desc="Scroll completion suggestions", silent=true, noremap=true})
--- vim.keymap.set('i', '<S-Tab>', '<C-p>',
---   {desc="Scroll previous completion suggestions", silent=true, noremap=true})
---
+-- Defaults are: <C-n> and <C-p> for navigation and <C-y> for acception
 vim.keymap.set("i", "<Tab>", function()
+  -- local is_begining = strpart( getline('.'), 0, col('.')-1 ) =~ '^\s*$' -- vimscript
   return vim.fn.pumvisible() == 1 and "<C-n>" or "<Tab>"
-end, { expr = true, desc="Scroll completions"})
+end, { expr = true, noremap=true, silent=true, desc="Scroll completions"})
 vim.keymap.set("i", "<S-Tab>", function()
   return vim.fn.pumvisible() == 1 and "<C-p>" or "<S-Tab>"
-end, { expr = true, desc="Scroll completions backwards"})
+end, { expr = true, noremap=true, silent=true, desc="Scroll completions backwards"})
+vim.keymap.set("i", "<CR>", function()
+  return vim.fn.pumvisible() == 1 and "<C-y>" or "<CR>"
+end, { expr = true, noremap=true, silent=true, desc="Accept selected completion"})
+
 
 -- See :help options and then /complete
 
+-- Command mode autocompletion options
+-- https://www.reddit.com/r/vim/comments/qltep/what_is_your_wildmode_setting_and_why/
+-- vim.o.wildmode = "list:longest,list:full"
+-- vim.o.wildoptions
+
 -- See :help completeopt
+-- vim.o.completeopt = "menu,menuone,noinsert"
 vim.o.completeopt = "menu,menuone,noselect,fuzzy,nearest"
 -- vim.o.completeopt = "menu,menuone,noselect,fuzzy,popup"
 -- vim.o.showmatch = true -- Default is true (Show the selected word)
@@ -557,9 +535,9 @@ vim.bo.omnifunc = "v:lua.vim.lsp.omnifunc"
 -- vim.o.tags
 -- vim.o.path
 
-vim.o.autocomplete = true
--- vim.o.autocompletedelay
--- vim.o.autocompletetimeout
+-- vim.o.autocomplete = true -- Set autotrigger=true in vim.lsp.completion.enable instead !
+-- vim.o.autocompletedelay = 250 -- 60wpm ~ 200ms delay between chars
+-- vim.o.autocompletetimeout -- completion sources loading (Dont touch)
 -- vim.o.completefunc
 
 -- Show LSP hover doc when completion selection changes
@@ -589,6 +567,10 @@ vim.o.shortmess = vim.o.shortmess .. "c" -- Hide "User defined completion" messa
 vim.o.pumheight = 8 -- PopUpMenu Max Height
 vim.o.pumborder = 'rounded' -- Requires nvim 0.12
 vim.o.pumblend = 15 -- 0 fully opaque to 100 fully transparent
+
+-- vim.opt.pumanchor = "cursor" -- Anchor PUM to cursor position (Default)
+-- vim.opt.pumnoreverse = true -- Never flip above unless forced (Deprecated)
+
 vim.api.nvim_set_hl(0, "PmenuSel", { blend = 0 }) -- different opacity for selected item
 
 -- • |hl-PmenuBorder| |hl-PmenuShadow| |hl-PmenuShadowThrough| see 'pumborder'.

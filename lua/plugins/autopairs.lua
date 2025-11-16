@@ -19,7 +19,7 @@ return {
       fast_wrap = {},                              -- Enables wrapping functionality
       disable_filetype = { "TelescopePrompt", "vim" }, -- Avoid specific filetypes
       check_ts = true,                             -- Use Treesitter for intelligent pairing
-      map_cr = true, -- add option map_cr (Without completion plugin)
+      map_cr = false, -- add option map_cr (See :verbose imap <CR>, when true it results in require'nvim-autopairs'.completion_confirm()) 
       enable_check_bracket_line = true,  -- Don't add pairs if it already has a close pair in the same line
       -- ignored_next_char = "[%w%.]",  -- will ignore alphanumeric and `.` symbol | ignore when next char is a word or dot
 

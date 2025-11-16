@@ -7,7 +7,7 @@ return {
   --  Extra clang-tidy checks: modernize-*, readability-*, performance-*
   --  Run this below in the bash to see full list of available checks in the modernize, readability, and performance categories
   --  clang-tidy -list-checks | grep "modernize\|readability\|performance"
-  cmd = {
+  cmd = { -- NOTE: See :!clangd --help for all tags
     "clangd",
     "--background-index", -- cache
     '--query-driver=**/clang++.exe', -- glob pattern for the compiler, so it loads its own std library implementation
@@ -37,6 +37,11 @@ return {
     --"-Wunused-include-directive", -- Dont show unused headed warnings
     --"--disable=clang-diagnostic-unused-include-directive", -- Dont show unused headed warnings
     --"--disable-tidy-checks=llvm-header-guard",
+
+    -- https://www.reddit.com/r/neovim/comments/m5x31e/unable_to_get_snippets_working_for_clangdusing/
+    -- https://www.reddit.com/r/neovim/comments/m5x31e/comment/gr3yhyr/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+    -- "--compile-commands-dir=" .. vim.g.cmake_build_dir,
+    -- "--all-scopes-completion=true", -- If set to true, code completion will include index symbols that are not defined in the scopes
   },
   root_markers = {
     'compile_commands.json',
