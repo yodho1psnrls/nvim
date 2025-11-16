@@ -72,6 +72,21 @@ return {
     config = function()
       local dap = require('dap')
 
+      -- NOTE: See :help signs and go to the bottom to see all sign funcs from vim.fn.
+      vim.api.nvim_set_hl(0, "DapBreakpoint", { link = "Error" })
+      vim.fn.sign_define("DapBreakpoint", {
+        -- text = "",               -- your icon here
+        -- text = ""                -- small black circle
+        -- text = "●",               -- standard black circle
+        -- text = "⬤",               -- large black circle
+        text = "🔴",               -- red circle emoji
+        texthl = "DapBreakpoint", -- highlight group
+        linehl = "",              -- optional: line highlight
+        numhl = "",               -- optional: number column highlight
+      })
+      vim.fn.sign_define("DapBreakpointCondition", { text = "", texthl = "DapBreakpoint" })
+      -- vim.fn.sign_define("DapStopped", { text = "", texthl = "DapStoppedLine" })
+
       local function BreakLastLine()
         local original_pos = vim.api.nvim_win_get_cursor(0)
 

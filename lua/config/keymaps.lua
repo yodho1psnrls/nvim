@@ -309,6 +309,16 @@ map("n", "<C-l>", "<C-w>l", opts)
 map('n', '<C-s>', '<cmd>w<CR>', { noremap = true, silent = true, desc = "Close buffer" })
 map('i', '<C-s>', '<Esc><cmd>w<CR>a', { noremap = true, silent = true, desc = "Close buffer" })
 
+-- NOTE: See :help signature_help and :verbose imap <C-s>
+-- You should be in insert mode and press <C-s>
+-- while the signature_help window is shown, then a new window will show and
+-- your cursor will enter it to scroll the overloads, the completion window
+-- sometimes interferes with it.
+
+-- map('n', '<C-b>', 'i<C-s>', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
+-- map('n', '<C-b>', '<cmd>insert! <C-s><CR>', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
+-- map('n', '<C-b>', '<Plug>(nvim.lsp.ctrl-s)', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
+
 
 
 --=============================== PLUGINS ========================================--

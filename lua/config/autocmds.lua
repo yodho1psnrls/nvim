@@ -369,18 +369,7 @@ vim.cmd([[
 ]] --
 --)
 
-
 -- Explicitly Define Highlights for Selected Items
---[[
-vim.cmd([[
-  highlight! CmpPmenu guibg=#1f1d2e guifg=#e0def4
-  highlight! CmpSel guibg=#c4a7e7 guifg=#191724 gui=bold
-  highlight! CmpDoc guibg=#2a273f guifg=#e0def4
-  highlight! CmpSignature guibg=#2a273f guifg=#e0def4
-  highlight! CmpDocBorder guifg=#c4a7e7
-  highlight! CmpSignatureBorder guifg=#c4a7e7
-]] --
---)
 
 -- If you're using the rose-pine theme and it's causing these issues, you can load
 -- the theme and then override just these highlights without changing the
@@ -391,14 +380,25 @@ vim.cmd([[
 --  (the autocomplete suggestions window), so keep them centralized
 --  here in autocmds.lua, and not per theme config
 
-vim.cmd([[
-  highlight! CmpPmenu guibg=#1f1d2e guifg=#e0def4
-  highlight! CmpSel guibg=#c4a7e7 guifg=#191724 gui=bold
-  highlight! CmpDoc guibg=#2a273f guifg=#e0def4
-  highlight! CmpSignature guibg=#2a273f guifg=#e0def4
-  highlight! CmpDocBorder guifg=#c4a7e7
-  highlight! CmpSignatureBorder guifg=#c4a7e7
-]])
+-- nvim-cmp highlight groups
+-- vim.cmd([[
+--   highlight! CmpPmenu guibg=#1f1d2e guifg=#e0def4
+--   highlight! CmpSel guibg=#c4a7e7 guifg=#191724 gui=bold
+--   highlight! CmpDoc guibg=#2a273f guifg=#e0def4
+--   highlight! CmpSignature guibg=#2a273f guifg=#e0def4
+--   highlight! CmpDocBorder guifg=#c4a7e7
+--   highlight! CmpSignatureBorder guifg=#c4a7e7
+-- ]])
+
+-- See :help highlight /Pmenu
+-- native neovim completion highlight groups
+vim.api.nvim_set_hl(0, "Pmenu", { bg="#1f1d2e", fg="#e0def4" })
+vim.api.nvim_set_hl(0, "PmenuSel", { bg="#c4a7e7", fg="#191724", bold=true })
+vim.api.nvim_set_hl(0, "PmenuKindSel", { link = "PmenuSel" })
+
+-- Completely replaces other non-set fields (unlike the highlight command which incrementally sets fields)
+-- vim.api.nvim_set_hl(0, "PmenuKind", { bg=vim.api.nvim_get_hl(0, {name="Pmenu"}).bg, fg="fg"})
+vim.cmd([[highlight! PmenuKind guibg=#1f1d2e]])
 
 ----------------------------------------------------------------------
 

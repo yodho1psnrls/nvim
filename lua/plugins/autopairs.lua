@@ -11,7 +11,8 @@
 -- https://github.com/windwp/nvim-autopairs
 return {
   'windwp/nvim-autopairs',
-  event = 'InsertEnter',
+  -- event = 'InsertEnter', -- Triggers in command in terminal modes too
+  event = 'TextChangedI', -- Supposed to trigger only in insert mode
   -- dependencies = { 'hrsh7th/nvim-cmp' }, -- Optional dependency
   config = function()
     require('nvim-autopairs').setup {

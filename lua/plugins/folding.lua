@@ -53,6 +53,8 @@ return {
 
   'kevinhwang91/nvim-ufo',
   dependencies = 'kevinhwang91/promise-async',
+  event = { 'BufRead' }, -- Before a buffer is read from disk
+  -- event = { 'BufEnter' }, -- After a buffer is loaded
 
   -- lazy = true,
   -- event = { 'LspAttach' }, -- Remove that if you change it to treesitter instead of lsp

@@ -50,35 +50,50 @@ return {
 
       -- local ts = vim.treesitter
       local ts_utils = require("nvim-treesitter.ts_utils")
-      -- NOTE: Trigger signature_help automatc trigger when inside a function call
-      vim.api.nvim_create_autocmd("CursorHoldI", {
-      -- vim.api.nvim_create_autocmd({"CursorMovedI", "TextChangedI"}, {
-        callback = function()
-          -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
-          -- if not ts_utils then return end
 
-          -- If you decide to use the native vim.treesitter, then
-          -- vim.treesitter.get_node_at_cursor() is deprecated, use vim.treesitter.get_node()
-          local node = ts_utils.get_node_at_cursor()
-          if not node then return end
+      local function show_popup()
+        -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
+        -- if not ts_utils then return end
 
-          -- Traverse up the tree to see if we are inside an argument list of a call
-          while node do
-            if node:type() == "argument_list" or node:type() == "call_expression" then
-              vim.lsp.buf.signature_help({
-                border = 'rounded',
-                focusable = false, -- Can you focus it with a mouse
-                focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
-                silent = true,
-                max_height = 3,
-              })
-              -- vim.schedule(function() vim.lsp.buf.signature_help() end)
-              return
-            end
-            node = node:parent()
+        -- If you decide to use the native vim.treesitter, then
+        -- vim.treesitter.get_node_at_cursor() is deprecated, use vim.treesitter.get_node()
+        local node = ts_utils.get_node_at_cursor()
+        if not node then return end
+
+        -- Traverse up the tree to see if we are inside an argument list of a call
+        while node do
+          if node:type() == "argument_list" or node:type() == "call_expression" then
+            vim.lsp.buf.signature_help({
+              border = 'rounded',
+              focusable = false, -- Can you focus it with a mouse
+              focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+              silent = true,
+              max_height = 3,
+              anchor_bias='above',
+              -- close_events = ...
+            })
+            -- vim.schedule(function() vim.lsp.buf.signature_help() end)
+            return
           end
-        end,
+          node = node:parent()
+        end
+        -- If cursor is not in function brackets, then
+        --[[vim.lsp.buf.hover({
+          border = 'rounded',
+          -- focusable = true, -- Can you focus it with a mouse
+          focusable = false, -- Can you focus it with a mouse
+          focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+          silent = true,
+          -- close_events = ...
+        })]]--
+      end
+
+      -- NOTE: Trigger signature_help automatc trigger when inside a function call
+      vim.api.nvim_create_autocmd("CursorHold", { -- CursorHoldI, CursorMovedI, TextChangedI
+        callback = show_popup,
       })
+
+      -- vim.keymap.set('n', '<S-k>', show_popup, {noremap=true, silent=true, desc="Show hover info or signature help if within function call arguments"})
 
     end
   },

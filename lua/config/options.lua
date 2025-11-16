@@ -119,7 +119,8 @@ vim.opt.smartcase = true
 
 
 -- Decrease update time
-vim.opt.updatetime = 250 -- Default is 4000
+vim.opt.updatetime = 250 -- Default is 4000 (Affects CursorHold)
+-- vim.opt.updatetime = 1000
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
@@ -236,7 +237,7 @@ o.timeoutlen = 400
 o.undofile = true
 
 -- interval for writing swap file to disk, also used by gitsigns
-o.updatetime = 250
+-- o.updatetime = 250
 
 
 -- go to previous/next line with h,l,left arrow and right arrow

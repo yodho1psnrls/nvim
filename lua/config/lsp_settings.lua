@@ -135,6 +135,15 @@ M.capabilities.textDocument.foldingRange = {
 
 M.capabilities.textDocument.semanticTokens.multilineTokenSupport = true
 
+-- Usually this is defaulted, if the lsp supports it
+--[[M.capabilities.textDocument.signatureHelp = {
+  dynamicRegistration = false,
+  signatureInformation = {
+    documentationFormat = { "markdown", "plaintext" },
+    parameterInformation = { labelOffsetSupport = true },
+  },
+}]]--
+
 -- Since we register and trigger it manually, we dont want the lsp to override it
 -- M.capabilities.textDocument.signatureHelp.dynamicRegistration = false
 
@@ -526,10 +535,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
 --
 vim.keymap.set("i", "<Tab>", function()
   return vim.fn.pumvisible() == 1 and "<C-n>" or "<Tab>"
-end, { expr = true })
+end, { expr = true, desc="Scroll completions"})
 vim.keymap.set("i", "<S-Tab>", function()
   return vim.fn.pumvisible() == 1 and "<C-p>" or "<S-Tab>"
-end, { expr = true })
+end, { expr = true, desc="Scroll completions backwards"})
 
 -- See :help options and then /complete
 
@@ -576,6 +585,7 @@ vim.o.autocomplete = true
 -- https://stackoverflow.com/questions/19580157/to-hide-user-defined-completion-message-at-vim
 vim.o.shortmess = vim.o.shortmess .. "c" -- Hide "User defined completion" messages at every completion selection
 
+-- Those pum(PopUpMenu) options mainly affect the completion menu
 vim.o.pumheight = 8 -- PopUpMenu Max Height
 vim.o.pumborder = 'rounded' -- Requires nvim 0.12
 vim.o.pumblend = 15 -- 0 fully opaque to 100 fully transparent
