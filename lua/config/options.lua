@@ -54,6 +54,21 @@ vim.o.foldtext = ""
 -- vim.o.fillchars = 'eob: ' -- Clear unused end-of-buffer space
 vim.opt.fillchars:append({fold = " "})
 
+vim.opt.fillchars:append({eob = " "})
+-- opt.fillchars:append("space:*")
+
+--[[
+opt.fillchars = {
+  eob = " ",        -- Existing setting for end-of-buffer
+  horiz = '─',      -- Character for horizontal separators
+  horizup = '┬',    -- Character for horizontal separator pointing up
+  horizdown = '┴',  -- Character for horizontal separator pointing down
+  vertleft = '├',   -- Character for vertical separator pointing left
+  vertright = '┤',  -- Character for vertical separator pointing right
+  verthoriz = '┼'   -- Character for vertical separator connecting horizontal
+}
+]] --
+
 ---------------------------------------------------------------------
 
 -- vim.o.signcolumn = 'no' -- Hide the sign column
@@ -124,7 +139,7 @@ vim.opt.updatetime = 250 -- Default is 4000 (Affects CursorHold)
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
-vim.opt.timeoutlen = 300
+vim.opt.timeoutlen = 1000
 
 -- Configure how new splits should be opened
 vim.opt.splitright = true
@@ -203,21 +218,6 @@ o.autoindent = true
 --o.indentexpr = false -- This should be a string
 
 
-opt.fillchars:append({eob = " "})
--- opt.fillchars:append("space:*")
-
---[[
-opt.fillchars = {
-  eob = " ",        -- Existing setting for end-of-buffer
-  horiz = '─',      -- Character for horizontal separators
-  horizup = '┬',    -- Character for horizontal separator pointing up
-  horizdown = '┴',  -- Character for horizontal separator pointing down
-  vertleft = '├',   -- Character for vertical separator pointing left
-  vertright = '┤',  -- Character for vertical separator pointing right
-  verthoriz = '┼'   -- Character for vertical separator connecting horizontal
-}
-]] --
-
 --o.ignorecase = true
 --o.smartcase = true
 --o.mouse = "a"
@@ -233,11 +233,7 @@ opt.shortmess:append "sI"
 -- o.signcolumn = "yes"
 o.splitbelow = true
 o.splitright = true
-o.timeoutlen = 400
 o.undofile = true
-
--- interval for writing swap file to disk, also used by gitsigns
--- o.updatetime = 250
 
 
 -- go to previous/next line with h,l,left arrow and right arrow

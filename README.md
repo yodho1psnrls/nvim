@@ -1,10 +1,22 @@
 # nvim-config
 my nvim config, enhanced for c++, shaders, and python development
 
-Run :checkhealth vim.deprecated regularly
-
 Links that may come in handy:
 https://www.reddit.com/r/neovim/comments/1crdv93/neovim_on_windows_using_windows_terminal_and/
+https://superuser.com/questions/1558490/how-can-i-remove-a-default-key-binding-in-windows-terminal
+
+Some default terminal keybindings interfere with neovim,
+to remove them (so they are registered by neovim) use this example
+//settings.json
+...
+"keybindings":
+    [
+        ...
+        { "command": null, "keys": "ctrl+h" },
+        { "command": null, "keys": "ctrl+i" },
+    ]
+...
+//
 
 Installation:
 0) Install Neovim
@@ -46,7 +58,7 @@ ignore = E121, E123, E126, E226, E24, E704, E501, W291, W293, W391
 
 7) Optional: Install git and/or GitHubCLI (optional)
 
-8) Install nerdfont(JetBrainsMonoExtraBold is my preffered one)
+8) Install nerdfont(JetBrainsMonoExtraBold or FiraCode)
 
 9) Optional: Install ripgrep through pacman
 
@@ -71,6 +83,7 @@ NOTE: Set up a default directory, when you open powershell
        Then open this ps1 file and type: Set-Location -Path "D:\"
 
 NOTE: If there are any problems use:
+    :checkhealth vim.deprecated
     :checkhealth lazy
     :checkhealth lsp
     :checkhealth dap

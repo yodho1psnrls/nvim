@@ -13,6 +13,10 @@
 -- I want it to stay the same scroll position as it was in the last
 -- opened valid buffer that i was in
 
+-- NOTE: Look at this if you want to replace this plugin with native
+-- https://github.com/LionyxML/dotneovim/blob/main/init.lua#L1864
+-- https://github.com/LionyxML/dotneovim/blob/012b5d2a0fc8122c26c41a5332f5452c287d8ed0/init.lua#L1864
+
 local util = require("utilities")
 
 

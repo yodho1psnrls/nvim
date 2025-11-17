@@ -2,6 +2,17 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 local util = require("utilities")
 
+-- https://github.com/LionyxML/dotneovim/blob/main/init.lua
+-- https://github.com/LionyxML/dotneovim/blob/012b5d2a0fc8122c26c41a5332f5452c287d8ed0/init.lua#L1745
+
+-- NOTE: Some keys may be overrided by the terminal
+-- Ctrl + h - Backspace in terminal
+-- Ctrl + i - Tab in terminal
+-- Ctrl + m - Enter in terminal
+-- Ctrl + c - Escape in terminal or copy(if selection is present) or kill proccess(if a command is running)
+-- Ctrl + v - Paste in terminal
+
+
 -- NOTE:
 -- vim.cmd("wincmd p")  -- bounce back to previous window
 
@@ -38,8 +49,8 @@ map("n", "<leader>lz", "<cmd>Lazy<CR>",
 -- map({"n", "v"}, "<S-l>", "zL", { noremap = true, silent = true })
 -- map({"n", "v"}, "<S-j>", "<S-Down>", { noremap = true, silent = true })
 -- map({"n", "v"}, "<S-k>", "<S-Up>", { noremap = true, silent = true })
-map({'n', 'v'}, "<A-j>", "<C-d>zz", opts)
-map({'n', 'v'}, "<A-k>", "<C-u>zz", opts)
+-- map({'n', 'v'}, "<A-j>", "<C-d>zz", opts)
+-- map({'n', 'v'}, "<A-k>", "<C-u>zz", opts)
 
 -- NOTE: Overwriting the default one, because it has no borders
 map('n', '<S-k>', function()
@@ -136,10 +147,8 @@ map('n', '<leader>x', function ()
     require("bufdelete").bufdelete(0, false)
   end
 end, { noremap = true, silent = true, desc = "Buffer delete" })
-
--- TODO:
--- map('n', '<leader>X', ' x q',
---   { noremap = false, silent = true, desc = "Delete buffer and close window" })
+-- vim.keymap.set("n", "<leader>X", ":bufdo bd<CR>", { desc = "Close all buffers", silent = true })
+-- map('n', '<leader>X', ' x q', { noremap = false, silent = true, desc = "Delete buffer and close window" })
 
 map('n', '<leader>cd', '<cmd>cd %:p:h<CR>', {desc = "Set cwd to current file", noremap = true })
 
@@ -262,19 +271,19 @@ vim.api.nvim_create_user_command(
 -- map('n', '<leader>rp', '<cmd>Replace ', opts)
 
 
-map("v", "p", "P", opts)
-map("v", "P", "p", opts)
+map("v", "p", "P", {desc = "Paste content you've previourly yanked", noremap=true, silent=true})
+map("v", "P", "p", {desc = "Yank what you are going to override, then paste", noremap=true, silent=true})
 
 -- https://www.reddit.com/r/neovim/comments/v7s1ts/how_do_i_avoid_replacing_the_content_of_my/
 -- https://www.reddit.com/r/neovim/comments/1e1dmpw/what_are_the_keymaps_that_you_replaced_default/
 
-map({'n', 'v'}, 'x', '"_x', opts)
-map({'n', 'v'}, 'X', '"_X', opts)
+map({'n', 'v'}, 'x', '"_x', {desc="Delete without yanking", noremap=true, silent=true})
+map({'n', 'v'}, 'X', '"_X', {desc="Backspace without yanking", noremap=true, silent=true})
 
-map({"n", "v"}, "s", '"_s', opts)
-map({"n", "v"}, "S", '"_S', opts)
-map({"n", "v"}, "c", '"_c', opts)
-map({"n", "v"}, "C", '"_C', opts)
+map({"n", "v"}, "s", '"_s', {desc="Edit character without yanking", noremap=true, silent=true})
+map({"n", "v"}, "S", '"_S', {desc="Edit line without yanking", noremap=true, silent=true})
+map({"n", "v"}, "c", '"_c', {desc="Edit without yanking", noremap=true, silent=true})
+map({"n", "v"}, "C", '"_C', {desc="Edit from cursor to end of line without yanking", noremap=true, silent=true})
 
 
 --==========================================================================--
@@ -282,6 +291,8 @@ map({"n", "v"}, "C", '"_C', opts)
 map({'n', 'v'}, "<C-d>", "<C-d>zz", opts)
 map({'n', 'v'}, "<C-u>", "<C-u>zz", opts)
 
+map("v", "<", "<gv", { desc = "Indent left and reselect" })
+map("v", ">", ">gv", { desc = "Indent right and reselect" })
 
 -- (ARROWS) Window Navigation
 map('n', '<C-Left>', '<C-w><C-h>', opts)
@@ -324,7 +335,10 @@ map('i', '<C-s>', '<Esc><cmd>w<CR>a', { noremap = true, silent = true, desc = "C
 -- map('n', '<C-b>', '<cmd>insert! <C-s><CR>', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
 -- map('n', '<C-b>', '<Plug>(nvim.lsp.ctrl-s)', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
 
-
+-- nnoremap <expr> <C-i> "\<C-i>"
+map('n', '<C-i>', function()
+  return vim.api.nvim_replace_termcodes("<C-i>", true, true, true)
+end, {expr=true, noremap=true, silent=true, desc="Fix <C-i> that is interpreted as <Tab> from the terminal to jump forward in the jumplist"})
 
 --=============================== PLUGINS ========================================--
 -- The following keymaps are for plugins that are lazy loaded, and the key binding

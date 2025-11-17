@@ -2,6 +2,7 @@
 -- https://medium.com/@jogarcia/delete-buffers-on-telescope-21cc4cf61b63
 -- https://www.reddit.com/r/neovim/comments/qspemc/close_buffers_with_telescope/
 
+-- Ctrl + q will create a quickfix list of all the contents in the telescope window
 -- Ctrl + d while you browse the buffer finder will delete the selected buffer !
 
 -- telescope-fzf-native needs a build system like make or ninja
@@ -177,8 +178,8 @@ return {
 
               ["<C-j>"] = require('telescope.actions').move_selection_next,
               ["<C-k>"] = require('telescope.actions').move_selection_previous,
-              ["<A-j>"] = require('telescope.actions').move_selection_next,
-              ["<A-k>"] = require('telescope.actions').move_selection_previous,
+              -- ["<A-j>"] = require('telescope.actions').move_selection_next,
+              -- ["<A-k>"] = require('telescope.actions').move_selection_previous,
 
               ["<S-Tab>"] = require('telescope.actions').move_selection_next,
               ["<Tab>"] = require('telescope.actions').move_selection_previous,
@@ -202,8 +203,8 @@ return {
 
               ["<C-j>"] = require('telescope.actions').move_selection_next,
               ["<C-k>"] = require('telescope.actions').move_selection_previous,
-              ["<A-j>"] = require('telescope.actions').move_selection_next,
-              ["<A-k>"] = require('telescope.actions').move_selection_previous,
+              -- ["<A-j>"] = require('telescope.actions').move_selection_next,
+              -- ["<A-k>"] = require('telescope.actions').move_selection_previous,
 
               ["<S-Tab>"] = require('telescope.actions').move_selection_next,
               ["<Tab>"] = require('telescope.actions').move_selection_previous,

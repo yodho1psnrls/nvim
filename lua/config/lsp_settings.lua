@@ -439,6 +439,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
             -- word:gsub("^%s+", "") -- trim leading spaces (Clangd gives such spaces in front)
             word = word:gsub("%b()", ""):gsub("%b{}", "") -- remove brackets
             word = word:match("[%w_.]+.*") or word -- remove leading misc chars
+            word = word:gsub("%?$", "") -- Remove trailing ? (lua properties have these)
             if cap then word = #word > cap and word:sub(1, cap-1) .. "…" or word end -- cap length
             return word
 
@@ -508,7 +509,8 @@ vim.keymap.set("i", "<S-Tab>", function()
   return vim.fn.pumvisible() == 1 and "<C-p>" or "<S-Tab>"
 end, { expr = true, noremap=true, silent=true, desc="Scroll completions backwards"})
 vim.keymap.set("i", "<CR>", function()
-  return vim.fn.pumvisible() == 1 and "<C-y>" or "<CR>"
+  local has_selected = vim.fn.complete_info().selected ~= -1
+  return (vim.fn.pumvisible() == 1 and has_selected) and "<C-y>" or "<CR>"
 end, { expr = true, noremap=true, silent=true, desc="Accept selected completion"})
 
 
@@ -522,7 +524,7 @@ end, { expr = true, noremap=true, silent=true, desc="Accept selected completion"
 -- See :help completeopt
 -- vim.o.completeopt = "menu,menuone,noinsert"
 vim.o.completeopt = "menu,menuone,noselect,fuzzy,nearest"
--- vim.o.completeopt = "menu,menuone,noselect,fuzzy,popup"
+-- vim.o.completeopt = "menu,menuone,noselect,fuzzy,popup" -- Shows selection info as additional popup
 -- vim.o.showmatch = true -- Default is true (Show the selected word)
 
 vim.o.complete = ".,o" -- use buffer and omnifunc
