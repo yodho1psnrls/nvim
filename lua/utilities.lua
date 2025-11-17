@@ -405,6 +405,15 @@ function M.add_key_trigger(mode, key, callback, prepend)
     end, { remap = true })
 end
 
+function M.profile_func(name, fn)
+  return function(...)
+    local start = vim.loop.hrtime()
+    fn(...)
+    local ms = (vim.loop.hrtime() - start) / 1e6
+    print(string.format("%s took %.2f ms", name, ms))
+  end
+end
+
 -------------------------------------------------------------------------------
 
 return M

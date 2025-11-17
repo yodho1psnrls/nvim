@@ -206,7 +206,7 @@ vim.diagnostic.config({
   },]]--
 
   underline = true,
-  update_in_insert = false,
+  update_in_insert = true,
   severity_sort = true,
   -- signs = true, -- true
   signs = {
@@ -582,6 +582,21 @@ vim.api.nvim_set_hl(0, 'PmenuBorder', { fg = 'White' })
 -- https://www.reddit.com/r/neovim/comments/ocup0d/how_can_i_make_nvimlsp_signaturehelp_to_stick/
 -- https://neovim.discourse.group/t/show-signature-help-on-insert-mode/2007/5
 -- NOTE: :help lsp-handler
+
+-- If you miss the original <S-j> behavior that cojoins lines
+--  , just use it from visual mode (or even better, vipJ to join whole paragraph)
+--  https://www.reddit.com/r/vim/comments/14iito9/automatically_shiftj/
+vim.keymap.set('n', '<S-j>', function ()
+  vim.lsp.buf.signature_help({
+    border = 'rounded',
+    focusable = false, -- Can you focus it with a mouse
+    focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+    silent = true,
+    max_height = 3,
+    anchor_bias='above',
+    -- close_events = ...
+  })
+end, {desc="Show Signature Help", noremap=true, silent=true})
 
 -- https://www.reddit.com/r/neovim/comments/vbsryc/show_lsp_signature_help_window_above_cursor/
 -- https://github.com/askfiy/nvim/commit/395fb842ea3441fd69d6cb1e96c6f78d9bc19edb

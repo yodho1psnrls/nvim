@@ -139,7 +139,7 @@ vim.opt.updatetime = 250 -- Default is 4000 (Affects CursorHold)
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
-vim.opt.timeoutlen = 1000
+vim.opt.timeoutlen = 300 -- 1000
 
 -- Configure how new splits should be opened
 vim.opt.splitright = true
@@ -161,6 +161,7 @@ vim.opt.cursorline = false
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 8
 vim.opt.sidescrolloff = 18
+-- vim.opt.smoothscroll = true -- Doesnt seem to do anything
 
 --------------------------------------------------------------------------
 

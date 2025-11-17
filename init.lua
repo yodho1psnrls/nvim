@@ -23,6 +23,7 @@ vim.opt.termguicolors = true -- optionally enable 24-bit colour
 
 -- Moving options up here, because of quick-scope plugin
 require "config.options"
+require "config.marks"
 
 require("config.lazy")
 require("lazy").setup("plugins")

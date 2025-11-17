@@ -2,8 +2,10 @@
 -- https://medium.com/@jogarcia/delete-buffers-on-telescope-21cc4cf61b63
 -- https://www.reddit.com/r/neovim/comments/qspemc/close_buffers_with_telescope/
 
--- Ctrl + q will create a quickfix list of all the contents in the telescope window
+-- Ctrl + q will send all telescope window items in the quickfix list
 -- Ctrl + d while you browse the buffer finder will delete the selected buffer !
+-- Ctrl + / while in telescope window insert mode shows telescope whichkeys
+-- ? while in telescope window normal mode shows telescope whichkeys
 
 -- telescope-fzf-native needs a build system like make or ninja
 --  so if you switch between different build systems, make sure
@@ -82,19 +84,19 @@ return {
       vim.keymap.set('n', '<leader>fu', UnsavedBuffers, { desc = 'telescope [U]nsaved buffers' })
       vim.api.nvim_create_user_command('UnsavedBuffers', UnsavedBuffers, { nargs = 0 })
 
-
-      require("telescope").load_extension("recent_files")
-      --      require("telescope").load_extension('dap') --https://github.com/nvim-telescope/telescope-dap.nvim
+      local telescope = require("telescope")
+      telescope.load_extension("recent_files")
+      --      telescope.load_extension('dap') --https://github.com/nvim-telescope/telescope-dap.nvim
 
       -- This may overwrite the <leader><leader> keymap that opens the Buffers
       --      vim.api.nvim_set_keymap("n", "<Leader><Leader>",
-      --        [[<cmd>lua require('telescope').extensions.recent_files.pick()<CR>]],
+      --        [[<cmd>lua telescope.extensions.recent_files.pick()<CR>]],
       --        { noremap = true, silent = true })
 
 
       --[[
       -- Optionally, you can define the delete_buffer action if it doesn't exist
-      require('telescope').actions.delete_buffer = function(prompt_bufnr)
+      telescope.actions.delete_buffer = function(prompt_bufnr)
             local actions = require('telescope.actions')
             local action_state = require('telescope.actions.state')
 
@@ -108,7 +110,7 @@ return {
             -- Close Telescope window
             actions.close(prompt_bufnr)
           end,
-]] --
+      ]] --
 
 
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -153,9 +155,32 @@ return {
         end
       end
 
+      local actions = require("telescope.actions")
+
+      local function smart_next(prompt_bufnr)
+        local picker = require("telescope.actions.state").get_current_picker(prompt_bufnr)
+        if picker.sorting_strategy == "ascending" then
+          -- reversed list: next = previous
+          actions.move_selection_previous(prompt_bufnr)
+        else
+          actions.move_selection_next(prompt_bufnr)
+        end
+      end
+
+      local function smart_prev(prompt_bufnr)
+        local picker = require("telescope.actions.state").get_current_picker(prompt_bufnr)
+        if picker.sorting_strategy == "ascending" then
+          -- reversed list: previous = next
+          actions.move_selection_next(prompt_bufnr)
+        else
+          actions.move_selection_previous(prompt_bufnr)
+        end
+      end
+
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
-      require('telescope').setup {
+
+      local opts = {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
@@ -167,49 +192,15 @@ return {
           mappings = {
             -- i = { ['<c-enter>'] = 'to_fuzzy_refine' },
             i = {
-
-              --[[
-              ["<A-j>"] = require('telescope.actions').move_selection_next,
-              ["<A-k>"] = require('telescope.actions').move_selection_previous,
-
-              ['<A-m>'] = require('telescope.actions').select_default,
-              ['<A-q>'] = require('telescope.actions').close,
-              ]]--
-
-              ["<C-j>"] = require('telescope.actions').move_selection_next,
-              ["<C-k>"] = require('telescope.actions').move_selection_previous,
+              ["<C-j>"] = actions.move_selection_next,
+              ["<C-k>"] = actions.move_selection_previous,
               -- ["<A-j>"] = require('telescope.actions').move_selection_next,
               -- ["<A-k>"] = require('telescope.actions').move_selection_previous,
 
-              ["<S-Tab>"] = require('telescope.actions').move_selection_next,
-              ["<Tab>"] = require('telescope.actions').move_selection_previous,
+              ["<S-Tab>"] = smart_next,
+              ["<Tab>"] = smart_prev,
 
-              ["<C-d>"] = require('telescope.actions').delete_buffer,
-              -- ["<C-d>"] = delete_selected_buffer,
-              ["<C-a>"] = function() vim.cmd(':wa') end,
-              ["<C-s>"] = save_selected_buffer,
-            },
-            n = {
-
-              --[[
-              ["j"] = require('telescope.actions').move_selection_next,
-              ["k"] = require('telescope.actions').move_selection_previous,
-              ["<A-j>"] = require('telescope.actions').move_selection_next,
-              ["<A-k>"] = require('telescope.actions').move_selection_previous,
-
-              ['<A-m>'] = require('telescope.actions').select_default,
-              ['<A-q>'] = require('telescope.actions').close,
-              ]]--
-
-              ["<C-j>"] = require('telescope.actions').move_selection_next,
-              ["<C-k>"] = require('telescope.actions').move_selection_previous,
-              -- ["<A-j>"] = require('telescope.actions').move_selection_next,
-              -- ["<A-k>"] = require('telescope.actions').move_selection_previous,
-
-              ["<S-Tab>"] = require('telescope.actions').move_selection_next,
-              ["<Tab>"] = require('telescope.actions').move_selection_previous,
-
-              ["<C-d>"] = require('telescope.actions').delete_buffer,
+              ["<C-d>"] = actions.delete_buffer,
               -- ["<C-d>"] = delete_selected_buffer,
               ["<C-a>"] = function() vim.cmd(':wa') end,
               ["<C-s>"] = save_selected_buffer,
@@ -244,11 +235,10 @@ return {
 
         pickers = {
           -- Recently Opened Buffers List
-
           buffers = {
             -- Set sorting strategy for buffers to prioritize recent ones (MRU)
             sort_lastused = true, -- similar to how :ls t shows sorted buffers
-           ignore_current_buffer = false, -- Optionally ignore the current buffer (you can toggle this)
+            ignore_current_buffer = false, -- Optionally ignore the current buffer (you can toggle this)
             --theme = "dropdown"  -- Adjust for a more compact look
 
             --initial_mode = "normal",  -- Pick buffers in normal mode
@@ -256,22 +246,23 @@ return {
           },
 
         },
-
       }
+      opts.defaults.mappings.n = opts.defaults.mappings.i
+      telescope.setup(opts)
 
       -- Enable Telescope extensions if they are installed
-      pcall(require('telescope').load_extension, 'fzf')
-      pcall(require('telescope').load_extension, 'ui-select')
+      pcall(telescope.load_extension, 'fzf')
+      pcall(telescope.load_extension, 'ui-select')
 
 
       --[[
-      pcall(require('telescope').load_extension, 'telescope-file-browser')
+      pcall(telescope.load_extension, 'telescope-file-browser')
       vim.keymap.set("n", "<space>fb", ":Telescope file_browser<CR>")
       -- open file_browser with the path of the current buffer
       vim.keymap.set("n", "<space>fb", ":Telescope file_browser path=%:p:h select_buffer=true<CR>")
       -- Alternatively, using lua API
       vim.keymap.set("n", "<space>fb", function()
-        require("telescope").extensions.file_browser.file_browser()
+        telescope.extensions.file_browser.file_browser()
       end)
       ]] --
 

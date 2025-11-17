@@ -11,7 +11,7 @@ local util = require("utilities")
 -- Ctrl + m - Enter in terminal
 -- Ctrl + c - Escape in terminal or copy(if selection is present) or kill proccess(if a command is running)
 -- Ctrl + v - Paste in terminal
-
+-- https://neovim.discourse.group/t/problems-mapping-c-i-and-tab-separately/2926
 
 -- NOTE:
 -- vim.cmd("wincmd p")  -- bounce back to previous window

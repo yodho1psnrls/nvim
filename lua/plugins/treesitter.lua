@@ -48,9 +48,9 @@ return {
 
       -- NOTE: LSP Signature Help Autotrigger Logic based on treesitter
 
+      --[[
       -- local ts = vim.treesitter
       local ts_utils = require("nvim-treesitter.ts_utils")
-
       local function show_popup()
         -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
         -- if not ts_utils then return end
@@ -78,14 +78,14 @@ return {
           node = node:parent()
         end
         -- If cursor is not in function brackets, then
-        --[[vim.lsp.buf.hover({
-          border = 'rounded',
-          -- focusable = true, -- Can you focus it with a mouse
-          focusable = false, -- Can you focus it with a mouse
-          focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
-          silent = true,
-          -- close_events = ...
-        })]]--
+        -- vim.lsp.buf.hover({
+        --   border = 'rounded',
+        --   -- focusable = true, -- Can you focus it with a mouse
+        --   focusable = false, -- Can you focus it with a mouse
+        --   focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+        --   silent = true,
+        --   -- close_events = ...
+        -- })
       end
 
       -- NOTE: Trigger signature_help automatc trigger when inside a function call
@@ -94,7 +94,7 @@ return {
       })
 
       -- vim.keymap.set('n', '<S-k>', show_popup, {noremap=true, silent=true, desc="Show hover info or signature help if within function call arguments"})
-
+      ]]--
     end
   },
 
