@@ -11,6 +11,12 @@
 --  so if you switch between different build systems, make sure
 --  to update this accordingly
 
+-- NOTE: run :checkhealth telescope to see if all dependencies are installed
+
+-- NOTE: Recommended external dependencies for some of the pickers
+-- You need to install ripgrep for fast grep searching (pacman -S mingw-w64-x86_64-ripgrep)
+-- And https://github.com/sharkdp/fd for fast file searching (pacman -S mingw-w64-x86_64-fd)
+
 return {
 
   --{"smartpde/telescope-recent-files"},  -- add it as a dependancy instead
@@ -185,9 +191,15 @@ return {
         --  All the info you're looking for is in `:help telescope.setup()`
         --
         defaults = {
-
           --sorting_strategy = "ascending",
           --initial_mode = "normal",  -- Pick buffers in normal mode
+
+          -- NOTE: Telescope uses ripgrep by default, which is faster
+          -- vimgrep_arguments = {
+          --   "grep",
+          --   "--color=never",
+          --   --...other grep compatible arguments
+          -- },
 
           mappings = {
             -- i = { ['<c-enter>'] = 'to_fuzzy_refine' },
@@ -237,6 +249,7 @@ return {
           -- Recently Opened Buffers List
           buffers = {
             -- Set sorting strategy for buffers to prioritize recent ones (MRU)
+            -- :help telescope.builtin.buffers
             sort_lastused = true, -- similar to how :ls t shows sorted buffers
             ignore_current_buffer = false, -- Optionally ignore the current buffer (you can toggle this)
             --theme = "dropdown"  -- Adjust for a more compact look
@@ -248,7 +261,7 @@ return {
         },
       }
       opts.defaults.mappings.n = opts.defaults.mappings.i
-      telescope.setup(opts)
+      telescope.setup(opts) -- :help telescope.setup
 
       -- Enable Telescope extensions if they are installed
       pcall(telescope.load_extension, 'fzf')
@@ -346,6 +359,7 @@ return {
       vim.keymap.set("n", "<leader>fs", '<cmd>Telescope session-lens search_session<CR>',
         { desc = "telescope [S]essions" })
 
+      -- You can also use Ctrl + o and Ctrl + i to navigate the jumplist
       vim.keymap.set("n", "<leader>fj", '<cmd>Telescope jumplist<CR>',
         { desc = "telescope [J]umplist" })
 
@@ -366,8 +380,15 @@ return {
       vim.keymap.set('n', '<leader>ch', function() require('telescope.builtin').command_history() end,
         { noremap = true, silent = true, desc = "Command [H]istory" })
 
-			vim.keymap.set('n', '<leader>ft', '<cmd>TodoTelescope<CR>',
-        { noremap = true, silent = true, desc = "telescope [T]oDo" })
+			vim.keymap.set('n', '<leader>fd', '<cmd>TodoTelescope<CR>',
+        { noremap = true, silent = true, desc = "telescope To[D]o" })
+
+      -- You can also use Ctrl + t to jump back the tagstack
+      -- Or you can also use Ctrl + ] to jump forward into a tag
+      vim.keymap.set('n', '<leader>ft', '<cmd>Telescope tagstack<CR>',
+        { noremap = true, silent = true, desc = "telescope [T]agStack" })
+      -- vim.keymap.set('n', '<leader>ft', '<cmd>Telescope tags<CR>',
+      --   { noremap = true, silent = true, desc = "telescope [T]ags" })
 
     end,
   }

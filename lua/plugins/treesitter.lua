@@ -12,8 +12,9 @@ return {
     -- These are not dependencies, but just plugins which are lazy loaded
     -- when treesitter gets loaded
     dependencies = {
-      "nvim-treesitter/nvim-treesitter-context",
+      -- "nvim-treesitter/nvim-treesitter-context", -- Causes flickering on line numbers
       -- "lukas-reineke/indent-blankline.nvim",
+      -- Also take a look at nvim-treesitter/nvim-treesitter-textobjects
     },
 
     build = ':TSUpdate',
@@ -62,7 +63,11 @@ return {
 
         -- Traverse up the tree to see if we are inside an argument list of a call
         while node do
-          if node:type() == "argument_list" or node:type() == "call_expression" then
+          local t = node:type()
+          if t == "argument_list"
+            or t == "call_expression"
+            or t == "template_argument_list" -- qualified_identifier, template_type
+          then
             vim.lsp.buf.signature_help({
               border = 'rounded',
               focusable = false, -- Can you focus it with a mouse
@@ -89,9 +94,20 @@ return {
       end
 
       -- NOTE: Trigger signature_help automatc trigger when inside a function call
-      vim.api.nvim_create_autocmd("CursorHold", { -- CursorHoldI, CursorMovedI, TextChangedI
-        callback = show_popup,
-      })
+      -- vim.api.nvim_create_autocmd({"CursorHoldI", "CompleteDone", "InsertChange"}, {
+      -- CursorHold, CursorHoldI, CursorMovedI, TextChangedI, CompleteDone, CompleteChanged
+      vim.api.nvim_create_autocmd({"CursorHoldI"}, { callback = show_popup, })
+
+      -- local function refresh_on_key(key)
+      --   vim.keymap.set('i', key, function ()
+      --     vim.api.nvim_feedkeys(key, "n", false) -- n, i, !
+      --     -- vim
+      --     -- vim.defer_fn(show_popup, 250)
+      --     show_popup()
+      --   end, {noremap=true, desc="Revive signature help on escape"})
+      -- end
+      -- refresh_on_key(' ')
+      -- refresh_on_key(',')
 
       -- vim.keymap.set('n', '<S-k>', show_popup, {noremap=true, silent=true, desc="Show hover info or signature help if within function call arguments"})
       ]]--

@@ -1,6 +1,6 @@
 -- https://github.com/nvim-lualine/lualine.nvim
 -- https://medium.com/@shaikzahid0713/lualine-for-neovim-776b79861699
-
+-- https://www.reddit.com/r/neovim/comments/1gbq198/how_to_display_function_name_in_current_context/
 
 local function adaptive_separator()
   -- Get the current window width
@@ -10,8 +10,7 @@ local function adaptive_separator()
   return string.rep("-", separator_length)
 end
 
-
-local function current_scope_name()
+--[[local function current_scope_name()
   local ts_utils = require('nvim-treesitter.ts_utils')
   local node = ts_utils.get_node_at_cursor()
   if not node then return '' end
@@ -30,11 +29,11 @@ local function current_scope_name()
   end
 
   return scope_name
-end
+end]]--
 
-
---[[local function current_scope_name()
-  local params = vim.lsp.util.make_position_params()
+-- This lags as sh*t
+local function current_scope_name()
+  local params = vim.lsp.util.make_position_params(0, vim.o.encoding)
   local result = vim.lsp.buf_request_sync(0, 'textDocument/documentSymbol', params, 1000)
 
   if result and next(result) then
@@ -46,8 +45,88 @@ end
   end
 
   return ''
+end
+
+--[[local function ts_context()
+  local ok, ts = pcall(require, "nvim-treesitter")
+  if not ok then
+    return ""
+  end
+
+  -- This returns something like "Namespace › Class › Method"
+  local ctx = ts.statusline({
+    indicator_size = 100,
+    type_patterns = { "class", "function", "method", "namespace" },
+    separator = " > ",
+    transform_fn = function(line)
+      return line:gsub("%s+", "")
+    end,
+  })
+
+  return ctx or ""
 end]]--
 
+local ts = require("nvim-treesitter")
+local function ts_context()
+  local ctx = ts.statusline({
+    indicator_size = 200,
+    type_patterns = { "class", "function", "method", "namespace", "struct", "interface" },
+    -- separator = " > ",
+    -- separator = " › ",
+  })
+  if not ctx or ctx == "" then return "" end
+  local parts = vim.split(ctx, "-> ", { plain = true })
+  ctx = parts[#parts]
+
+  -- ctx = ctx
+  --   :gsub("^local%s+", "")           -- strip leading “local”
+  --   :gsub("function%s*", "")         -- strip leading “function”
+  --   :gsub("method%s*", "")           -- strip leading “method”
+  --   :gsub("class%s*", "")            -- strip leading “class”
+  --   :gsub("namespace%s*", "")        -- strip leading “namespace”
+  --   :gsub("struct%s*", "")           -- strip leading “struct”
+  --   :gsub("%b()", "")                -- remove brackets with all parameters in them
+  --   :gsub("%b<>", "")                -- remove templates with all parameters in them
+    -- :gsub("%s*[%(%)]%s*", "")        -- remove leftover parentheses  
+    -- :gsub("%s*[%[%]]%s*", "")        -- remove TS internal brackets
+    -- :gsub("%s+-", "-")               -- tighten separators from left
+    -- :gsub(">%s+", ">")               -- tighten separators from right
+
+  -- ctx = ctx:match("([%w_]+)%s*%(") -- First find word before (
+  -- ctx = ctx or ctx:match("([%w_]+)$") -- else get last word
+
+  return ctx
+end
+
+--[[local ts_utils = require("nvim-treesitter.ts_utils")
+local function ts_inner_context()
+  local node = ts_utils.get_node_at_cursor()
+  if not node then return "" end
+
+  -- climb until we find a meaningful container node
+  while node do
+    local type = node:type()
+
+    if type == "function_definition"
+      or type == "function_declaration"
+      or type == "method_declaration"
+      or type == "class_specifier"
+      or type == "namespace_definition"
+    then
+      -- This gives the whole node text, not only its name
+      local id = vim.treesitter.get_node_text(node, 0)
+      return id or ""
+    end
+
+    node = node:parent()
+  end
+
+  return ""
+end]]--
+
+-- Instead of sticky headers and context windows,
+-- just jump quickly to it with [[ and return with <C-o>
+-- https://stackoverflow.com/questions/33699049/display-current-function-in-vim-status-line
 
 return {
   {
@@ -55,10 +134,7 @@ return {
     dependencies = {
       "nvim-tree/nvim-web-devicons", -- Icons support
       "archibate/lualine-time",      -- Clock extension
-
-      -- Not a dependeny, but to lazy load it
-      "nvim-lua/lsp-status.nvim",
-
+      -- "nvim-lua/lsp-status.nvim", -- Not a dependeny, but to lazy load it
     },
 
     lazy = true,
@@ -97,7 +173,12 @@ return {
           globalstatus = true, -- true(global status line), false(separate status lines per each window)
         },
         sections = {
-          lualine_a = { 'mode' },
+          lualine_a = {
+            {
+              'mode',
+              -- fmt = function(str) return str:sub(1,1) end
+            },
+          },
           lualine_b = {
             'branch',
             'diff',
@@ -112,14 +193,19 @@ return {
                 info  = ' ',
                 hint  = ' ',
               },
-            }
+            },
           },
 
-          -- 0: Show the absolute path to the file.
-          -- 1: Show the relative path from the current working directory (CWD).
-          -- 2: Show the relative path from the root of the project (if your project is defined).
-          -- 3: Show just the filename without any path.
-          lualine_c = { {'filename', path = 1} },
+          lualine_c = {
+            -- 0: Show the absolute path to the file.
+            -- 1: Show the relative path from the current working directory (CWD).
+            -- 2: Show the relative path from the root of the project (if your project is defined).
+            -- 3: Show just the filename without any path.
+            {'filename', path = 1},
+            -- ts_inner_context,
+            -- ts_context, -- THIS
+            -- current_scope_name,
+          },
 
           -- Make sure `cdate` and `ctime` are available from lualine-time
           --lualine_x = {'encoding', 'fileformat', 'filetype', 'cdate', 'ctime'},
@@ -135,15 +221,15 @@ return {
           },]] --
 
           lualine_y = {},
+          -- lualine_y = {'lsp_status'},
           -- lualine_y = {'progress'},
           --lualine_z = {'location'}
-
           lualine_z = {
-            { 'location', fmt = function()
+            function()
               local line = vim.fn.line('.')
               local col = vim.fn.col('.')
               return line .. '|' .. col -- Use '|' as the separator
-            end }
+            end,
           },
 
         },
@@ -158,11 +244,11 @@ return {
 
           --lualine_x = { 'location' },
           lualine_x = {
-            { 'location', fmt = function()
+            function()
               local line = vim.fn.line('.')
               local col = vim.fn.col('.')
               return line .. '|' .. col -- Use '|' as the separator
-            end }
+            end,
           },
 
           lualine_y = {},

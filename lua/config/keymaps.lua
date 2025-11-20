@@ -22,16 +22,7 @@ local util = require("utilities")
 -- :cnext, :cprev, :lnext, :lprev
 -- ]q      [q      ]l      [l
 
--- <C-k> used for window navigation
--- map("n", "<C-k>", function()
---   vim.lsp.buf.hover({
---     border = 'rounded',
---     -- focusable = true, -- Can you focus it with a mouse
---     focusable = false, -- Can you focus it with a mouse
---     focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
---     silent = true,
---   })
--- end, opts)
+map("i", "<C-c>", "<Esc>", opts) -- Triggers the InsertLeave event
 
 map("n", "<leader>cm", "<cmd>OpenCMD<CR>", opts)
 
@@ -54,6 +45,7 @@ map("n", "<leader>lz", "<cmd>Lazy<CR>",
 
 -- NOTE: Overwriting the default one, because it has no borders
 map('n', '<S-k>', function()
+-- map("n", "<C-k>", function() -- <C-k> is used for window navigation
   vim.lsp.buf.hover({
     border = 'rounded',
     -- focusable = true, -- Can you focus it with a mouse
@@ -133,20 +125,10 @@ Ex-Mode !
 
 -- list of all modes: { 'n', 'i', 'v', 'x', 's', 'o', 'c' }
 
---  See `:help vim.keymap.set()`
-
+--  See :help vim.keymap.set() and :help vim.api.nvim_set_keymap()
 
 map('n', '<leader>q', '<cmd>q<CR>', { desc = '[Q]uit Window', noremap = true, silent = true })
 map('n', '<leader>Q', '<cmd>qa<CR>', { desc = '[Q]uit All Windows', noremap = true, silent = true })
--- map('n', '<leader>x', '<cmd>Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
-map('n', '<leader>x', function ()
--- map('n', '<C-w>', function () -- NOTE: In most apps Ctrl + W closes the tab
-  if vim.bo.buftype == 'terminal' then
-    require("bufdelete").bufdelete(0, true) -- Force close of terminal buffers
-  else
-    require("bufdelete").bufdelete(0, false)
-  end
-end, { noremap = true, silent = true, desc = "Buffer delete" })
 -- vim.keymap.set("n", "<leader>X", ":bufdo bd<CR>", { desc = "Close all buffers", silent = true })
 -- map('n', '<leader>X', ' x q', { noremap = false, silent = true, desc = "Delete buffer and close window" })
 
@@ -246,14 +228,11 @@ map("v", "<leader>/", "gc", { desc = "Toggle comment", remap = true })
 -- https://neovim.io/doc/user/scroll.html#_6.-scrolling-with-a-mouse-wheel
 -- https://github.com/neovim/neovim/issues/6211
 
-map('n', '<C-ScrollWheelUp>', '10zh', opts)
-map('n', '<C-ScrollWheelDown>', '10zl', opts)
+map({'n', 'v'}, '<C-ScrollWheelUp>', '10zh', opts)
+map({'n', 'v'}, '<C-ScrollWheelDown>', '10zl', opts)
 
 map('i', '<C-ScrollWheelUp>', '<Esc>10zhi', opts)
 map('i', '<C-ScrollWheelDown>', '<Esc>10zli', opts)
-
-map('v', '<C-ScrollWheelUp>', '10zh', opts)
-map('v', '<C-ScrollWheelDown>', '10zl', opts)
 
 
 -- Create a custom command to replace 'wordA' with 'wordB' as whole words only
@@ -318,7 +297,8 @@ map("n", "<C-l>", "<C-w>l", opts)
 
 
 map('n', '<C-s>', '<cmd>w<CR>', { noremap = true, silent = true, desc = "Close buffer" })
-map('i', '<C-s>', '<Esc><cmd>w<CR>a', { noremap = true, silent = true, desc = "Close buffer" })
+-- NOTE: Utilize the default <C-s> which scrolls signature help overloads
+-- map('i', '<C-s>', '<Esc><cmd>w<CR>a', { noremap = true, silent = true, desc = "Close buffer" })
 
 -- NOTE: See :help signature_help and :verbose imap <C-s>
 -- You should be in insert mode and press <C-s>
@@ -336,9 +316,9 @@ map('i', '<C-s>', '<Esc><cmd>w<CR>a', { noremap = true, silent = true, desc = "C
 -- map('n', '<C-b>', '<Plug>(nvim.lsp.ctrl-s)', { noremap = true, silent = true, desc = "Signature Help scroll overloads" })
 
 -- nnoremap <expr> <C-i> "\<C-i>"
-map('n', '<C-i>', function()
-  return vim.api.nvim_replace_termcodes("<C-i>", true, true, true)
-end, {expr=true, noremap=true, silent=true, desc="Fix <C-i> that is interpreted as <Tab> from the terminal to jump forward in the jumplist"})
+-- map('n', '<C-i>', function() -- Doesnt work
+--   return vim.api.nvim_replace_termcodes("<C-i>", true, true, true)
+-- end, {expr=true, noremap=true, silent=true, desc="Fix <C-i> that is interpreted as <Tab> from the terminal to jump forward in the jumplist"})
 
 --=============================== PLUGINS ========================================--
 -- The following keymaps are for plugins that are lazy loaded, and the key binding

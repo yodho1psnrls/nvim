@@ -17,6 +17,7 @@
 return {
 
   --  { "nvim-tree/nvim-web-devicons" }, -- it is a dependancy for other plugins
+  -- See https://github.com/JMarkin/nvim-tree.lua-float-preview
 
   {
     "nvim-tree/nvim-tree.lua",

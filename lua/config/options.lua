@@ -9,10 +9,14 @@
 -- This places a second border on top of windows that already have a border
 --  like Telescope and Lazy windows
 -- vim.o.winborder = 'rounded' -- doesnt affect much
+-- vim.o.winborder = '╭,╌,╮,┆,╯,╌,╰,┆'
+-- vim.o.winborder = '╭,‐,╮,╎,╯,‐,╰,╎'
 
 -- Folding options
 -- zc folds by method, h or l on the folded line, unfolds it
 -- https://www.reddit.com/r/neovim/comments/1jmqd7t/sorry_ufo_these_7_lines_replaced_you/?rdt=46694
+
+-- vim.o.redrawtime = 10000 -- redraw throttle (Default 2000) (May fix ts-context linenumber flickering)
 
 vim.o.foldcolumn = '0' -- '0' is not bad, '1' is default | "auto" | "auto:number"
 vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
@@ -161,7 +165,10 @@ vim.opt.cursorline = false
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 8
 vim.opt.sidescrolloff = 18
--- vim.opt.smoothscroll = true -- Doesnt seem to do anything
+
+-- Enables scrolling with <C-y> and <C-e> in wrapped lines
+-- https://www.reddit.com/r/vim/comments/1fj1p5a/scrolling_by_visual_lines_instead_of_line_numbers/
+-- vim.opt.smoothscroll = true
 
 --------------------------------------------------------------------------
 

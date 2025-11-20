@@ -15,19 +15,24 @@ return {
 
   {
     "famiu/bufdelete.nvim",
+    lazy = true,
+    cmd = 'Bdelete',
+    keys = {
+      { '<leader>x', desc = "Buffer Delete" },
+    },
     config = function()
+      local bd = require("bufdelete")
 
-      --vim.api.nvim_set_keymap('n', '<leader>x', ':Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
-
-      --vim.api.nvim_set_keymap('n', '<leader>x',
-      --  ':lua require("bufdelete").bufdelete(buf, false)<CR>',
-      --{ noremap = true, silent = true, desc = "Close buffer" })
-
-      -- Completely remap  :bd to :Bdelete
-      --vim.api.nvim_create_user_command('bd', 'Bdelete', { nargs = 0 })
-      --vim.api.nvim_set_keymap('n', '<leader>x', ':bd<CR>', { noremap = true, silent = true, desc = "Close buffer" })
-
-      -- TODO: Make the terminal buffer exit to use this plugin
+      -- map('n', '<leader>x', '<cmd>Bdelete<CR>', { noremap = true, silent = true, desc = "Close buffer" })
+      vim.keymap.set('n', '<leader>x', function ()
+        -- map('n', '<C-w>', function () -- NOTE: In most apps Ctrl + W closes the tab
+        -- See :help bufdelete
+        if vim.bo.buftype == 'terminal' then
+          bd.bufdelete(0, true) -- Force close of terminal buffers
+        else
+          bd.bufdelete(0, false)
+        end
+      end, { noremap = true, silent = true, desc = "Buffer delete" })
 
       -- TODO: Fix it, it doesnt quite work
       -- Test case: open nvim-tree and a cpp file, then run the cpp exe (which opens the terminal in place of the cpp file window)

@@ -23,6 +23,12 @@
 --  uses the line numbers for display at the top and before installing
 --  this plugin, i had not seen such an issue
 
+-- BUG: This plugin is responsible for number line flickering
+-- on scrolling with J and K | <C-u> and <C-d> | MouseScroll
+
+-- Instead of sticky headers and context windows,
+-- just jump quickly to it with [[ and return with <C-o>
+-- https://stackoverflow.com/questions/33699049/display-current-function-in-vim-status-line
 
 return {
 
@@ -42,11 +48,11 @@ return {
       max_lines = 1,  -- 3
 
       min_window_height = 0,  -- No limit on minimum window height
-      line_numbers = true,
+      line_numbers = true,    -- Try this to be false, may fix flickering
       multiline_threshold = 20, -- Maximum number of lines for a single context
       trim_scope = 'outer',   -- Which context lines to discard
       mode = 'cursor',        -- Line used to calculate context
-      separator = nil,        -- No separator
+      separator = nil,        -- No separator, you can also try —
       zindex = 20,            -- Z-index of the context window
       on_attach = nil,        -- Callback for disabling attachment
     }

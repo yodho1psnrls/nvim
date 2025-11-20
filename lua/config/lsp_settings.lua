@@ -1,3 +1,4 @@
+-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_completion
 -- see :help lsp-api, lsp-protocol
 -- see help lsp-attach
 -- see help lsp-quickstart
@@ -144,6 +145,11 @@ M.capabilities.textDocument.semanticTokens.multilineTokenSupport = true
   },
 }]]--
 
+-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#markupContent
+-- M.capabilities.textDocument.completion.completionItem.documentationFormat = { "markdown", "plaintext" }
+-- M.capabilities.textDocument.hover.contentFormat = { "markdown", "plaintext" }
+-- M.capabilities.textDocument.signatureHelp.signatureInformation.documentationFormat = { "markdown", "plaintext" }
+
 -- Since we register and trigger it manually, we dont want the lsp to override it
 -- M.capabilities.textDocument.signatureHelp.dynamicRegistration = false
 
@@ -177,7 +183,7 @@ vim.lsp.log.set_level("OFF") -- OFF | ERROR | WARN | INFO | DEBUG
 local my_virtual_lines_config = {
   -- severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
   -- highlight_whole_line = false, -- false
-  current_line = false,
+  current_line = true,
   format = function (diagnostic)
     -- return string.format("[%s] %s", vim.diagnostic.severity[diagnostic.severity], diagnostic.message)
     -- return "Slqlqlq " .. diagnostic.message -- To test
@@ -192,7 +198,8 @@ vim.diagnostic.config({
   virtual_text = false,
   -- virtual_lines = true,
   -- See help vim.diagnostic.Opts.VirtualLines
-  virtual_lines = my_virtual_lines_config,
+  -- virtual_lines = my_virtual_lines_config,
+  virtual_lines = false,
 
   --[[virtual_text = {
    -- severity = { min = vim.diagnostic.severity.INFO}, -- Warnings Enabled
@@ -242,22 +249,45 @@ vim.diagnostic.config({
   end,]]--
 })
 
-local is_virtual_lines_enabled = true
-local function toggle_virtual_lines()
-  if is_virtual_lines_enabled then
+-- local is_virtual_lines_enabled = true
+-- local function toggle_virtual_lines()
+--   if is_virtual_lines_enabled then
+--     vim.diagnostic.config({ virtual_lines = false })
+--   else
+--     vim.diagnostic.config({ virtual_lines = my_virtual_lines_config })
+--   end
+--   is_virtual_lines_enabled = not is_virtual_lines_enabled
+-- end
+
+-- NOTE: update_in_insert = false, but only for virtual lines
+vim.api.nvim_create_autocmd('InsertEnter', {
+  callback = function ()
     vim.diagnostic.config({ virtual_lines = false })
-  else
-    vim.diagnostic.config({ virtual_lines = my_virtual_lines_config })
   end
-  is_virtual_lines_enabled = not is_virtual_lines_enabled
+})
+local vl_activate_id = nil
+local function toggle_virtual_lines()
+  if vl_activate_id == nil then
+    vim.diagnostic.config({ virtual_lines = my_virtual_lines_config })
+    -- NOTE: InsertLeave and InsertLeavePre dont invoke on Ctrl + c
+    vl_activate_id = vim.api.nvim_create_autocmd('InsertLeave', {
+      callback = function ()
+        vim.diagnostic.config({ virtual_lines = my_virtual_lines_config })
+      end
+    })
+  else
+    vim.diagnostic.config({ virtual_lines = false })
+    vim.api.nvim_del_autocmd(vl_activate_id)
+    vl_activate_id = nil
+  end
 end
+toggle_virtual_lines()
 vim.keymap.set("n", "<leader>ll", toggle_virtual_lines, { desc = "Toggle virtual lines" })
 
 
 vim.keymap.set("n", "<leader>dt", function()
   vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, {desc="Toggle all shown diagnostics", silent=true, noremap=true})
-
 
 -- NOTE: Deprecated:
 
@@ -381,7 +411,7 @@ set_rounded_border("textDocument/codeAction")]]--
 
 -- NOTE: See :help complete-items
 -- Map LSP kinds to icons
-local cmp_icons = {
+--[[local cmp_icons = {
   Text = "",
   Method = "󰆧",
   Function = "󰊕",
@@ -407,6 +437,34 @@ local cmp_icons = {
   Event = "",
   Operator = "󰆕",
   TypeParameter = "",
+}]]--
+
+local cmp_icons = {
+  "",
+  "󰆧",
+  "󰊕",
+  "",
+  "󰇽",
+  "󰂡",
+  "󰠱",
+  "",
+  "",
+  "󰜢",
+  "",
+  "󰎠",
+  "",
+  "󰌋",
+  "",
+  "󰏘",
+  "󰈙",
+  "",
+  "󰉋",
+  "",
+  "󰏿",
+  "󰙅",
+  "",
+  "󰆕",
+  "",
 }
 
 local lsp_protocol = require("vim.lsp.protocol")
@@ -434,6 +492,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
       vim.lsp.completion.enable(true, client.id, ev.buf, {
         autotrigger = true,
+        -- See :help complete-items for all fields of item parameter
         convert = function(item)
           local trim_word = function(word, cap) -- Used for abbr
             -- word:gsub("^%s+", "") -- trim leading spaces (Clangd gives such spaces in front)
@@ -446,7 +505,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
           end
           return {
             -- abbr = item.label -- What appears in the popup
-            abbr = trim_word(item.label, 25),
+            abbr = trim_word(item.label, 20),
             word = trim_word(item.label), -- What gets inserted 
               -- .. ((item.kind == kinds.Function or item.kind == kinds.Method) and "(" or ""),
 
@@ -454,8 +513,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
             -- detail = item.detail or "", -- rigth-side annotation (signature or type)
             -- menu = "[" .. client.name .. "]", -- Optional (usually shows sources)
 
-            kind = string.format("%s %s", cmp_icons[kind_names[item.kind]] or "", kind_names[item.kind]), -- the type icon
-            -- kind = (cmp_icons[kind_names[item.kind]] or "") .. " " .. kind_names[item.kind], -- the type icon
+            kind = cmp_icons[item.kind],
+            -- kind = string.format("%s %s", cmp_icons[item.kind] or "", kind_names[item.kind]), -- the type icon
+            -- kind = (cmp_icons[item.kind] or "") .. " " .. kind_names[item.kind], -- the type icon
             menu = "", -- (Remove it) right-side annotation (Usually the return type of the function)
             -- menu = item.detail or "" -- default menu column (Shows return type)
             -- index -- ordering hint
@@ -465,15 +525,20 @@ vim.api.nvim_create_autocmd('LspAttach', {
             -- insertText	- Override insertion behavior
             -- textEdit	- Replace custom range
           }
-        end
+        end,
+        -- float= { -- Not a field in completion.enable opts
+        --   anchor="NW",
+        --   relative="cursor",
+        --   row=1,
+        --   col=0,
+        -- },
       })
     end
 
   end
 })
 
--- NOTE: Trigger autocompletion on every character insert
--- Only if a certain number of characters are inserted
+-- NOTE: Trigger autocompletion after certain number of characters are inserted
 --[[vim.api.nvim_create_autocmd("InsertCharPre", {
   callback = function()
     local min_chars = 3 - 1
@@ -512,6 +577,8 @@ vim.keymap.set("i", "<CR>", function()
   local has_selected = vim.fn.complete_info().selected ~= -1
   return (vim.fn.pumvisible() == 1 and has_selected) and "<C-y>" or "<CR>"
 end, { expr = true, noremap=true, silent=true, desc="Accept selected completion"})
+-- NOTE: Use <C-e> to end completion (return back to what you typed originally)
+-- See more in :help popupmenu-keys
 
 
 -- See :help options and then /complete
@@ -519,12 +586,12 @@ end, { expr = true, noremap=true, silent=true, desc="Accept selected completion"
 -- Command mode autocompletion options
 -- https://www.reddit.com/r/vim/comments/qltep/what_is_your_wildmode_setting_and_why/
 -- vim.o.wildmode = "list:longest,list:full"
--- vim.o.wildoptions
+-- :help nvim_open_win and see the zindex config parameter example
+-- vim.o.wildoptions = vim.o.wildoptions .. ",pum"
 
 -- See :help completeopt
--- vim.o.completeopt = "menu,menuone,noinsert"
-vim.o.completeopt = "menu,menuone,noselect,fuzzy,nearest"
--- vim.o.completeopt = "menu,menuone,noselect,fuzzy,popup" -- Shows selection info as additional popup
+-- vim.o.completeopt = "menu,menuone,noselect,fuzzy,nearest" -- THIS
+vim.o.completeopt = "menuone,noselect,fuzzy,popup" -- Shows selection item info as additional popup
 -- vim.o.showmatch = true -- Default is true (Show the selected word)
 
 vim.o.complete = ".,o" -- use buffer and omnifunc
@@ -542,21 +609,81 @@ vim.bo.omnifunc = "v:lua.vim.lsp.omnifunc"
 -- vim.o.autocompletetimeout -- completion sources loading (Dont touch)
 -- vim.o.completefunc
 
--- Show LSP hover doc when completion selection changes
--- Similar to adding 'popup' in vim.o.completeopt
---[[vim.api.nvim_create_autocmd("CompleteChanged", {
+-- NOTE:
+-- https://vi.stackexchange.com/questions/36486/nvim-popup-vs-vim-popup
+-- https://github.com/neovim/neovim/issues/26681#issuecomment-1864781638
+-- https://github.com/neovim/neovim/pull/25541
+-- This will enable you to customize the selected item info popup
+-- thats enabled with vim.o.completeopt+=popup, not yet implemented
+-- See :help completepopup and you will see it in Missing Features
+-- Until implemented in core, use a CompleteChange autocmd with
+-- floating window which shows the item.info
+--vim.o.completepopup = { border = "round", }
+
+-- https://vi.stackexchange.com/questions/46203/how-do-you-get-the-position-of-the-cursor-or-of-a-line-within-the-window
+-- https://github.com/neovim/neovim/issues/29225
+-- https://github.com/neovim/neovim/issues/30578
+-- https://github.com/neovim/neovim/issues/29225#issuecomment-2469976099
+
+-- local _pc_id = vim.api.nvim_create_augroup("PopupConfigGroup", {})
+local last_winid = nil -- The preview_winid changes when you click on it
+vim.api.nvim_create_autocmd("CompleteChanged", { -- :help CompleteChanged
+  desc = "Configure completion item info popup",
+  -- group = _pc_id,
+  callback = function()
+    local winid = vim.fn.complete_info().preview_winid
+    if winid and (winid ~= last_winid) then
+      vim.api.nvim_win_set_config(
+        winid,
+        {
+          border = "rounded",
+          focusable = false,
+          -- style = "minimal", -- currently only minimal is supported
+          -- width = math.min(60, vim.o.columns - 2),
+          -- height = 8, -- Doesnt prevent the window to be bigger for some reason
+          -- anchor = "SW",
+          -- title = "INFO",
+          -- title_pos = "center",
+        }
+      )
+      last_winid = winid
+      -- vim.api.nvim_clear_autocmds({ group = _pc_id })
+      -- _pc_id = -1
+    end
+  end
+})
+
+-- NOTE: Show LSP hover doc when completion selection changes
+-- Its not the same as adding 'popup' in vim.o.completeopt, because
+-- it also shows the signature not only the documentation/comments for the item
+-- NOTE: Ways to get the window's width from its id
+-- vim.api.nvim_win_get_width(winid)
+-- vim.api.nvim_win_get_config(info.preview_winid).width
+--[[vim.api.nvim_create_autocmd("CompleteChanged", { -- :help CompleteChanged
+  desc = "Show popup completion item resolve",
   callback = function(ev)
     local info = vim.fn.complete_info()
-    local selected = info["selected"] -- index of selected item
-    if selected >= 0 then
-      -- Trigger hover for the symbol under cursor
+    local pum_win = vim.fn.pum_getpos()
+    local pum_width = pum_win.width and pum_win.width or 0
+    local offset = pum_win.col and vim.api.nvim_win_get_cursor(0)[2] - pum_win.col + 4 or 0
+    offset = pum_width-offset
+    -- offset = math.max(0, offset)
+    -- print("lines: " .. vim.o.lines)
+    -- print("cur_row: " .. vim.fn.getpos('.')[2])
+    if info.selected ~= -1 then
       vim.lsp.buf.hover({
         border = 'rounded',
-        -- focusable = true, -- Can you focus it with a mouse
-        focusable = false, -- Can you focus it with a mouse
-        focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
+        focusable = false,
+        focus = false,
         silent = true,
-        anchor_bias = 'above',
+
+        offset_y=0,
+        offset_x = offset,
+        relative="cursor",
+
+        max_width = math.max(1, vim.o.columns - (vim.fn.getpos('.')[3] + offset + 8)),
+        -- max_height = math.max(1, vim.o.lines - (vim.fn.getpos('.')[2] + 8)),
+        close_events = {"CompleteChanged", "CompleteDonePre"}
       })
     end
   end
@@ -583,20 +710,29 @@ vim.api.nvim_set_hl(0, 'PmenuBorder', { fg = 'White' })
 -- https://neovim.discourse.group/t/show-signature-help-on-insert-mode/2007/5
 -- NOTE: :help lsp-handler
 
--- If you miss the original <S-j> behavior that cojoins lines
---  , just use it from visual mode (or even better, vipJ to join whole paragraph)
---  https://www.reddit.com/r/vim/comments/14iito9/automatically_shiftj/
-vim.keymap.set('n', '<S-j>', function ()
+local function show_signature_help()
   vim.lsp.buf.signature_help({
     border = 'rounded',
     focusable = false, -- Can you focus it with a mouse
     focus = false,    -- Should it focus the window | Can you focus it with jump through windows keys
     silent = true,
     max_height = 3,
-    anchor_bias='above',
-    -- close_events = ...
+    anchor_bias = 'above',
+    close_events = {'InsertLeave'}
   })
-end, {desc="Show Signature Help", noremap=true, silent=true})
+end
+
+-- Lua 26: vim/_defaults.lua:234
+vim.api.nvim_create_autocmd({"CursorHoldI"}, { callback=show_signature_help })
+-- vim.keymap.set('i', '<C-s>', show_signature_help, {noremap=true, silent=true});
+
+-- If you miss the original <S-j> behavior that cojoins lines
+--  , just use it from visual mode (or even better, vipJ to join whole paragraph).
+--  https://www.reddit.com/r/vim/comments/14iito9/automatically_shiftj/
+-- The default mapping for signature_help is
+-- <C-s> or <Plug>(nvim.lsp.ctrl-s) in insert mode.
+-- vim.keymap.set('n', '<S-j>', show_signature_help
+-- , {desc="Show Signature Help", noremap=true, silent=true})
 
 -- https://www.reddit.com/r/neovim/comments/vbsryc/show_lsp_signature_help_window_above_cursor/
 -- https://github.com/askfiy/nvim/commit/395fb842ea3441fd69d6cb1e96c6f78d9bc19edb

@@ -16,6 +16,8 @@
 -- NOTE: Look at this if you want to replace this plugin with native
 -- https://github.com/LionyxML/dotneovim/blob/main/init.lua#L1864
 -- https://github.com/LionyxML/dotneovim/blob/012b5d2a0fc8122c26c41a5332f5452c287d8ed0/init.lua#L1864
+-- Look for tabline and arglist
+-- https://www.reddit.com/r/vim/comments/u3nv6/buffer_list_vs_arguments_list/
 
 local util = require("utilities")
 
@@ -125,6 +127,11 @@ return {
           local time_b = get_last_written(buffer_b.id)
 
           return time_a > time_b -- Sort descending by last written time
+
+          -- Example from :help bufferline-configuration
+          -- local modified_a = vim.fn.getftime(buffer_a.path)
+          -- local modified_b = vim.fn.getftime(buffer_b.path)
+          -- return modified_a > modified_b
         end,
 
         -- TODO: Fix the border separator to show up on the tabline,
