@@ -412,6 +412,8 @@ set_rounded_border("textDocument/codeAction")]]--
 -- If you have completion errors using typescript-language-server and rust-analyzer
 -- See https://github.com/neovim/neovim/issues/33142
 
+-- TODO: Make the completion to work, even without using an LSP at all
+
 -- NOTE: See :help complete-items
 -- Map LSP kinds to icons
 --[[local cmp_icons = {
@@ -516,7 +518,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
             -- detail = item.detail or "", -- rigth-side annotation (signature or type)
             -- menu = "[" .. client.name .. "]", -- Optional (usually shows sources)
 
-            kind = cmp_icons[item.kind],
+            -- " " - hairspace | " " - thinspace | "​" - zero-width space | "‌" - zero-width non-joiner | "‍" - zero-width joiner | "⁠" - word joiner
+            kind = cmp_icons[item.kind] .. " ",
             -- kind = string.format("%s %s", cmp_icons[item.kind] or "", kind_names[item.kind]), -- the type icon
             -- kind = (cmp_icons[item.kind] or "") .. " " .. kind_names[item.kind], -- the type icon
             menu = "", -- (Remove it) right-side annotation (Usually the return type of the function)

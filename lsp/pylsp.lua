@@ -24,6 +24,9 @@ return {
     --       enabled = true,
     --       config = vim.fn.expand('~\\AppData\\Roaming\\flake8')
     --     },
+    --     -- pylint = { enabled = true },
+    --     -- pyflakes = { enabled = false },
+    --     -- pycodestyle = { enabled = false },
     --   },
     -- },
   },

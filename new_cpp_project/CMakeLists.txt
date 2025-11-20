@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # So language server protocols like clangd or ccls work properly
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Enforse it to use Ninja instead of make
+# This is not needed if you have CMAKE_GENERATOR set to Ninja as environment variable
+# set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "" FORCE)
+
 # If you’re making frequent changes to the code, 
 #  ccache can help by caching and reusing results from previous builds.
 # This will speed up rebuilds for unchanged files

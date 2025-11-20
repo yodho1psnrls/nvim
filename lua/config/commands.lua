@@ -322,7 +322,8 @@ local function open_lazygit(cmd)
     height = height,
   })
 
-  vim.keymap.set("t", "<Esc>", "q", { buffer = buf })
+  -- vim.keymap.set("t", "<C-c>", "<C-c><cmd>quit<CR>", { buffer = buf, desc = "Cancel Operation and Quit" })
+  vim.keymap.set("t", "<Esc>", "q", { buffer = buf, desc = "Quit LazyGit" })
   -- vim.keymap.set("i", "<Esc>", function()
   --   vim.api.nvim_win_close(win, true)
   -- end, { buffer = buf })

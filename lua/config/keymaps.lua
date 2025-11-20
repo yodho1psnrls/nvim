@@ -7,7 +7,7 @@ local util = require("utilities")
 
 -- NOTE: Some keys may be overrided by the terminal
 -- Ctrl + h - Backspace in terminal
--- Ctrl + i - Tab in terminal
+-- Ctrl + i - Tab in terminal | go to next pos in jumplist in neovim
 -- Ctrl + m - Enter in terminal
 -- Ctrl + c - Escape in terminal or copy(if selection is present) or kill proccess(if a command is running)
 -- Ctrl + v - Paste in terminal

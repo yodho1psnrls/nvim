@@ -1,8 +1,8 @@
 -- Adds git related signs to the gutter, as well as utilities for managing changes
 -- NOTE: gitsigns is already included in init.lua but contains only the base
 -- config. This will add also the recommended keymaps.
--- NOTE: gitsigns wont work if you installed git from msys2
--- install it from official website for full tool coverage
+-- BUG: gitsigns wont work if you installed git from msys2
+-- Install it from official website for full tool coverage
 
 -- https://www.reddit.com/r/neovim/comments/146n4yy/what_is_the_smartest_condition_you_have_used_to/?rdt=57944
 -- https://www.reddit.com/r/neovim/comments/1frxtv4/looking_for_conventional_commit_plugin/

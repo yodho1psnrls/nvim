@@ -14,6 +14,8 @@
 
 -- local util = require("utilities")
 
+local width_ratio = 0.26
+
 return {
 
   --  { "nvim-tree/nvim-web-devicons" }, -- it is a dependancy for other plugins
@@ -57,7 +59,8 @@ return {
       },
 
       view = {
-        width = 24, -- 24
+        width = function() return math.floor(width_ratio * vim.o.columns) end,
+        -- width = 24, -- 24
         -- width = 32,
         side = "left",
         signcolumn = "no",
@@ -215,6 +218,22 @@ return {
         end
       end
     end, { desc = "Toggle folder containing current file", silent = true })]]--
+
+    -------------------------------------------------------------------------
+
+      --[[vim.api.nvim_create_autocmd("VimResized", {
+        desc = "Resize nvim-tree based on the width_ratio percentage",
+        callback = function ()
+          local view = require("nvim-tree.view")
+          if view.is_visible() then
+            local new_width = math.floor(vim.o.columns * width_ratio)
+            require("nvim-tree").setup({
+              view = { width = new_width },
+            })
+            view.resize(new_width)
+          end
+        end,
+      })]]--
 
     --======================================================================--
 

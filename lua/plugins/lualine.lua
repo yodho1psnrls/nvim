@@ -137,8 +137,8 @@ return {
       -- "nvim-lua/lsp-status.nvim", -- Not a dependeny, but to lazy load it
     },
 
-    lazy = true,
-    event = 'BufReadPost',
+    -- lazy = true,
+    -- event = {'BufReadPost', 'TermEnter'},
 
     config = function()
       -- Ensure the time plugin is properly loaded
