@@ -66,7 +66,7 @@ end
   return ctx or ""
 end]]--
 
-local ts = require("nvim-treesitter")
+-- local ts = require("nvim-treesitter")
 local function ts_context()
   local ctx = ts.statusline({
     indicator_size = 200,

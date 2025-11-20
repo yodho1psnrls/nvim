@@ -298,3 +298,89 @@ vim.api.nvim_create_user_command('Format', format_buffer, {})
 vim.keymap.set('n', "<leader>f", format_buffer,
   {desc = "Format Current Buffer", silent = true, noremap = true})
 
+------------------------------------------------------------------
+
+-- Completely replaces "kdheepak/lazygit.nvim",
+-- https://github.com/kdheepak/lazygit.nvim?tab=readme-ov-file#telescope-plugin
+-- NOTE: LazyGit can be exited with q or Ctrl+c
+-- You can cancel commits or pulls with Esc
+local function open_lazygit(cmd)
+  cmd = cmd or "lazygit"
+  local width  = math.floor(vim.o.columns * 0.9)
+  local height = math.floor(vim.o.lines * 0.9)
+  local row    = math.floor((vim.o.lines - height) / 2)
+  local col    = math.floor((vim.o.columns - width) / 2)
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    style = "minimal",
+    border = "rounded",
+    row = row,
+    col = col,
+    width = width,
+    height = height,
+  })
+
+  vim.keymap.set("t", "<Esc>", "q", { buffer = buf })
+  -- vim.keymap.set("i", "<Esc>", function()
+  --   vim.api.nvim_win_close(win, true)
+  -- end, { buffer = buf })
+
+  vim.fn.termopen(cmd, {
+    on_exit = function()
+      vim.api.nvim_win_close(win, true)
+    end,
+  })
+
+  vim.cmd("startinsert")
+end
+
+vim.keymap.set("n", "<leader>lf", "<cmd>LazyGitCurrentFile<CR>", {desc="Open LazyGit [F]ile"})
+vim.keymap.set("n", "<leader>lg", open_lazygit, {desc="Open Lazy[G]it"})
+vim.api.nvim_create_user_command('LazyGit', open_lazygit, {})
+
+vim.api.nvim_create_user_command('LazyGitConfig', function ()
+  -- NOTE: The config file is in %localappdata%\lazygit\config.yml
+  open_lazygit("lazygit --config-file")
+end, {})
+
+vim.api.nvim_create_user_command('LazyGitCurrentFile', function ()
+  local file = vim.fn.expand("%:p")
+  open_lazygit("lazygit --filter " .. vim.fn.shellescape(file))
+end, {})
+
+vim.api.nvim_create_user_command('LazyGitLog', function ()
+  open_lazygit("lazygit log")
+end, {})
+
+vim.api.nvim_create_user_command('LazyGitLogCurrentFile', function ()
+  local file = vim.fn.expand("%:p")
+  open_lazygit("lazygit log " .. vim.fn.shellescape(file))
+end, {})
+
+-- See :help keymaps (Which for some reason opens UndoTree files,
+-- but it will show you how to write a user commmand with arguments)
+-- Or just open %localappdata%\nvim-data\lazy\readme\doc\undotree.md
+vim.api.nvim_create_user_command("LazyGitFilter", function(opts)
+  local args = opts.fargs
+  local file = args[1]
+  if vim.fn.filereadable(file) == 1 then
+    vim.notify("No file found to LazyGit")
+    return
+  end
+  open_lazygit("lazygit --filter " .. vim.fn.shellescape(file))
+end, {
+    nargs = 1,
+    complete = function(_, line)
+      -- Extract the argument typed so far (after the command name)
+      local prefix = line:match("^%S+%s+(.*)$") or ""
+      return vim.fn.getcompletion(prefix, "file")
+    end,
+  })
+
+-- vim.api.nvim_create_user_command("LazyGitFilterCurrentFile", ... )
+
+------------------------------------------------------------------
+
+

@@ -16,6 +16,8 @@
 -- zc folds by method, h or l on the folded line, unfolds it
 -- https://www.reddit.com/r/neovim/comments/1jmqd7t/sorry_ufo_these_7_lines_replaced_you/?rdt=46694
 
+-- vim.o.jumpoptions = 'stack' -- stack/view/clean (Default: clean) (clean is Experimental, it may change in the future !!)
+
 -- vim.o.redrawtime = 10000 -- redraw throttle (Default 2000) (May fix ts-context linenumber flickering)
 
 vim.o.foldcolumn = '0' -- '0' is not bad, '1' is default | "auto" | "auto:number"

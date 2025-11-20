@@ -22,6 +22,8 @@ local util = require("utilities")
 -- :cnext, :cprev, :lnext, :lprev
 -- ]q      [q      ]l      [l
 
+-- InsertLeave and InsertLeave events do NOT trigger when using <C-c>
+-- People DONT recommend this keymap, but its the easiest way to make them trigger 
 map("i", "<C-c>", "<Esc>", opts) -- Triggers the InsertLeave event
 
 map("n", "<leader>cm", "<cmd>OpenCMD<CR>", opts)

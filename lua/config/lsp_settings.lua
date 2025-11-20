@@ -409,6 +409,9 @@ set_rounded_border("textDocument/codeAction")]]--
 ----------------------------- COMPLETION ------------------------------------
 -- https://vi.stackexchange.com/questions/46700/is-the-new-built-in-neovim-autocompletion-replacing-completion-plugins-like-nvim
 
+-- If you have completion errors using typescript-language-server and rust-analyzer
+-- See https://github.com/neovim/neovim/issues/33142
+
 -- NOTE: See :help complete-items
 -- Map LSP kinds to icons
 --[[local cmp_icons = {
@@ -624,7 +627,9 @@ vim.bo.omnifunc = "v:lua.vim.lsp.omnifunc"
 -- https://github.com/neovim/neovim/issues/29225
 -- https://github.com/neovim/neovim/issues/30578
 -- https://github.com/neovim/neovim/issues/29225#issuecomment-2469976099
+-- https://github.com/neovim/neovim/issues/10996
 
+-- The preview_winid gets changed when you click on the popup window (even though, its not focusable)
 -- local _pc_id = vim.api.nvim_create_augroup("PopupConfigGroup", {})
 local last_winid = nil -- The preview_winid changes when you click on it
 vim.api.nvim_create_autocmd("CompleteChanged", { -- :help CompleteChanged
@@ -710,6 +715,7 @@ vim.api.nvim_set_hl(0, 'PmenuBorder', { fg = 'White' })
 -- https://neovim.discourse.group/t/show-signature-help-on-insert-mode/2007/5
 -- NOTE: :help lsp-handler
 
+-- https://github.com/neovim/neovim/issues/14846
 local function show_signature_help()
   vim.lsp.buf.signature_help({
     border = 'rounded',

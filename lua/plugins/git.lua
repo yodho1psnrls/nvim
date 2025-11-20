@@ -135,7 +135,7 @@ return {
 
   },
 
-  {
+  --[[{
     "kdheepak/lazygit.nvim",
     lazy = true,
     keys = {
@@ -156,19 +156,17 @@ return {
     config = function()
       -- require("telescope").load_extension("lazygit")
 
-      --[[
-      -- vim.api.nvim_create_autocmd("TermOpen", {
-      vim.api.nvim_create_autocmd("TermClose", {
-        pattern = "term://*lazygit",
-        callback = function()
-          -- vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = true, silent = true })
-          vim.cmd("close")
-        end,
-      })
-      ]]--
+      -- -- vim.api.nvim_create_autocmd("TermOpen", {
+      -- vim.api.nvim_create_autocmd("TermClose", {
+      --   pattern = "term://*lazygit",
+      --   callback = function()
+      --     -- vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = true, silent = true })
+      --     vim.cmd("close")
+      --   end,
+      -- })
 
     end,
-  },
+  },]]--
 
   --[[{
     -- https://neovimcraft.com/plugin/isak102/telescope-git-file-history.nvim/

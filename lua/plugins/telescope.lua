@@ -1,6 +1,7 @@
 -- https://github.com/orgs/nvim-telescope/repositories
 -- https://medium.com/@jogarcia/delete-buffers-on-telescope-21cc4cf61b63
 -- https://www.reddit.com/r/neovim/comments/qspemc/close_buffers_with_telescope/
+-- https://www.reddit.com/r/neovim/comments/13936zq/editing_the_telescope_extension_seems_finnicky/
 
 -- Ctrl + q will send all telescope window items in the quickfix list
 -- Ctrl + d while you browse the buffer finder will delete the selected buffer !
