@@ -125,6 +125,9 @@ local ts_utils = require("nvim-treesitter.ts_utils")
   return ""
 end]]--
 
+-- NOTE: To see the context line
+-- write the number of the start of the context then press G
+-- then to go back use <C-o>
 local function ts_context_start_line()
   local node = ts_utils.get_node_at_cursor()
 
