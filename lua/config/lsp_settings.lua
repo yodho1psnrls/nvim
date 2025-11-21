@@ -56,20 +56,18 @@ M.on_attach = function(_, bufnr)
     return { silent = true, buffer = bufnr, desc = "LSP " .. desc }
   end
 
-  -- Keymaps
-  map("n", "gD", vim.lsp.buf.declaration, opts "Go to declaration")
-  map("n", "gd", vim.lsp.buf.definition, opts "Go to definition")
-  map("n", "gi", vim.lsp.buf.implementation, opts "Go to implementation")
-  map("n", "<leader>sh", vim.lsp.buf.signature_help, opts "Show signature help")
   map("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, opts "Add workspace folder")
   map("n", "<leader>wr", vim.lsp.buf.remove_workspace_folder, opts "Remove workspace folder")
-
   map("n", "<leader>wl", function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   end, opts "List workspace folders")
 
+  -- Keymaps (See :help lsp /GLOBAL DEFAULTS) (They start with "gr...")
+  --[[map("n", "gD", vim.lsp.buf.declaration, opts "Go to declaration")
+  map("n", "gd", vim.lsp.buf.definition, opts "Go to definition")
+  map("n", "gi", vim.lsp.buf.implementation, opts "Go to implementation")
+  map("n", "<leader>sh", vim.lsp.buf.signature_help, opts "Show signature help")
   map("n", "<leader>D", vim.lsp.buf.type_definition, opts "Go to type definition")
-
   map("n", "<leader>ra", vim.lsp.buf.rename, opts "LSP Rename")
 
   -- THIS IS THE ACTUAL THING THAT GENERATES YOU FUNCTION OR METHOD DEFINITIONS BASED ON DECLARATIONS !!!
@@ -78,7 +76,7 @@ M.on_attach = function(_, bufnr)
   -- Try to keymap it as it is in Visual Studio (Ctrl - . - Enter(enter when the window shows up))
   --map({ "n", "v" }, "C-.", vim.lsp.buf.code_action, opts "Code action")
 
-  map("n", "gr", vim.lsp.buf.references, opts "Show references")
+  map("n", "gr", vim.lsp.buf.references, opts "Show references")]]--
 end
 
 -- NOTE: But better keep it on, because it is just better
@@ -152,6 +150,9 @@ M.capabilities.textDocument.semanticTokens.multilineTokenSupport = true
 
 -- Since we register and trigger it manually, we dont want the lsp to override it
 -- M.capabilities.textDocument.signatureHelp.dynamicRegistration = false
+
+-- Better dont set capabilities yourself, the lsp should decide them
+-- M.capabilities.textDocument.selectionRange = { dynamicRegistration = false }
 
 vim.lsp.config('*', {
   root_markers = { '.git' },
@@ -484,6 +485,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
     local client = vim.lsp.get_client_by_id(ev.data.client_id)
     if client == nil then return end
     -- local kinds = vim.lsp.protocol.CompletionItemKind
+
+    -- Disable documentation colors (Its enabled by default)
+    -- vim.lsp.document_color.enable(false, ev.buf)
 
     if client:supports_method('textDocument/completion') then
       -- Autotrigger setup (Trigger on every char). See :help lsp-autocompletion

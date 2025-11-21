@@ -6,6 +6,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # So language server protocols like clangd or ccls work properly
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Apply flags to all targets (clangd will detect them from compile_commands.json)
+# add_compile_options(-Wall -Wextra)
+
+# Older way (CMAKE_CXX_FLAGS may be overriden by toolchain files)
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+# set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -Wextra -Werror")
+
+# Or per executable
+# target_compile_options(myapp PRIVATE
+#     -Wall
+#     -Wextra
+#     -Werror
+# )
+
 # Enforse it to use Ninja instead of make
 # This is not needed if you have CMAKE_GENERATOR set to Ninja as environment variable
 # set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "" FORCE)

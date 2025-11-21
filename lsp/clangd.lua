@@ -1,3 +1,16 @@
+-- https://www.reddit.com/r/neovim/comments/n42bfr/how_do_i_add_compiler_flags_to_clangd_lsp/
+-- https://www.reddit.com/r/cpp/comments/1azi2nl/questioning_usefulness_of_wextra/?share_id=z88bT0mpsDyAGYtE1OQt-&utm_content=2&utm_medium=android_app&utm_name=androidcss&utm_source=share&utm_term=1
+
+--[[ In your %localappdata%\clangd\config.yaml file
+# Better set Compile Flags project-wise in CMakeLists.txt, so that the compiler also knows
+#  about them, the clangd will also use them if you have exported compile_commands.json
+# https://clangd.llvm.org/guides/include-cleaner#configuration
+Diagnostics:
+  UnusedIncludes: None
+# CompileFlags:
+#     Add: [-Wall, -Wextra]
+]]--
+
 return {
   -- The background-index tag makes clang to use cache indexing (as ccls)
   --cmd = { "clangd", "--background-index", "--query-driver=D:/Program Files/MSYS2/mingw64/bin/clang++.exe" },
@@ -42,6 +55,10 @@ return {
     -- https://www.reddit.com/r/neovim/comments/m5x31e/comment/gr3yhyr/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
     -- "--compile-commands-dir=" .. vim.g.cmake_build_dir,
     -- "--all-scopes-completion=true", -- If set to true, code completion will include index symbols that are not defined in the scopes
+
+    -- "--offset-encoding=" .. vim.o.encoding,
+    -- "--suggest-missing-includes",
+    "--enable-config", -- Its in %localappdata%\clangd\config.yaml
   },
   root_markers = {
     'compile_commands.json',

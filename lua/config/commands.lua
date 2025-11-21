@@ -328,6 +328,9 @@ local function open_lazygit(cmd)
   --   vim.api.nvim_win_close(win, true)
   -- end, { buffer = buf })
 
+  vim.keymap.set('t', '<ScrollWheelUp>', '0' .. string.rep('k', 4), {buffer = buf})
+  vim.keymap.set('t', '<ScrollWheelDown>', '0' .. string.rep('j', 4), {buffer = buf})
+
   vim.fn.termopen(cmd, {
     on_exit = function()
       vim.api.nvim_win_close(win, true)

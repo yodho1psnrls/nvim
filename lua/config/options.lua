@@ -362,6 +362,15 @@ vim.opt.errorformat = table.concat({
   "%-G-- Generating done",      -- optional
   "%E-- %m",                   -- include as quickfix entry if desired
 
+  -- ⚙️ Dr. Memory Parsing
+  -- "%m%r#%n\\ %f:%l,%r#%n\\ %f:%l",
+  -- "%E#%n\\ %t\\ %m\\ %f:%l,%Z",
+  -- "%m\\ %f:%l",
+  -- :!drmemory -- my_program.exe 2>&1 > drmemory_report.log
+  -- :!drmemory -quiet -brief -- your_program.exe [program_arguments]
+  -- :cfile drmemory_report.log
+  -- :copen
+
   -- 🏗️ Optional: everything else fallback
   "%f:%l%m",                   -- generic fallback
 }, ",")

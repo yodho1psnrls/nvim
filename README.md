@@ -128,3 +128,7 @@ NOTE: You can use ccache for caching during building of a project
        6) After a while you may need to clean the cache, so
            to fully clean: ccache -C
            to clean only old or least-used cache entries: ccache -c
+
+NOTE: You can install Dr. Memory, on disc D and change its cache directory in D too
+Just go to environmental variables and name it DRMEMORY_OPTIONS with value of
+-syscache_dir D:\Program Files\drmemory_cache -symcache_dir D:\Program Files\drmemory_cache\symcache

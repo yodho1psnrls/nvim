@@ -201,6 +201,7 @@ return {
             -- 1: Show the relative path from the current working directory (CWD).
             -- 2: Show the relative path from the root of the project (if your project is defined).
             -- 3: Show just the filename without any path.
+            -- https://github.com/nvim-lualine/lualine.nvim?tab=readme-ov-file#filename-component-options
             {'filename', path = 1},
             -- ts_inner_context,
             -- ts_context, -- THIS
@@ -221,7 +222,21 @@ return {
           },]] --
 
           lualine_y = {},
-          -- lualine_y = {'lsp_status'},
+          --[[lualine_y = {
+            { -- https://github.com/nvim-lualine/lualine.nvim?tab=readme-ov-file#lsp-status-component-options
+              'lsp_status',
+              -- icon = '', -- f013
+              icon = '',
+              symbols = {
+                spinner = { '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏' },
+                done = '✓',
+                -- separator = ' ',
+                separator = '',
+              },
+              ignore_lsp = {}, -- List of LSP names to ignore (e.g., `null-ls`):
+              show_name = true, -- Display the LSP name
+            },
+          },]]--
           -- lualine_y = {'progress'},
           --lualine_z = {'location'}
           lualine_z = {
