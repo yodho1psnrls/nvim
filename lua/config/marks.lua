@@ -25,6 +25,13 @@ vim.keymap.set({'n', 'v'}, 'ü', '"u')
 vim.keymap.set({'n', 'v'}, 'Ú', "'U")
 vim.keymap.set({'n', 'v'}, 'Ü', '"U')
 
+vim.keymap.set({'n', 'v'}, 'ý', "'y")
+vim.keymap.set({'n', 'v'}, 'ÿ', '"y')
+vim.keymap.set({'n', 'v'}, 'Ý', "'Y")
+
+vim.keymap.set({'n', 'v'}, 'ç', "'c")
+vim.keymap.set({'n', 'v'}, 'Ç', "'C")
+
 -----------------------------------------------
 
 -- This works, it update at every cursor hold

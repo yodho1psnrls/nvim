@@ -137,7 +137,7 @@ local function load_nvim_tree_state()
   end
 end]]--
 
-
+-- BUG: There are diagnostic errors when changing session
 
 return {
 
@@ -169,6 +169,8 @@ return {
         enabled = true,
         --enabled = false,  -- DISABLED FOR NOW
 
+        args = { disable_restore_buffer_wipe = true, },
+
         root_dir = vim.fn.stdpath "data" .. "/sessions/",
         auto_save = true, -- This auto save doesnt quite work, i had to do an autocmd that saves the session on exit
 
@@ -189,11 +191,11 @@ return {
         use_git_branch = true, -- false
         lazy_support = true,
         --bypass_save_filetypes = nil,
-        bypass_save_filetypes = { 'alpha', 'dashboard' }, -- Does not save session on dashboard
+        bypass_save_filetypes = { 'alpha', 'dashboard', 'gitcommit' }, -- Does not save session on dashboard
         close_unsupported_windows = true,
         args_allow_single_directory = true,
         args_allow_files_auto_save = true,
-        continue_restore_on_error = true,
+        continue_restore_on_error = false,
 
         -- NOTE: Fix the issue that it doesnt save the session on exit when nvim-tree is open
         -- And that when you cd to a folder it doesnt restore the last session

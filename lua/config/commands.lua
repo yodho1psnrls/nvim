@@ -188,6 +188,9 @@ function OpenNotes()
     col = col,
     style = "minimal",
     border = "rounded",
+    -- title = " notes.txt ",
+    title = " NOTES ",
+    title_pos = 'center',
   })
 
   -- Disable quick-scope plugin

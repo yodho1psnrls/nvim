@@ -98,8 +98,8 @@ local function ts_context()
   return ctx
 end
 
---[[local ts_utils = require("nvim-treesitter.ts_utils")
-local function ts_inner_context()
+local ts_utils = require("nvim-treesitter.ts_utils")
+--[[local function ts_inner_context()
   local node = ts_utils.get_node_at_cursor()
   if not node then return "" end
 
@@ -123,6 +123,17 @@ local function ts_inner_context()
 
   return ""
 end]]--
+
+-- local util = require("utilities")
+local function ts_context_start_line()
+  -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
+  -- if ts_utils == nil then return 0 end
+  local node = ts_utils.get_node_at_cursor()
+  if node == nil then return "" end
+  local start_row, _, end_row, _ = vim.treesitter.get_node_range(node)
+  return tostring(start_row+1) .. "-" .. tostring(end_row+1)
+  -- return vim.fn.line('.') - (start_row + 1)
+end
 
 -- Instead of sticky headers and context windows,
 -- just jump quickly to it with [[ and return with <C-o>
@@ -221,7 +232,7 @@ return {
             end }
           },]] --
 
-          lualine_y = {},
+          lualine_y = { ts_context_start_line },
           --[[lualine_y = {
             { -- https://github.com/nvim-lualine/lualine.nvim?tab=readme-ov-file#lsp-status-component-options
               'lsp_status',
