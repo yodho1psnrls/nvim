@@ -99,6 +99,7 @@ local function ts_context()
 end
 
 local ts_utils = require("nvim-treesitter.ts_utils")
+
 --[[local function ts_inner_context()
   local node = ts_utils.get_node_at_cursor()
   if not node then return "" end
@@ -124,15 +125,25 @@ local ts_utils = require("nvim-treesitter.ts_utils")
   return ""
 end]]--
 
--- local util = require("utilities")
 local function ts_context_start_line()
-  -- local ts_utils = util.safe_require("nvim-treesitter.ts_utils")
-  -- if ts_utils == nil then return 0 end
   local node = ts_utils.get_node_at_cursor()
-  if node == nil then return "" end
+
+  -- Current context range
+  --[[if node == nil then return "" end
   local start_row, _, end_row, _ = vim.treesitter.get_node_range(node)
   return tostring(start_row+1) .. "-" .. tostring(end_row+1)
-  -- return vim.fn.line('.') - (start_row + 1)
+  -- return vim.fn.line('.') - (start_row + 1)]]--
+
+  -- Current unseen context range
+  while node do
+    local start_row, _, end_row, _ = vim.treesitter.get_node_range(node)
+    -- if (end_row - start_row) > vim.o.lines then
+    if vim.fn.line('w0') > start_row+1 then
+      return tostring(start_row+1) .. "-" .. tostring(end_row+1)
+    end
+    node = node:parent()
+  end
+  return ""
 end
 
 -- Instead of sticky headers and context windows,
