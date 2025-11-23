@@ -15,6 +15,7 @@ return {
     -- The actual lazy load logic is in lua/config/autocmds.lua
     lazy = true,
     -- event = { "BufReadPre", "BufNewFile" },  -- load before buffer opens
+    cmd = { "Gitsigns" },
 
     -- Lazy load it, when you change directories and it happens
     --  that there is a .git folder inside your current working directory

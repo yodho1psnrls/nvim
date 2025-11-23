@@ -6,7 +6,8 @@
 return {
   {
     "numToStr/Comment.nvim",
-
+    lazy = true,
+    keys = { 'gcc', 'gc' },
     opts = {
       ---Add a space b/w comment and the line
       padding = true,

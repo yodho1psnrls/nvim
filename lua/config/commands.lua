@@ -189,7 +189,7 @@ function OpenNotes()
     style = "minimal",
     border = "rounded",
     -- title = " notes.txt ",
-    title = " NOTES ",
+    title = " Notes ",
     title_pos = 'center',
   })
 
@@ -331,8 +331,9 @@ local function open_lazygit(cmd)
   --   vim.api.nvim_win_close(win, true)
   -- end, { buffer = buf })
 
-  vim.keymap.set('t', '<ScrollWheelUp>', '0' .. string.rep('k', 4), {buffer = buf})
-  vim.keymap.set('t', '<ScrollWheelDown>', '0' .. string.rep('j', 4), {buffer = buf})
+  vim.keymap.set('t', '<ScrollWheelUp>', '0' .. string.rep('k', 3), {buffer = buf})
+  vim.keymap.set('t', '<ScrollWheelDown>', '0' .. string.rep('j', 3), {buffer = buf})
+  vim.keymap.set('t', '<LeftMouse>', '', {buffer = buf})
 
   vim.fn.termopen(cmd, {
     on_exit = function()

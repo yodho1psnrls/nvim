@@ -22,11 +22,11 @@ return {
 
   --{"smartpde/telescope-recent-files"},  -- add it as a dependancy instead
 
-  {
-    -- https://github.com/nvim-telescope/telescope-file-browser.nvim
-    "nvim-telescope/telescope-file-browser.nvim",
-    requires = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" }
-  },
+  -- NOTE: This is just another nvim-tree but from a telescope picker
+  -- { -- https://github.com/nvim-telescope/telescope-file-browser.nvim
+  --   "nvim-telescope/telescope-file-browser.nvim",
+  --   requires = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" }
+  -- },
 
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
@@ -34,13 +34,11 @@ return {
     branch = '0.1.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
-      'smartpde/telescope-recent-files',
+      -- 'smartpde/telescope-recent-files',
 
       -- Similar to recent-files, but observes your file access
-      --  pattern for even better suggestions
+      --  pattern for even better suggestions (most commonly accesed files)
       -- 'nvim-telescope/telescope-frecency.nvim',
-
-      -- 'nvim-telescope/telescope-dap.nvim', --https://github.com/nvim-telescope/telescope-dap.nvim
 
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
         'nvim-telescope/telescope-fzf-native.nvim',
@@ -92,8 +90,8 @@ return {
       vim.api.nvim_create_user_command('UnsavedBuffers', UnsavedBuffers, { nargs = 0 })
 
       local telescope = require("telescope")
-      telescope.load_extension("recent_files")
-      --      telescope.load_extension('dap') --https://github.com/nvim-telescope/telescope-dap.nvim
+      -- telescope.load_extension("recent_files")
+      -- telescope.load_extension('dap') --https://github.com/nvim-telescope/telescope-dap.nvim
 
       -- This may overwrite the <leader><leader> keymap that opens the Buffers
       --      vim.api.nvim_set_keymap("n", "<Leader><Leader>",
@@ -219,6 +217,18 @@ return {
               ["<C-s>"] = save_selected_buffer,
             },
           },
+          --[[border = false,
+          borderchars = {
+            prompt = { "─", "│", " ", "│", "╭", "╮", "│", "│" },
+            results = { "─", "│", " ", "│", "╭", "╮", "│", "│" },
+            preview = { "─", "│", " ", "│", "╭", "╮", "│", "│" },
+          },
+          layout_config = { -- customize the border per picker
+            border = {
+              prompt = { 1, 0, 0, 1 }, -- Customize specific edges for the prompt window
+              results = false -- Disable the border for the results window
+            }
+          }]]--
         },
 
         -- pickers = {}
@@ -268,7 +278,6 @@ return {
       pcall(telescope.load_extension, 'fzf')
       pcall(telescope.load_extension, 'ui-select')
 
-
       --[[
       pcall(telescope.load_extension, 'telescope-file-browser')
       vim.keymap.set("n", "<space>fb", ":Telescope file_browser<CR>")
@@ -290,7 +299,7 @@ return {
       --      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader>f.', builtin.oldfiles, { desc = '[S]earch Recent Files' }) -- ("." for repeat)
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
       -- Symbols Outline Telescope Picker
@@ -298,20 +307,20 @@ return {
         { desc = "LSP Symbols", noremap = true, silent = true })
 
       -- Slightly advanced example of overriding default behavior and theme
-      vim.keymap.set('n', '<leader>/', function()
+      --[[vim.keymap.set('n', '<leader>/', function()
         -- You can pass additional configuration to Telescope to change the theme, layout, etc.
         builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
           winblend = 10,
           previewer = false,
         })
-      end, { desc = '[/] Fuzzily search in current buffer' })
+      end, { desc = '[/] Fuzzily search in current buffer' })]]--
 
       -- It's also possible to pass additional configuration options.
       --  See `:help telescope.builtin.live_grep()` for information about particular keys
-      vim.keymap.set('n', '<leader>s/', function()
+      vim.keymap.set('n', '<leader>f/', function()
         builtin.live_grep {
           grep_open_files = true,
-          prompt_title = 'Live Grep in Open Files',
+          prompt_title = 'Live Grep Open Files',
         }
       end, { desc = '[S]earch [/] in Open Files' })
 

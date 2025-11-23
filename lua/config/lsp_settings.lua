@@ -499,6 +499,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
       for c = 33, 126 do chars[#chars + 1] = string.char(c) end -- 32 is space
       client.server_capabilities.completionProvider.triggerCharacters = chars
 
+      -- Disable the default autocomplete option, because it overrides the lsp
+      --  completion autotrigger logic, which uses the triggerCharacters
+      vim.api.nvim_buf_set_option(ev.buf, "autocomplete", false)
+
       vim.lsp.completion.enable(true, client.id, ev.buf, {
         autotrigger = true,
         -- See :help complete-items for all fields of item parameter
@@ -523,9 +527,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
             -- menu = "[" .. client.name .. "]", -- Optional (usually shows sources)
 
             -- " " - hairspace | " " - thinspace | "​" - zero-width space | "‌" - zero-width non-joiner | "‍" - zero-width joiner | "⁠" - word joiner
-            kind = cmp_icons[item.kind] .. " ",
+            -- kind = cmp_icons[item.kind] .. " ",
             -- kind = string.format("%s %s", cmp_icons[item.kind] or "", kind_names[item.kind]), -- the type icon
-            -- kind = (cmp_icons[item.kind] or "") .. " " .. kind_names[item.kind], -- the type icon
+            kind = (cmp_icons[item.kind] or "") .. " " .. kind_names[item.kind], -- the type icon
             menu = "", -- (Remove it) right-side annotation (Usually the return type of the function)
             -- menu = item.detail or "" -- default menu column (Shows return type)
             -- index -- ordering hint
@@ -604,6 +608,7 @@ end, { expr = true, noremap=true, silent=true, desc="Accept selected completion"
 vim.o.completeopt = "menuone,noselect,fuzzy,popup" -- Shows selection item info as additional popup
 -- vim.o.showmatch = true -- Default is true (Show the selected word)
 
+-- https://www.reddit.com/r/neovim/comments/1jzt3r0/easiest_way_to_have_autocomplete_of_buffer_words/
 vim.o.complete = ".,o" -- use buffer and omnifunc
 -- Omnifunc is part of neovim's native omnicompletion
 -- It is a function which returns completion candidates
@@ -614,7 +619,9 @@ vim.bo.omnifunc = "v:lua.vim.lsp.omnifunc"
 -- vim.o.tags
 -- vim.o.path
 
--- vim.o.autocomplete = true -- Set autotrigger=true in vim.lsp.completion.enable instead !
+-- Set autotrigger=true in vim.lsp.completion.enable instead !
+-- But still use this one as fallback, when no LSP attaches
+vim.o.autocomplete = true -- Completion autotrigger option (Separate from lsp.completion autotrigger argument)
 -- vim.o.autocompletedelay = 250 -- 60wpm ~ 200ms delay between chars
 -- vim.o.autocompletetimeout -- completion sources loading (Dont touch)
 -- vim.o.completefunc

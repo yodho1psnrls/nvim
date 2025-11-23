@@ -98,7 +98,7 @@ local function ts_context()
   return ctx
 end
 
-local ts_utils = require("nvim-treesitter.ts_utils")
+-- local ts_utils = require("nvim-treesitter.ts_utils")
 
 --[[local function ts_inner_context()
   local node = ts_utils.get_node_at_cursor()
@@ -139,12 +139,14 @@ local function ts_context_start_line()
 
   -- Current unseen context range
   while node do
+    local next_node = node:parent()
     local start_row, _, end_row, _ = vim.treesitter.get_node_range(node)
     -- if (end_row - start_row) > vim.o.lines then
-    if vim.fn.line('w0') > start_row+1 then
+    if vim.fn.line('w0') > start_row+1 and next_node then
+      -- ⌜⌝⌞⌟┌┐└┘┏┓┗┛⎡⎤⎣⎦⎛⎜⎝⎞⎟⎠
       return tostring(start_row+1) .. "-" .. tostring(end_row+1)
     end
-    node = node:parent()
+    node = next_node
   end
   return ""
 end
@@ -227,7 +229,18 @@ return {
             -- 2: Show the relative path from the root of the project (if your project is defined).
             -- 3: Show just the filename without any path.
             -- https://github.com/nvim-lualine/lualine.nvim?tab=readme-ov-file#filename-component-options
-            {'filename', path = 1},
+            {
+              'filename',
+              path = 1,
+              -- symbols = { -- Doesnt work
+              --   modified = '[+]',
+              --   readonly = '[RO]',
+              --   unnamed = '[No Name]',
+              --   newfile = '[New]',
+              --   path_sep = '/',
+              --   trunc = '…',
+              -- }
+            },
             -- ts_inner_context,
             -- ts_context, -- THIS
             -- current_scope_name,
@@ -246,7 +259,8 @@ return {
             end }
           },]] --
 
-          lualine_y = { ts_context_start_line },
+          lualine_y = {},
+          -- lualine_y = { ts_context_start_line },
           --[[lualine_y = {
             { -- https://github.com/nvim-lualine/lualine.nvim?tab=readme-ov-file#lsp-status-component-options
               'lsp_status',
