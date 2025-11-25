@@ -50,7 +50,7 @@ return {
       -- "rcarriga/nvim-dap-ui",
       -- "theHamsta/nvim-dap-virtual-text",
       "lucaSartore/nvim-dap-exception-breakpoints",
-      "mfussenegger/nvim-dap-python", -- plugin that configures nvim-dap with pylsp
+      -- "mfussenegger/nvim-dap-python", -- plugin that configures nvim-dap with pylsp
 
       {
         "nvim-telescope/telescope-dap.nvim",
@@ -191,6 +191,52 @@ return {
       -- avoiding the need for manual selection.
       -- dap.defaults.fallback.force_external_terminal = true
       -- dap.defaults.fallback.focus_terminal = true -- If the integrated terminal should get focus when its created
+
+      ------------------------------------------------------------
+
+      dap.adapters.python = function(cb, config)
+        -- Path to your python interpreter with debugpy installed
+        local python = config.pythonPath or 'python'
+
+        cb({
+          type = 'executable',
+          command = python,
+          args = { '-m', 'debugpy.adapter' },
+        })
+      end
+
+      dap.configurations.python = {
+        {
+          type = 'python',
+          request = 'launch',
+          name = 'Launch File',
+          program = '${file}',        -- The script you want to debug
+          console = "integratedTerminal",
+          pythonPath = function()
+            -- try to detect virtualenv automatically
+            local cwd = vim.fn.getcwd()
+            if vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
+              return cwd .. '/venv/bin/python'
+            elseif vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
+              return cwd .. '/.venv/bin/python'
+            else
+              return 'python'
+            end
+          end,
+        },
+        {
+          type = 'python',
+          request = 'attach',
+          name = 'Attach to running debugpy',
+          connect = function()
+            return {
+              host = '127.0.0.1',
+              port = 5678,
+            }
+          end,
+          console = "integratedTerminal",
+        },
+      }
 
       ------------------------------------------------------------
 
@@ -620,7 +666,7 @@ return {
 
   ---------------------------------------------------------------------------
 
-  {
+  --[[{
     "mfussenegger/nvim-dap-python",
     lazy = true,
     config = function()
@@ -642,7 +688,7 @@ return {
         -- See https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
       })
     end,
-  },
+  },]]--
 
   ---------------------------------------------------------------------------
   -- https://github.com/vadimcn/codelldb/releases

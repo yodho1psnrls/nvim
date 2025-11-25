@@ -346,8 +346,8 @@ end
 function BuildAndDebugPython()
   print(prepend_time("Debugging Python ..."))
   -- require('dap').continue()
-  -- LaunchDapConfig('python', 'file')
-  LaunchDapConfig('python', 'custom')
+  -- LaunchDapConfig('python', 'custom')
+  LaunchDapConfig('python', 'Launch File')
 end
 
 

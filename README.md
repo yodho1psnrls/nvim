@@ -24,10 +24,12 @@ Installation:
 1) Install lua-language-server (so you can easily confige nvim)
 
 2) Install python, which should come with pip
+  - NOTE: You may have python installed on path, but some nvim plugins
+     wont recognize it, because microsoft store hijacks python aliases
+     (To fix this go to Settings -> Apps -> App execution aliases and untick the python ones)
   - install pylsp with pip (pip install python-lsp-server)
   - install required linter flake8 (pip install flake8)
   - to configure flake8:
-
 # Ignore formatting-related rules
 # To test it:
 #   On PowerShell: flake8 --config $env:USERPROFILE\AppData\Roaming\flake8 --version
