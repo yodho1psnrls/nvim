@@ -425,21 +425,28 @@ return {
 
       --===========================================================--
 
+      local dapui = require("dapui")
       local nvim_tree = util.safe_require('nvim-tree.api')
       local was_tree_opened = false
 
       dap.listeners.before.attach.dapui_config = function()
-        require("dapui").open()
+        dapui.open()
       end
       dap.listeners.before.launch.dapui_config = function()
-        require("dapui").open()
+        dapui.open()
       end
 
+      -- See all dapui elements :lua =require("dapui").elements
+
       dap.listeners.before.event_terminated.dapui_config = function()
-        require("dapui").close()
+        -- dapui.close()
+        dapui.close({ layout = 1 }) -- 1
+        -- dapui.close({ elements = "repl" })
       end
       dap.listeners.before.event_exited.dapui_config = function()
-        require("dapui").close()
+        -- dapui.close()
+        dapui.close({ layout = 1 }) -- 1
+        -- dapui.close({ elements = "repl" })
         if nvim_tree and was_tree_opened then
           -- nvim_tree.tree.open()
           nvim_tree.tree.toggle({ find_file = true, focus = false })

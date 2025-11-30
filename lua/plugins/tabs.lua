@@ -126,7 +126,8 @@ return {
           local time_a = get_last_written(buffer_a.id)
           local time_b = get_last_written(buffer_b.id)
 
-          return time_a > time_b -- Sort descending by last written time
+          -- return time_a > time_b -- Sort descending by last written time
+          return time_a < time_b
 
           -- Example from :help bufferline-configuration
           -- local modified_a = vim.fn.getftime(buffer_a.path)
@@ -234,14 +235,16 @@ return {
       vim.api.nvim_set_keymap(
         'n',
         '<Tab>',
-        ':BufferLineCycleNext<CR>',
+        -- ':BufferLineCycleNext<CR>',
+        ':BufferLineCyclePrev<CR>',
         { noremap = true, silent = true, desc = 'Next buffer in the recent lineup' }
       )
 
       vim.api.nvim_set_keymap(
         'n',
         '<S-Tab>',
-        ':BufferLineCyclePrev<CR>',
+        -- ':BufferLineCyclePrev<CR>',
+        ':BufferLineCycleNext<CR>',
         { noremap = true, silent = true, desc = 'Previous buffer in the recent lineup' }
       )
 

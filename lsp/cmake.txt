@@ -1,0 +1,8 @@
+-- https://github.com/regen100/cmake-language-server
+-- pip install cmake-language-server
+return {
+  cmd = {'cmake-language-server'},
+  root_markers = {'build/', 'Debug/', 'Release/', '.git'},
+  filetypes = {'cmake'},
+  -- settings = {},
+}
