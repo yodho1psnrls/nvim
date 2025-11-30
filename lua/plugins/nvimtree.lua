@@ -14,7 +14,7 @@
 
 -- local util = require("utilities")
 
-local width_ratio = 0.26
+local width_ratio = 0.25
 
 return {
 

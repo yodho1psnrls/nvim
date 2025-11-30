@@ -29,6 +29,10 @@
 -- Instead of sticky headers and context windows,
 -- just jump quickly to it with [[ and return with <C-o>
 -- https://stackoverflow.com/questions/33699049/display-current-function-in-vim-status-line
+-- Or use symbol/context jumper plugin like "nvim-treesitter/nvim-treesitter-textobjects"
+--  and use [m or ]m to jump to previous or next method
+-- Or just use a symbols outline plugin which can show you your current and near contexts/symbols
+--  like "hedyhli/outline.nvim" or "simrat39/symbols-outline.nvim"
 
 return {
 

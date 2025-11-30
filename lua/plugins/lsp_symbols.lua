@@ -14,6 +14,55 @@ return {
       { "<leader>,", "<cmd>Outline<CR>", desc = "LSP Symbols Outline" },
     },
     opts = {
+      outline_window = {
+        width = 25,
+        relative_width = true, -- Now the width is percentage instead of number of columns
+      },
+      preview_window = {
+        -- winblend = 15,
+        border = 'rounded',
+      },
+      symbols = {
+        icons = { -- NOTE: Consistent with the cmp_icons list in lsp_settings.lua
+          File          = { icon = "󰈙", hl = "Identifier" },
+          Module        = { icon = "", hl = "Include" },
+          Namespace     = { icon = "", hl = "Include" }, -- closest match
+          Package       = { icon = "", hl = "Include" },
+
+          Class         = { icon = "󰠱", hl = "Type" },
+          Method        = { icon = "󰆧", hl = "Function" },
+          Property      = { icon = "󰜢", hl = "Identifier" },
+          Field         = { icon = "󰇽", hl = "Identifier" },
+          Constructor   = { icon = "", hl = "Special" },
+
+          Enum          = { icon = "", hl = "Type" },
+          Interface     = { icon = "", hl = "Type" },
+          Function      = { icon = "󰊕", hl = "Function" },
+          Variable      = { icon = "󰂡", hl = "Constant" },
+          Constant      = { icon = "󰏿", hl = "Constant" },
+
+          String        = { icon = "", hl = "String" }, -- from cmp.Text
+          Number        = { icon = "󰎠", hl = "Number" }, -- using Value
+          Boolean       = { icon = "󰌋", hl = "Boolean" }, -- using Keyword-ish
+          Array         = { icon = "󰅪", hl = "Constant" }, -- original
+          Object        = { icon = "󰙅", hl = "Type" }, -- Struct icon
+          Key           = { icon = "󰌋", hl = "Type" }, -- keyword-ish
+          Null          = { icon = "󰟢", hl = "Type" }, -- fallback nice icon
+
+          EnumMember    = { icon = "", hl = "Identifier" },
+          Struct        = { icon = "󰙅", hl = "Structure" },
+          Event         = { icon = "", hl = "Type" },
+          Operator      = { icon = "󰆕", hl = "Identifier" },
+          TypeParameter = { icon = "󰊄", hl = "Identifier" }, -- closest semantic
+
+          Component     = { icon = "󰅴", hl = "Function" }, -- no cmp equivalent
+          Fragment      = { icon = "󰅴", hl = "Constant" },
+          TypeAlias     = { icon = "󰠱", hl = "Type" }, -- using class icon
+          Parameter     = { icon = "󰆧", hl = "Identifier" }, -- use method icon
+          StaticMethod  = { icon = "󰊕", hl = "Function" },
+          Macro         = { icon = "󰁌", hl = "Function" }, -- close to snippet/keyword
+        },
+      },
       --[[{
         outline_window = {
           -- Where to open the split window: right/left
