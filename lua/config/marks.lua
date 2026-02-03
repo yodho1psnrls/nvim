@@ -1,4 +1,4 @@
--- NOTE: Fix vowels with brackets in normal and visual mode
+--======== Fix vowels with brackets in normal and visual mode ========--
 
 vim.keymap.set({'n', 'v'}, 'á', "'a")
 vim.keymap.set({'n', 'v'}, 'ä', '"a')
@@ -32,10 +32,9 @@ vim.keymap.set({'n', 'v'}, 'Ý', "'Y")
 vim.keymap.set({'n', 'v'}, 'ç', "'c")
 vim.keymap.set({'n', 'v'}, 'Ç', "'C")
 
------------------------------------------------
+--====================== SHOW MARKS ON THE SIGN COLUMN ========================--
 
 -- This works, it update at every cursor hold
---[[
 -- Lower case characters (Local buffer marks)
 for ci = string.byte('a'), string.byte('z') do
   local c = string.char(ci)
@@ -85,7 +84,57 @@ vim.api.nvim_create_autocmd("CursorHold", {
     set_mark_signs(bufnr)
   end,
 })
-]]--
+
+--========================= MAKE THE MARKS TOGGLEABLE ==========================--
+
+local function is_local_mark_on_cursor(mark_char)
+  local mark_line = vim.fn.line("'" .. mark_char)
+  -- vim.notify(tostring(mark_line) .. ' | ' .. tostring(vim.fn.line('.')))
+  return (mark_line ~= 0) and (mark_line == vim.fn.line('.'))
+end
+
+local function is_global_mark_on_cursor(mark_char)
+  local mark = vim.fn.getpos("'" .. mark_char)
+  local mark_buf = mark[1] -- Non 0 !
+  local mark_line = mark[2]
+  local cursor = vim.fn.getpos('.')
+  -- local cursor_buf = cursor[1] -- Always 0 !
+  local cursor_buf = vim.api.nvim_get_current_buf() -- Actual buffer number !
+  local cursor_line = cursor[2]
+  -- vim.notify(tostring(mark_line) .. ' || ' .. tostring(cursor_line))
+  -- vim.notify(tostring(mark_buf) .. ' ||| ' .. tostring(cursor_buf))
+  return (mark_line ~= 0) and (mark_buf == cursor_buf and mark_line == cursor_line)
+end
+
+local function toggle_local_mark(ch)
+  if is_local_mark_on_cursor(ch) then
+    vim.cmd('delmark ' .. ch)
+    return ''
+  else
+    return 'm' .. ch
+  end
+end
+
+local function toggle_global_mark(ch)
+  if is_global_mark_on_cursor(ch) then
+    vim.cmd('delmark ' .. ch)
+    return ''
+  else
+    return 'm' .. ch
+  end
+end
+
+for code = string.byte('a'), string.byte('z') do
+  local ch = string.char(code) -- Convert the numerical code back to a character
+  vim.keymap.set('n', 'm' .. ch, function() return toggle_local_mark(ch) end, {expr=true})
+end
+
+for code = string.byte('A'), string.byte('Z') do
+  local ch = string.char(code) -- Convert the numerical code back to a character
+  vim.keymap.set('n', 'm' .. ch, function() return toggle_global_mark(ch) end, {expr=true})
+end
+
+--===========================================================================--
 
 -- Incrementable (tries to trigger on BufRead and new mark assignments,
 -- but fails when deleting lines with set icons and then undo doesnt reverse them,

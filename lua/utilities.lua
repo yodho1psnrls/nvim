@@ -414,6 +414,14 @@ function M.profile_func(name, fn)
   end
 end
 
+function M.round(x)
+  if x >= 0 then
+    return math.floor(x + 0.5)
+  else
+    return math.ceil(x - 0.5)
+  end
+end
+
 -------------------------------------------------------------------------------
 
 return M

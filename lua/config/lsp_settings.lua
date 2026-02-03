@@ -445,6 +445,7 @@ set_rounded_border("textDocument/codeAction")]]--
   TypeParameter = "",
 }]]--
 
+-- 󰙍
 local cmp_icons = {
   "",
   "󰆧",

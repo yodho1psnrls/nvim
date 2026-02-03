@@ -59,8 +59,8 @@ return {
       },
 
       view = {
-        width = function() return math.floor(width_ratio * vim.o.columns) end,
-        -- width = 24, -- 24
+        -- width = function() return math.floor(width_ratio * vim.o.columns) end,
+        width = 24, -- 24
         -- width = 32,
         side = "left",
         signcolumn = "no",

@@ -26,7 +26,7 @@ return {
         icons = { -- NOTE: Consistent with the cmp_icons list in lsp_settings.lua
           File          = { icon = "󰈙", hl = "Identifier" },
           Module        = { icon = "", hl = "Include" },
-          Namespace     = { icon = "", hl = "Include" }, -- closest match
+          Namespace     = { icon = "", hl = "Include" },
           Package       = { icon = "", hl = "Include" },
 
           Class         = { icon = "󰠱", hl = "Type" },
@@ -41,26 +41,26 @@ return {
           Variable      = { icon = "󰂡", hl = "Constant" },
           Constant      = { icon = "󰏿", hl = "Constant" },
 
-          String        = { icon = "", hl = "String" }, -- from cmp.Text
-          Number        = { icon = "󰎠", hl = "Number" }, -- using Value
-          Boolean       = { icon = "󰌋", hl = "Boolean" }, -- using Keyword-ish
-          Array         = { icon = "󰅪", hl = "Constant" }, -- original
-          Object        = { icon = "󰙅", hl = "Type" }, -- Struct icon
-          Key           = { icon = "󰌋", hl = "Type" }, -- keyword-ish
-          Null          = { icon = "󰟢", hl = "Type" }, -- fallback nice icon
+          String        = { icon = "", hl = "String" },
+          Number        = { icon = "󰎠", hl = "Number" },
+          Boolean       = { icon = "󰌋", hl = "Boolean" },
+          Array         = { icon = "󰅪", hl = "Constant" },
+          Object        = { icon = "󰙅", hl = "Type" },
+          Key           = { icon = "󰌋", hl = "Type" },
+          Null          = { icon = "󰟢", hl = "Type" },
 
           EnumMember    = { icon = "", hl = "Identifier" },
           Struct        = { icon = "󰙅", hl = "Structure" },
           Event         = { icon = "", hl = "Type" },
           Operator      = { icon = "󰆕", hl = "Identifier" },
-          TypeParameter = { icon = "󰊄", hl = "Identifier" }, -- closest semantic
+          TypeParameter = { icon = "󰊄", hl = "Identifier" },
 
-          Component     = { icon = "󰅴", hl = "Function" }, -- no cmp equivalent
+          Component     = { icon = "󰅴", hl = "Function" },
           Fragment      = { icon = "󰅴", hl = "Constant" },
-          TypeAlias     = { icon = "󰠱", hl = "Type" }, -- using class icon
-          Parameter     = { icon = "󰆧", hl = "Identifier" }, -- use method icon
+          TypeAlias     = { icon = "󰠱", hl = "Type" },
+          Parameter     = { icon = "󰆧", hl = "Identifier" },
           StaticMethod  = { icon = "󰊕", hl = "Function" },
-          Macro         = { icon = "󰁌", hl = "Function" }, -- close to snippet/keyword
+          Macro         = { icon = "󰁌", hl = "Function" },
         },
       },
       --[[{

@@ -59,6 +59,11 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.list = false         -- disable listchars like ^M
     vim.opt_local.showbreak = "↪ "     -- continuation marker
 
+    vim.api.nvim_buf_set_keymap(0, "n", "<leader>k", "<CMD>quit<CR>",
+      { silent = true, noremap = true })
+    vim.api.nvim_buf_set_keymap(0, "n", "<leader>K", "<CMD>Bdelete<CR>",
+      { silent = true, noremap = true })
+
     -- Indents wrapped lines to visually align with the start of the text.
     -- vim.opt_local.breakindent = true
 

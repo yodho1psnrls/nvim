@@ -11,8 +11,10 @@
 -- https://github.com/windwp/nvim-autopairs
 return {
   'windwp/nvim-autopairs',
+  lazy = true,
   -- event = 'InsertEnter', -- Triggers in command in terminal modes too
   event = 'TextChangedI', -- Supposed to trigger only in insert mode
+  -- cond = function() return vim.bo.filetype ~= "TelescopePrompt" end, -- Dont load in telescope picker
   -- dependencies = { 'hrsh7th/nvim-cmp' }, -- Optional dependency
   config = function()
     require('nvim-autopairs').setup {

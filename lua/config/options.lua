@@ -164,9 +164,39 @@ vim.opt.inccommand = 'split'
 -- Show which line your cursor is on
 vim.opt.cursorline = false
 
+local function round(x)
+  return math.floor(x + 0.5)
+end
+
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 8
-vim.opt.sidescrolloff = 18
+vim.opt.scrolloff = round(vim.o.lines / 4) -- 8
+vim.opt.sidescrolloff = round(vim.o.columns / 4) -- 18
+
+--[[vim.api.nvim_create_autocmd("VimResized", {
+  callback = function()
+    vim.opt.scrolloff = math.floor(vim.api.nvim_win_get_height(0) / 4)
+    vim.opt.sidescrolloff = math.floor(vim.api.nvim_win_get_width(0) / 4)
+  end,
+})
+
+vim.api.nvim_create_autocmd({"WinResized"}, {
+  callback = function()
+    vim.wo.scrolloff = math.floor(vim.api.nvim_win_get_height(0) / 4)
+    vim.wo.sidescrolloff = math.floor(vim.api.nvim_win_get_width(0) / 4)
+  end,
+})]]--
+
+vim.api.nvim_create_autocmd("WinResized", {
+  callback = function()
+    -- vim.notify("RESIZED !")
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      local h = vim.api.nvim_win_get_height(win)
+      local w = vim.api.nvim_win_get_width(win)
+      vim.api.nvim_win_set_option(win, "scrolloff", round(h / 4))
+      vim.api.nvim_win_set_option(win, "sidescrolloff", round(w / 4))
+    end
+  end,
+})
 
 -- Enables scrolling with <C-y> and <C-e> in wrapped lines
 -- https://www.reddit.com/r/vim/comments/1fj1p5a/scrolling_by_visual_lines_instead_of_line_numbers/
