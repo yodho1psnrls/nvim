@@ -189,7 +189,8 @@ vim.api.nvim_create_autocmd({"WinResized"}, {
 vim.api.nvim_create_autocmd("WinResized", {
   callback = function()
     -- vim.notify("RESIZED !")
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
+    -- for _, win in ipairs(vim.api.nvim_list_wins()) do
+    for _, win in ipairs(vim.v.event.windows) do
       local h = vim.api.nvim_win_get_height(win)
       local w = vim.api.nvim_win_get_width(win)
       vim.api.nvim_win_set_option(win, "scrolloff", round(h / 4))
