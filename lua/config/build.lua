@@ -60,48 +60,6 @@ local function SaveUnavedFiletype(type)
 end
 
 
--- Install a Lua JSON parser like dkjson or lunajson.
-local function get_cmake_executables()
-  local json = require("dkjson") -- Use a JSON library like `dkjson` (install if not available)
-  local executables = {}
-
-  -- Locate `compile_commands.json` file (assuming it's in the build directory)
-  local build_dir = vim.fn.input("Enter CMake build directory: ", vim.loop.cwd() .. "/", "file")
-  local compile_commands_path = build_dir .. "/compile_commands.json"
-
-  -- Check if the file exists
-  if vim.fn.filereadable(compile_commands_path) == 0 then
-    vim.notify("Could not find compile_commands.json in: " .. compile_commands_path, vim.log.levels.ERROR)
-    return {}
-  end
-
-  -- Read the JSON file
-  local file = io.open(compile_commands_path, "r")
-  local content = file:read("*a")
-  file:close()
-
-  -- Parse JSON
-  local parsed_commands, _, err = json.decode(content)
-  if err then
-    vim.notify("Error parsing compile_commands.json: " .. err, vim.log.levels.ERROR)
-    return {}
-  end
-
-  -- Extract executables
-  for _, command in ipairs(parsed_commands) do
-    local output = command.output
-    if output and output:match("%.exe$") then
-      table.insert(executables, output)
-    end
-  end
-
-  -- Display or return the list of executables
-  vim.notify("Found executables:\n" .. table.concat(executables, "\n"), vim.log.levels.INFO)
-  return executables
-end
-
-
-
 function GenerateCMake()
   SaveUnavedFiletype('cmake')
 
@@ -109,13 +67,29 @@ function GenerateCMake()
   local root = util.get_project_root()
   if last_cwd ~= root then vim.cmd('cd ' .. root) end
 
+  -- NOTE: you can also use os.execute('...') instead of vim.cmd('!...')
+
   vim.cmd('!rm -rf "Debug"')
   vim.cmd('!rm -rf "Release"')
   --vim.cmd('!rm -rf "Test"')
 
+  -- Trigger CMake File API, for generating jsons that give info about executables and more
+  -- NOTE: If you're using multi-config generators like Visual Studio or Ninja Multi-Config,
+  -- then build directories might be build/, build/Debug/ and build/Release/
+  -- The .cmake/api folder must be created in the top-level build directory, not inside Debug or Release
+  --[[local query_dir = "Debug/.cmake/api/v1/query/client-nvim"
+  local query_path = query_dir .. "/query.json"
+  vim.fn.mkdir(query_dir, "p")
+  vim.fn.writefile({
+    "{",
+    '  "requests": [',
+    '    { "kind": "codemodel", "version": 2 }',
+    "  ]",
+    "}"
+  }, query_path)]]--
+
   vim.cmd('!cmake -S . -B "Debug" -DCMAKE_BUILD_TYPE=Debug')
   vim.cmd('!cmake -S . -B "Release" -DCMAKE_BUILD_TYPE=Release')
-  --vim.cmd('!cmake -S . -B "Test" -DCMAKE_BUILD_TYPE=Test')
 
   -- Create a symlink for compile_commands.json, so language server protocols
   --  like clangd or ccls work properly
@@ -406,6 +380,10 @@ end
 
 
 local filetype_to_run_table = {
+  cmake = {
+    run = GenerateCMake,
+    debug = GenerateCMake,
+  },
   cpp = {
     run = BuildAndRunCpp,
     debug = BuildAndDebugCpp,
@@ -479,7 +457,7 @@ end
 -- vim.keymap.set('n', '<F5>', function() Start("src") end )
 vim.keymap.set({'n', 'i'}, '<F4>', function() Start(nil, 'run') end, {silent = false})
 vim.keymap.set({'n', 'i'}, '<F5>', function() Start(nil, 'debug') end, {silent = false}) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
-vim.keymap.set({'n', 'i'}, '<F6>', function() GenerateCMake() end, {silent = false})     -- Only for CPP
+-- vim.keymap.set({'n', 'i'}, '<F6>', function() GenerateCMake() end, {silent = false})     -- Only for CPP
 
 
 vim.api.nvim_create_user_command("Run", function() Start(nil, 'run') end, {})

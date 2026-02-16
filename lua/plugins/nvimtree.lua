@@ -12,9 +12,9 @@
 -- r to move a file, by just giving it another directory
 -- a to add a new file in the directory that your cursor is in
 
--- local util = require("utilities")
+local util = require("utilities")
 
-local width_ratio = 0.25
+local width_ratio = 0.225
 
 return {
 
@@ -59,9 +59,8 @@ return {
       },
 
       view = {
-        -- width = function() return math.floor(width_ratio * vim.o.columns) end,
-        width = 24, -- 24
-        -- width = 32,
+        width = function() return util.round(width_ratio * vim.o.columns) end,
+        -- width = 24, -- 24
         side = "left",
         signcolumn = "no",
 

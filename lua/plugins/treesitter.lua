@@ -15,7 +15,7 @@ return {
     -- These are not dependencies, but just plugins which are lazy loaded
     -- when treesitter gets loaded
     dependencies = {
-      "nvim-treesitter/nvim-treesitter-context", -- Causes flickering on line numbers
+      "nvim-treesitter/nvim-treesitter-context", -- BUG: Causes flickering on line numbers
       -- "lukas-reineke/indent-blankline.nvim",
       -- "nvim-treesitter/nvim-treesitter-textobjects",
     },
