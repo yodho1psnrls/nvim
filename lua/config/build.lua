@@ -42,6 +42,24 @@ end
 local util = require"utilities"
 
 
+local function SaveUnavedFiletype(type)
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(bufnr) then
+      local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
+      local modified = vim.api.nvim_buf_get_option(bufnr, "modified")
+      local name = vim.api.nvim_buf_get_name(bufnr)
+
+      if filetype == type and modified and name ~= "" then
+        -- Save the buffer
+        vim.api.nvim_buf_call(bufnr, function()
+          vim.cmd("write")
+        end)
+      end
+    end
+  end
+end
+
+
 -- Install a Lua JSON parser like dkjson or lunajson.
 local function get_cmake_executables()
   local json = require("dkjson") -- Use a JSON library like `dkjson` (install if not available)
@@ -85,6 +103,8 @@ end
 
 
 function GenerateCMake()
+  SaveUnavedFiletype('cmake')
+
   local last_cwd = vim.fn.getcwd()
   local root = util.get_project_root()
   if last_cwd ~= root then vim.cmd('cd ' .. root) end
@@ -230,19 +250,20 @@ function LaunchDapConfig(filetype, config_name)
   print("No " .. config_name .. "configuration for " .. filetype)
 end
 
+local ep = require('executable_picker')
 
 ---------------------------------------------------------------------
 
-
 function BuildAndRunCpp()
--- function BuildAndRunCpp(exit_code)
-  -- if exit_code ~= 0 then return end
-  print(prepend_time("Building and Running Cpp ..."))
+  print(prepend_time("Building cpp ..."))
   -- BuildCmakeConfig('Release', function() vim.cmd('12split | term .\\Release\\bin\\proj.exe') end)
   BuildCmakeConfig('Release', function()
-    vim.cmd('10split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')--12split
+    -- vim.cmd('10split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj.exe')
+    local exe_to_run = ep.get_release_executable()
+    vim.cmd('12split | term ' .. exe_to_run)
     vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
     -- vim.cmd("setlocal nobuflisted") -- Exclude the buffer from the buffer list
+    vim.cmd("normal! G")
     if vim.api.nvim_get_mode().mode ~= 't' then
       vim.api.nvim_input('i')
     end
@@ -250,66 +271,12 @@ function BuildAndRunCpp()
 end
 
 function BuildAndDebugCpp()
--- function BuildAndDebugCpp(_)
-  print(prepend_time("Building and Debugging Cpp ..."))
+  print(prepend_time("Building cpp ..."))
   BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Project') end)
 end
 
-
-function BuildAndRunCppTest()
--- function BuildAndRunCppTest(exit_code)
-  -- if exit_code ~= 0 then return end
-  print(prepend_time("Building and Running Cpp Tests ..."))
-  BuildCmakeConfig('Release', function()
-    vim.cmd('14split | term ' .. util.get_project_root() .. '\\Release\\bin\\proj_test.exe')
-    vim.cmd("normal! G")
-    -- if vim.api.nvim_get_mode().mode ~= 't' then
-    --   vim.api.nvim_input('i')
-    -- end
-  end)
-end
-
-function BuildAndDebugCppTest()
--- function BuildAndDebugCppTest(_)
-  print(prepend_time("Building and Debugging Cpp Tests ..."))
-  BuildCmakeConfig('Debug', function() LaunchDapConfig('cpp', 'Launch Test') end)
-end
-
---[[
-function BuildAndRunCppTest()
-  if BuildCmakeConfig('Test') then
-    vim.cmd('10split | term .\\Test\\bin\\test_target.exe')
-  end
-end
-
-function BuildAndDebugCppTest()
-  if BuildCmakeConfig('Test') then
-    --require('dap').continue()
-    LaunchDapConfig('Launch Test')
-  end
-end
-]]--
-
-
 ------------------------------------------------------------------------
 -- There is no Building for python, but i want to keep the names consistent
-
---[[local function RunFile(command, on_exit)
-  bufnr = bufnr or vim.api.nvim_get_current_buf()
-
-  -- Function to capture the last line of terminal output
-  vim.api.nvim_buf_attach(bufnr, false, {
-    on_lines = function(_, _, _, _, _, _, _)
-      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-      local last_line = lines[#lines]
-
-      -- Check if the last line contains the exit code
-      if last_line:match("^%d+$") then
-        return last_line
-      end
-    end,
-  })
-end]]--
 
 function BuildAndRunPython()
   print(prepend_time("Running Python ..."))
@@ -440,26 +407,16 @@ end
 
 local filetype_to_run_table = {
   cpp = {
-    src = {
-      run = BuildAndRunCpp,
-      debug = BuildAndDebugCpp,
-    },
-    test = {
-      run = BuildAndRunCppTest,
-      debug = BuildAndDebugCppTest,
-    }
+    run = BuildAndRunCpp,
+    debug = BuildAndDebugCpp,
   },
   python = {
-    src = {
-      run = BuildAndRunPython,
-      debug = BuildAndDebugPython,
-    },
+    run = BuildAndRunPython,
+    debug = BuildAndDebugPython,
   },
   javascript = {
-    src = {
-      run = BuildAndRunJavaScript,
-      debug = BuildAndDebugJavaScript,
-    }
+    run = BuildAndRunJavaScript,
+    debug = BuildAndDebugJavaScript,
   }
 }
 
@@ -477,56 +434,21 @@ local filetype_to_run_table = {
 -- But it runs the debugger
 -- This makes no sense
 
-local function SaveUnavedFiletype(type)
-  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(bufnr) then
-      local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
-      local modified = vim.api.nvim_buf_get_option(bufnr, "modified")
-      local name = vim.api.nvim_buf_get_name(bufnr)
 
-      if filetype == type and modified and name ~= "" then
-        -- Save the buffer
-        vim.api.nvim_buf_call(bufnr, function()
-          vim.cmd("write")
-        end)
-      end
-    end
-  end
-end
-
-local function Start(type, what, mode)
+local function Start(type, mode)
   -- local type = vim.bo[0].filetype
   type = type or vim.bo.filetype
 
-  -- Why it defaults to test when i use it on a terminal ?
-  what = what or search_folder_names_above_file({"src", "test"}) or "src"
+  -- what = what or search_folder_names_above_file({"src", "test"}) or "src"
 
-  -- print(search_folder_names_above_file({what}))
-
-  if not mode then
-    -- https://vi.stackexchange.com/questions/10167/is-there-a-way-that-i-can-identify-which-window-is-a-terminal-after-calling-the
-    -- if type == "" then -- It may be a terminal window
-    --   mode = 'debug'
-    --   type = last_run_filetype
-    --
-    --   -- Exit the Terminal Wondow
-    --   vim.api.nvim_input("i")
-    --   vim.api.nvim_input("<CR>")
-    --
-    -- else
-    -- NOTE: Only checks for breakpoints in same type buffers and
-    --        same what(src or test)
-      if are_there_any_breakpoints_in_same_filetype_buffers(
-        function (id)
-          return search_folder_names_above_file({what}, id)
-        end
-      ) then
-        mode = 'debug'
-      else
-        mode = 'run'
-      end
-    -- end
-  end
+  -- TODO: Make the default value for mode based on if there are any breakpoints at all
+  -- if not mode then
+  --   if are_there_any_breakpoints_in_same_filetype_buffers() then
+  --     mode = 'debug'
+  --   else
+  --     mode = 'run'
+  --   end
+  -- end
 
   -- last_run_filetype = type
   local conf = filetype_to_run_table
@@ -538,12 +460,12 @@ local function Start(type, what, mode)
   -- if vim.bo.modified then vim.cmd('w') end
   SaveUnavedFiletype(type)
 
-  if not conf[type] or not conf[type][what] or not conf[type][what][mode] then
-    print("No ".. mode .. " " .. what  .. " configuration for file type " .. type)
+  if not conf[type] or not conf[type][mode] then
+    print("No ".. mode .. " configuration for file type " .. type)
     return
   end
 
-  conf[type][what][mode]()
+  conf[type][mode]()
 end
 
 
@@ -555,16 +477,16 @@ end
 
 -- vim.keymap.set('n', '<F4>', function() Start("test") end )
 -- vim.keymap.set('n', '<F5>', function() Start("src") end )
-vim.keymap.set({'n', 'i'}, '<F4>', function() Start(nil, nil, 'run') end, {silent = false})
-vim.keymap.set({'n', 'i'}, '<F5>', function() Start(nil, nil, 'debug') end, {silent = false}) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
+vim.keymap.set({'n', 'i'}, '<F4>', function() Start(nil, 'run') end, {silent = false})
+vim.keymap.set({'n', 'i'}, '<F5>', function() Start(nil, 'debug') end, {silent = false}) -- Still need to provide debug key, in runtime error cases with unhandled exceptions or failed assertions
 vim.keymap.set({'n', 'i'}, '<F6>', function() GenerateCMake() end, {silent = false})     -- Only for CPP
 
 
-vim.api.nvim_create_user_command("Run", function() Start(nil, 'src', 'run') end, {})
-vim.api.nvim_create_user_command("Test", function() Start(nil, 'test', 'run') end, {})
-vim.api.nvim_create_user_command("Debug", function() Start(nil, nil, 'debug') end, {})
-vim.api.nvim_create_user_command("DebugSrc", function() Start(nil, 'src', 'debug') end, {})
-vim.api.nvim_create_user_command("DebugTest", function() Start(nil, 'test', 'debug') end, {})
+vim.api.nvim_create_user_command("Run", function() Start(nil, 'run') end, {})
+vim.api.nvim_create_user_command("Test", function() Start(nil, 'run') end, {})
+vim.api.nvim_create_user_command("Debug", function() Start(nil, 'debug') end, {})
+vim.api.nvim_create_user_command("DebugSrc", function() Start(nil, 'debug') end, {})
+vim.api.nvim_create_user_command("DebugTest", function() Start(nil, 'debug') end, {})
 
 vim.api.nvim_create_user_command("Gen", function() GenerateCMake() end, {})
 vim.api.nvim_create_user_command("Generate", function() GenerateCMake() end, {})

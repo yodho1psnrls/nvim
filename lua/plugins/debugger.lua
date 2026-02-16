@@ -301,7 +301,8 @@ return {
           -- cwd = '${workspaceFolder}',
 
           -- program = util.get_project_root() .. '\\Debug\\bin\\proj.exe',
-          program = '\\Debug\\bin\\proj.exe',
+          program = require('executable_picker').get_debug_executable(),
+          -- program = '\\Debug\\bin\\proj.exe',
           cwd = util.get_project_root(),
 
           stopOnEntry = false,   -- Pause the debugger at the begin point of the program (like a breakpoint at the start)
@@ -372,7 +373,7 @@ return {
 
         },
 
-        {
+        --[[{
           name = "Launch Test",
           type = "codelldb",
           request = "launch",
@@ -399,7 +400,7 @@ return {
             { text = "-enable-pretty-printing" }                                       -- Pretty printing for more readable call stacks
           },
 
-        },
+        },]]--
 
       }
       dap.configurations.c = dap.configurations.cpp

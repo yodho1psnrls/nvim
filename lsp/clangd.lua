@@ -11,6 +11,9 @@ Diagnostics:
 #     Add: [-Wall, -Wextra]
 ]]--
 
+-- NOTE: Install with the command
+-- pacman -S mingw-w64-x86_64-clang-tools-extra
+
 return {
   -- The background-index tag makes clang to use cache indexing (as ccls)
   --cmd = { "clangd", "--background-index", "--query-driver=D:/Program Files/MSYS2/mingw64/bin/clang++.exe" },
