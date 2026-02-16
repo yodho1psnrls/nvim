@@ -419,5 +419,7 @@ vim.api.nvim_open_win(vim.fn.getqflist(), true, {
   border = "single"
 })]]--
 
-
+-- When following a path in the quickfix list, it opens a new buffer even if
+-- i had already opened the same file, so this options should make it reuse it
+vim.opt.switchbuf = { "useopen", "usetab" } -- Default: uselast
 
