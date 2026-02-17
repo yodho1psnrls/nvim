@@ -231,6 +231,12 @@ function M.PickExeInFolder(folder_path)
     finder = finders.new_table { results = exe_files },
     sorter = conf.generic_sorter({}),
     default_selection_index = preselect_index,
+    layout_strategy = "vertical",
+    layout_config = {
+      width = 0.4,      -- 40% of screen width
+      height = 0.4,     -- 40% of screen height
+    },
+    -- winblend = 10,  -- 0 = opaque, 100 = fully transparent
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         local selection = action_state.get_selected_entry()
@@ -253,13 +259,25 @@ vim.keymap.set({'n', 'i'}, "<F6>", M.PickExeInFolder, {desc='Choose Exe'})
 function M.get_release_executable()
   chosen_executable = chosen_executable or M.get_executables()[1]
   -- return string.gsub(chosen_executable, 'Debug', 'Release')
-  return M.find_paths(util.get_project_root(), chosen_executable)[1]
+  -- return M.find_paths(util.get_project_root() .. '\\Release\\', chosen_executable)[1]
+  local found_exes = M.find_paths(util.get_project_root(), chosen_executable)
+  for _, path in ipairs(found_exes) do
+    if path:find('Release', 1, true) then  -- plain search (no patterns)
+      return path
+    end
+  end
 end
 
 function M.get_debug_executable()
   chosen_executable = chosen_executable or M.get_executables()[1]
   -- return string.gsub(chosen_executable, 'Release', 'Debug')
-  return M.find_paths(util.get_project_root(), chosen_executable)[1]
+  -- return M.find_paths(util.get_project_root() .. '\\Debug\\', chosen_executable)[1]
+  local found_exes = M.find_paths(util.get_project_root(), chosen_executable)
+  for _, path in ipairs(found_exes) do
+    if path:find('Debug', 1, true) then  -- plain search (no patterns)
+      return path
+    end
+  end
 end
 
 return M

@@ -236,7 +236,7 @@ function BuildAndRunCpp()
     local exe_to_run = ep.get_release_executable()
     vim.cmd('12split | term ' .. exe_to_run)
     vim.cmd("setlocal bufhidden=wipe") -- Close buffer when you switch away from it
-    -- vim.cmd("setlocal nobuflisted") -- Exclude the buffer from the buffer list
+    vim.cmd("setlocal nobuflisted") -- Exclude the buffer from the buffer list
     vim.cmd("normal! G")
     if vim.api.nvim_get_mode().mode ~= 't' then
       vim.api.nvim_input('i')

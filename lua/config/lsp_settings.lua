@@ -504,6 +504,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
       --  completion autotrigger logic, which uses the triggerCharacters
       vim.api.nvim_buf_set_option(ev.buf, "autocomplete", false)
 
+      vim.api.nvim_buf_set_option(ev.buf, "omnifunc", "v:lua.vim.lsp.omnifunc")
+
       vim.lsp.completion.enable(true, client.id, ev.buf, {
         autotrigger = true,
         -- See :help complete-items for all fields of item parameter
@@ -614,7 +616,8 @@ vim.o.complete = ".,o" -- use buffer and omnifunc
 -- Omnifunc is part of neovim's native omnicompletion
 -- It is a function which returns completion candidates
 -- You can manually trigger it with <C-x><C-o>
-vim.bo.omnifunc = "v:lua.vim.lsp.omnifunc"
+-- vim.o.omnifunc = "v:lua.vim.lsp.omnifunc" -- NOTE: This is moved per buffer on LSP attach !!
+vim.o.omnifunc = ""
 -- vim.o.pumblend
 -- vim.o.dictionary
 -- vim.o.tags
